@@ -1,4 +1,4 @@
 .idea/
 .vscode/
 .env
-/data/db/database.db/
+/data/db/database.db
