@@ -113,8 +113,10 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         if check_if_muted:
             return await ctx.send("❌ That user is already muted.")
 
-        # if await utils.is_target_staff(ctx, user):
-        #     return await ctx.send("🤔 That user is a staff member hmmm")
+        check_if_staff = await utils.is_target_staff(ctx, user)
+
+        if check_if_staff:
+            return await ctx.send("🤔 That user is a staff member hmmm")
 
         if not role:
             role = discord.utils.get(ctx.guild.roles, "Muted")
@@ -272,15 +274,18 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
 
         modifiers = []
 
+        current_roles = user.roles
+
         for role in roles:
             role = await utils.find_roles(ctx.guild, role)
             if role in user.roles:
                 modifiers.append(f"-{role.mention}")
-                await user.remove_roles(role, reason=f"Responsible User: {ctx.author}")
+                current_roles.remove(role)
             else:
                 modifiers.append(f"+{role.mention}")
-                await user.add_roles(role, reason=f"Responsible User: {ctx.author}")
+                current_roles.append(role)
         
+        await user.edit(roles=current_roles)
         await ctx.thumbsup()
         
         embed = utils.embed_message(title="Updated Member Roles",

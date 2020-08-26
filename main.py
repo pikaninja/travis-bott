@@ -48,7 +48,8 @@ cogs = [
     "cogs.Misc",
     "cogs.custom.MotherRussia",
     "cogs.custom.SCrib",
-    "cogs.custom.Succ"
+    "cogs.custom.Succ",
+    "cogs.custom.UserRequests"
 ]
 
 for cog in cogs:

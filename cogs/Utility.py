@@ -4,6 +4,8 @@ from discord.ext import commands
 from utils import utils
 from aiohttp import request
 
+from datetime import datetime as dt
+
 import psutil
 import discord
 import typing
@@ -15,6 +17,7 @@ class Utility(commands.Cog, name="📝 Utility"):
     def __init__(self, bot):
         self.bot = bot
         self.weather_api_key = config("WEATHER_API_KEY")
+        self.ksoft_api_key = config("KSOFT_API")
 
     @commands.command(aliases=["urban", "ud"])
     async def urbandictionary(self, ctx, *, definition: str):
@@ -82,33 +85,60 @@ class Utility(commands.Cog, name="📝 Utility"):
             boosted_at_str = f"{user.premium_since.day}/{user.premium_since.month}/{user.premium_since.year} {user.premium_since.hour}:{user.premium_since.minute}:{user.premium_since.second}"
             return boosted_at_str
 
+        def get_activity(m: discord.Member):
+            activities = []
+            if isinstance(user.activity, discord.Spotify):
+                track = f"https://open.spotify.com/track/{user.activity.track_id if not None else 'None'}"
+                activities = [
+                    f"{', '.join(user.activity.artists)} - {user.activity.title}",
+                    f"Duration: {str(user.activity.duration).split('.')[0]}",
+                    f"URL: {track}"
+                ]
+            elif isinstance(user.activity, discord.BaseActivity):
+                activities = [f"{user.activity.name}"]
+            else:
+                activities = ["Currently doing nothing, they might just have their game or spotify hidden."]
+            return activities
+
+        # async def check_if_bot(m: discord.Member):
+        #     if dt.now().month == m.created_at.month or \
+        #         dt.now().month - 1 == m.created_at.month:
+        #         return "Potentially a bot 😳"
+        #     return "Should be clear."
+
+        async def check_if_bot(m: discord.Member):
+            ksoft_ban = f"https://api.ksoft.si/bans/check?format=json&user={user.id}"
+            async with request("GET", ksoft_ban, headers={"Authorization": "Bearer " + self.ksoft_api_key}) as r:
+                data = await r.json()
+                print(data)
+                is_banned = data["is_banned"]
+                if dt.now().month == m.created_at.month or \
+                    dt.now().month - 1 == m.created_at.month:
+                    if is_banned:
+                        prefix = "Pretty certain a "
+                    else:
+                        prefix = "Potentially a "
+                    return prefix + "bot 😳"
+                if is_banned:
+                    prefix = " You may want to keep an eye out though."
+                else:
+                    prefix = " Pretty sure they're safe"
+                return "Should be clear." + prefix
+
         [user_roles.append(role.mention) for role in user.roles]
         user_roles.pop(0)
         readable_roles = " ".join(user_roles)
-        activities = []
-        if isinstance(user.activity, discord.Spotify):
-            track = f"https://open.spotify.com/track/{user.activity.track_id if not None else 'None'}"
-            activities = [
-                f"{', '.join(user.activity.artists)} - {user.activity.title}",
-                f"Duration: {str(user.activity.duration).split('.')[0]}",
-                f"URL: {track}"
-            ]
-        else:
-            activities = [
-                f"Name: {user.activity.name}",
-                f"Details: {user.activity.details}"
-            ]
 
         fields = [
             ["Username", f"{user}", True],
-            ["Bot", user.bot, True],
+            ["Bot / User Bot", f"{user.bot} / {await check_if_bot(user)}", True],
             ["Status", str(user.status).capitalize(), True],
             ["Created at", created_at_str, True],
             ["Joined at", joined_at_str, True],
             ["Boosting", check_boosted(user), True],
             [f"Roles [{len(user_roles)}]", readable_roles, False],
             ["Permissions", utils.check_permissions(ctx, user), False],
-            [user.activity.type.name.capitalize(), "\n".join(activities), False]
+            [f"Activity - {user.activity.type.name.capitalize() if user.activity else 'No Activity'}:", "\n".join(get_activity(user)), False]
         ]
 
         embed = utils.embed_message(thumbnail=user.avatar_url,

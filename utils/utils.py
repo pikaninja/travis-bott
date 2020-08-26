@@ -25,7 +25,6 @@ async def get_guild_prefix(guild_id):
 
 async def is_target_staff(ctx, user) -> str:
     ch = ctx.message.channel
-    user = ctx.bot.get_user(user)
     permissions = ch.permissions_for(user).manage_messages
     return permissions
 
