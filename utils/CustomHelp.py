@@ -48,7 +48,8 @@ class CustomHelp(commands.HelpCommand):
     async def send_group_help(self, group: commands.Group):
         embed = utils.embed_message(title=f"{self.clean_prefix}{group.qualified_name} {group.signature}")
         if group.help:
-            embed.description = str(group.help)
+            aliases = f"*Aliases: {' | '.join('`' + x + '`' for x in  group.aliases)}*" if group.aliases else ""
+            embed.description = str(group.help) + "\n" + aliases
 
         if isinstance(group, commands.Group):
             filtered = await self.filter_commands(group.commands, sort=True)
