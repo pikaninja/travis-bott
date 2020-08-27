@@ -17,3 +17,15 @@ CREATE TABLE IF NOT EXISTS premium(
     guild_id INTEGER PRIMARY KEY,
     end_time INTEGER
 );
+CREATE TABLE IF NOT EXISTS xp_levels(
+    user_id INTEGER PRIMARY KEY,
+    xp INTEGER,
+    level INTEGER,
+    xp_required INTEGER,
+    xp_lock INTEGER
+);
+CREATE TABLE IF NOT EXISTS xp_settings (
+    guild_id INTEGER PRIMARY KEY,
+    messages TEXT DEFAULT "no",
+    messages_channel INTEGER
+);

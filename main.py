@@ -1,6 +1,7 @@
 import os
 import logging
 import time
+import ksoftapi
 
 from decouple import config
 from discord import Game, Status, AllowedMentions
@@ -31,6 +32,7 @@ bot = MyBot(
 bot.description = "A general purpose discord bot that provides a lot of utilities and such to use."
 bot.owner_id = 671777334906454026
 bot.owner_ids = {671777334906454026} # Put your ID here, maybe some other peoples
+bot.kclient = ksoftapi.Client(config("KSOFT_API"))
 
 # Commands
 # for file in os.listdir("./cogs"):
@@ -46,6 +48,7 @@ cogs = [
     "cogs.Fun",
     "cogs.Utility",
     "cogs.Misc",
+    "cogs.XP",
     "cogs.custom.MotherRussia",
     "cogs.custom.SCrib",
     "cogs.custom.Succ",

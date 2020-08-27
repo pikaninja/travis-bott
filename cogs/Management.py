@@ -6,6 +6,7 @@ from utils import db, utils
 import asyncio
 
 class Management(commands.Cog, name="🛡 Management"):
+    """Management Commands"""
     def __init__(self, bot):
         self.bot = bot
 

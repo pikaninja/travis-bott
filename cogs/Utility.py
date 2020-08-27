@@ -12,6 +12,13 @@ import typing
 import random
 import numexpr
 
+status_icons = {
+    "online": "<:online:748253316693098609>",
+    "dnd": "<:dnd:748253316777115659>",
+    "idle": "<:away:748253316882104390>",
+    "offline": "<:offline:748253316533846179>"
+}
+
 class Utility(commands.Cog, name="📝 Utility"):
     """Useful little utilities"""
     def __init__(self, bot):
@@ -107,23 +114,19 @@ class Utility(commands.Cog, name="📝 Utility"):
         #     return "Should be clear."
 
         async def check_if_bot(m: discord.Member):
-            ksoft_ban = f"https://api.ksoft.si/bans/check?format=json&user={user.id}"
-            async with request("GET", ksoft_ban, headers={"Authorization": "Bearer " + self.ksoft_api_key}) as r:
-                data = await r.json()
-                print(data)
-                is_banned = data["is_banned"]
-                if dt.now().month == m.created_at.month or \
-                    dt.now().month - 1 == m.created_at.month:
-                    if is_banned:
-                        prefix = "Pretty certain a "
-                    else:
-                        prefix = "Potentially a "
-                    return prefix + "bot 😳"
+            is_banned = await self.bot.kclient.bans.check(m.id)
+            if dt.now().month == m.created_at.month or \
+                dt.now().month - 1 == m.created_at.month:
                 if is_banned:
-                    prefix = " You may want to keep an eye out though."
+                    prefix = "Pretty certain a "
                 else:
-                    prefix = " Pretty sure they're safe"
-                return "Should be clear." + prefix
+                    prefix = "Potentially a "
+                return prefix + "bot 😳"
+            if is_banned:
+                prefix = " You may want to keep an eye out though."
+            else:
+                prefix = " Pretty sure they're safe"
+            return "Should be clear." + prefix
 
         [user_roles.append(role.mention) for role in user.roles]
         user_roles.pop(0)
@@ -132,7 +135,7 @@ class Utility(commands.Cog, name="📝 Utility"):
         fields = [
             ["Username", f"{user}", True],
             ["Bot / User Bot", f"{user.bot} / {await check_if_bot(user)}", True],
-            ["Status", str(user.status).capitalize(), True],
+            ["Status", f"{status_icons[str(user.status)]}  {str(user.status).capitalize()}", True],
             ["Created at", created_at_str, True],
             ["Joined at", joined_at_str, True],
             ["Boosting", check_boosted(user), True],
