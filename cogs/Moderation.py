@@ -14,7 +14,7 @@ import re
 def can_execute_action(ctx, user, target):
     return user.id == ctx.bot.owner_id or \
            user == ctx.guild.owner or \
-           user.top_role >= target.top_role
+           user.top_role > target.top_role
 
 class MemberNotFound(Exception):
     pass
@@ -144,6 +144,25 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         await user.add_roles(role, reason=f"Muted by: {ctx.author}")
         await ctx.thumbsup()
 
+    @commands.command()
+    @commands.guild_only()
+    @commands.has_permissions(manage_messages=True)
+    async def unmute(self, ctx, user: discord.Member):
+        """Unmutes a given user who has the servers muted role"""
+
+        mute_role_id = await db.field("SELECT mute_role_id FROM guild_settings WHERE guild_id = ?", ctx.guild.id)
+
+        if mute_role_id is None:
+            return await ctx.send(f"There is no mute role set for this server, please run `{ctx.prefix}muterole [Role]` to set one up.")
+
+        role = ctx.guild.get_role(mute_role_id)
+
+        if role in user.roles:
+            await user.remove_roles(role, reason=f"Unmuted by: {ctx.author}")
+            await ctx.thumbsup()
+        else:
+            await ctx.send("That user is not muted!")
+
     @commands.command(aliases=["unbanall"])
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
@@ -173,9 +192,13 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     @commands.command(aliases=["barn", "banish"])
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
-    async def ban(self, ctx, user: MemberID = None, *, reason: str = "No reason provided."):
+    async def ban(self, ctx, user: MemberID, *, reason: str = "No reason provided."):
         """Bans someone for a given reason.
         Permissions needed: `Ban Members`"""
+
+        # if not re.fullmatch('[0-9]{17,18}', user.id):
+        #     if await utils.is_target_staff(ctx, user):
+        #         return await ctx.send("😬 That person is staff...")
         
         await ctx.guild.ban(user, reason=f"{reason} | Responsible User: {ctx.author}")
         await ctx.thumbsup()
@@ -229,11 +252,11 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         in_role = []
         role = await utils.find_roles(ctx.guild, role)
         [in_role.append(member.mention) for member in role.members]
-        columns = [in_role, ""]
+        columns = [in_role, ["\u200b"]]
         if len(in_role) > 1:
             columns[0], columns[1] = utils.split_list(in_role)
+            columns.sort(reverse=True)
         
-        columns.sort(reverse=True)
         embed = utils.embed_message(title=f"Members in {role.name} [{len(role.members)}]")
         [embed.add_field(name="\u200b", value="\n".join(column) if column else "\u200b") for column in columns]
         await ctx.send(embed=embed)

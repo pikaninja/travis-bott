@@ -145,7 +145,7 @@ class Utility(commands.Cog, name="📝 Utility"):
         ]
 
         embed = utils.embed_message(thumbnail=user.avatar_url,
-                                    footer_text=f"ID: {user.id}")
+                                    footer_text=f"ID: {user.id} | Powered by KSoft.Si API")
         [embed.add_field(name=n, value=v, inline=i) for n, v, i in fields]
         await ctx.send(embed=embed)
 

@@ -20,7 +20,7 @@ def get_xp_modifier():
     return 0.75 if get_weekday == 6 or 7 else 0.50
 
 class XP(commands.Cog, name="⚗ XP"):
-    """XP Commands"""
+    """XP System, this is a per-user XP system and not per server."""
     def __init__(self, bot):
         self.bot = bot
         self.xp_modifier = get_xp_modifier()
@@ -108,6 +108,17 @@ class XP(commands.Cog, name="⚗ XP"):
         ctx = await self.bot.get_context(message)
         await self.process_xp(ctx, message.author)
 
+    @commands.group()
+    async def xp(self, ctx):
+        """The commands that allow you set up the XP system."""
+
+        await ctx.send_help(ctx.command)
+    
+    @xp.command(name="messages")
+    @commands.has_permissions(manage_guild=True)
+    async def xp_messages(self, ctx):
+        """Enables or disables level up messages for the server."""
+
     @commands.command()
     async def rank(self, ctx, user: discord.Member = None):
         """Gets your current rank and how much xp is record until you level up."""
@@ -120,8 +131,7 @@ class XP(commands.Cog, name="⚗ XP"):
 
         fields = [
             ["Level", user_record[2]],
-            ["XP", user_record[1]],
-            ["XP Needed", user_record[3]]
+            ["XP", f"{user_record[1]} / {user_record[3]}"]
         ]
 
         embed = utils.embed_message(title=f"{user}'s rank",
