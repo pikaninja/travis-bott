@@ -76,7 +76,8 @@ class General(commands.Cog, name="🤖 General"):
         mem_used = (psutil.virtual_memory().total - psutil.virtual_memory().available) / 1000000
         total_mem = psutil.virtual_memory().total / 1000000
 
-        embed = utils.embed_message(title=f"Info about {self.bot.user.name}")
+        embed = utils.embed_message(title=f"Info about {self.bot.user.name}",
+                                    footer_text=f"Bot Version: {self.bot.version} | D.py Version: {discord.__version__}")
         embed.add_field(name="Invite the bot", value=f"[Here]({invite_link})")
         embed.add_field(name="GitHub", value=f"[Here]({config('GITHUB_LINK')})")
         embed.add_field(name="Support server", value=f"[Here]({config('SUPPORT_LINK')})")

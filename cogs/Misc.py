@@ -9,6 +9,26 @@ class Misc(commands.Cog, name="💫 Misc"):
         self.bot = bot
 
     @commands.command()
+    async def privacy(self, ctx):
+        """Sends the bots privacy policy via dms."""
+
+        message = """What information is stored?
+- Server ID's, Channel ID's, User ID's will be saved for the use of features such as Mutes, verification etc.
+
+Why this information is stored and how we use it.
+- This information is stored to keep the bot with the most up to date info that allows it to keep running it's correct service.
+- The mute data is stored temporarily and is used to check when the mute is supposed to end, or if you're supposed to be muted if you join or leave.
+
+Who gets this data?
+- The bot developer(s).
+- If you're muted then your mute data will be formed into something readable by the `Moderations` command and this can be seen by any server staff member.
+
+How to remove your data.
+- If you'd like to get your servers data out of the bot then please either use the correct commands if given an option or contact the bot developer (kal#1806) for more information."""
+
+        await ctx.author.send(message)
+
+    @commands.command()
     async def suggest(self, ctx, *, suggestion: str):
         """Send a suggestion to the bot developer."""
 

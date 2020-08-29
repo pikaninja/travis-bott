@@ -7,8 +7,10 @@ from datetime import datetime as dt
 
 from utils import db, utils
 from utils.CustomContext import CustomContext
+from utils import CustomBot
 
 import random
+import asyncio
 
 def get_weekday() -> int:
     """Returns an int representating the weekday"""
@@ -19,9 +21,14 @@ def get_xp_modifier():
     get_weekday = int(str(dt.now().weekday())) + 1
     return 0.75 if get_weekday == 6 or 7 else 0.50
 
+message_reactions = {
+    "✅": "yes",
+    "❌": "no"
+}
+
 class XP(commands.Cog, name="⚗ XP"):
     """XP System, this is a per-user XP system and not per server."""
-    def __init__(self, bot):
+    def __init__(self, bot: CustomBot):
         self.bot = bot
         self.xp_modifier = get_xp_modifier()
 
@@ -108,7 +115,7 @@ class XP(commands.Cog, name="⚗ XP"):
         ctx = await self.bot.get_context(message)
         await self.process_xp(ctx, message.author)
 
-    @commands.group()
+    @commands.group(invoke_without_command=True)
     async def xp(self, ctx):
         """The commands that allow you set up the XP system."""
 
@@ -119,9 +126,26 @@ class XP(commands.Cog, name="⚗ XP"):
     async def xp_messages(self, ctx):
         """Enables or disables level up messages for the server."""
 
+        msg = await ctx.send("✅ | `To enable level up messages in this server.`\n" + \
+                             "❌ | `To disable level up messages in this server.`")
+
+        await msg.add_reaction("✅")
+        await msg.add_reaction("❌")
+
+        await asyncio.sleep(1)
+
+        try:
+            def check(reaction, user):
+                return user == ctx.author and reaction.message == msg and str(reaction.emoji) == "✅" or "❌"
+            reaction, user = await self.bot.wait_for("reaction_add", timeout=10.0, check=check)
+        except asyncio.TimeoutError:
+            return await ctx.send("You did not react in time!")
+        else:
+            await ctx.send(f"{reaction.emoji}")
+
     @commands.command()
     async def rank(self, ctx, user: discord.Member = None):
-        """Gets your current rank and how much xp is record until you level up."""
+        """Gets your current rank and how much xp is required until you level up."""
 
         user = user or ctx.author
         user_record = await db.record("SELECT * FROM xp_levels WHERE user_id = ?", user.id)

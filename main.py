@@ -29,6 +29,8 @@ bot = MyBot(
     max_messages=100, # Minimum we can cache, just drops resource usage.
     allowed_mentions=AllowedMentions(everyone=False, roles=False)
 )
+
+bot.version = "2020.08.29"
 bot.description = "A general purpose discord bot that provides a lot of utilities and such to use."
 bot.owner_id = 671777334906454026
 bot.owner_ids = {671777334906454026} # Put your ID here, maybe some other peoples
