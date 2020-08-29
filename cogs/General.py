@@ -86,7 +86,7 @@ class General(commands.Cog, name="🤖 General"):
         embed.add_field(name="CPU", value=f"{cpu_percentage}%")
         embed.add_field(name="Creator", value=f"{config('DEVELOPER')}")
         embed.add_field(name="Currently in", value=f"{len(self.bot.guilds)} servers")
-        embed.add_field(name="Current prefix", value=f"{ctx.prefix}")
+        embed.add_field(name="Current prefix", value=f"`{ctx.prefix}`")
 
         await ctx.send(embed=embed)
 
