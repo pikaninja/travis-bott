@@ -11,6 +11,7 @@ import discord
 import typing
 import random
 import numexpr
+from io import StringIO
 
 status_icons = {
     "online": "<:online:748253316693098609>",
@@ -25,6 +26,36 @@ class Utility(commands.Cog, name="📝 Utility"):
         self.bot = bot
         self.weather_api_key = config("WEATHER_API_KEY")
         self.ksoft_api_key = config("KSOFT_API")
+
+    @commands.command(disabled=True)
+    async def tester(self, ctx):
+        """test"""
+
+        default_pfps = [
+            "https://cdn.discordapp.com/embed/avatars/0.png",
+            # "https://cdn.discordapp.com/embed/avatars/1.png",
+            # "https://cdn.discordapp.com/embed/avatars/2.png",
+            # "https://cdn.discordapp.com/embed/avatars/3.png",
+            # "https://cdn.discordapp.com/embed/avatars/4.png"
+        ]
+
+        default_av_bytes = []
+
+        for av in default_pfps:
+            async with request("GET", url=av, headers={}) as r:
+                content = await r.content.read()
+                pfp_bytes = StringIO(str(content)).read()
+                default_av_bytes.append(pfp_bytes)
+
+        avatar_bytes = await ctx.author.avatar_url.read()
+        print(avatar_bytes in default_av_bytes)
+
+        print(avatar_bytes)
+
+        if avatar_bytes in default_av_bytes:
+            await ctx.send("Hey")
+        else:
+            await ctx.send("Sup")
 
     @commands.command(aliases=["urban", "ud"])
     async def urbandictionary(self, ctx, *, definition: str):
@@ -115,13 +146,13 @@ class Utility(commands.Cog, name="📝 Utility"):
 
         async def check_if_bot(m: discord.Member):
             is_banned = await self.bot.kclient.bans.check(m.id)
-            if dt.now().month == m.created_at.month or \
-                dt.now().month - 1 == m.created_at.month:
+            if dt.now().month == m.created_at.month and dt.now().year == m.created_at.year or \
+                dt.now().month - 1 == m.created_at.month and dt.now().year == m.created_at.year:
                 if is_banned:
                     prefix = "Pretty certain a "
                 else:
                     prefix = "Potentially a "
-                return prefix + "bot 😳"
+                return prefix + "bot"
             if is_banned:
                 prefix = " You may want to keep an eye out though."
             else:

@@ -4,6 +4,8 @@ from discord.ext.commands import Cog
 
 from utils import utils
 
+import typing
+
 # noinspection PyRedundantParentheses
 class ErrorHandler(Cog):
     def __init__(self, bot):
@@ -11,6 +13,21 @@ class ErrorHandler(Cog):
 
     """Pretty much from here:
     https://github.com/4Kaylum/DiscordpyBotBase/blob/master/cogs/error_handler.py"""
+
+    async def send_to_ctx_or_author(self, ctx, text: str = None) -> typing.Optional[discord.Message]:
+        """Tries to send the given text to ctx, but failing that, tries to send it to the author
+        instead. If it fails that too, it just stays silent."""
+
+        try:
+            return await ctx.send(text)
+        except discord.Forbidden:
+            try:
+                return await ctx.author.send(text)
+            except discord.Forbidden:
+                pass
+        except discord.NotFound:
+            pass
+        return None
 
     @Cog.listener()
     async def on_command_error(self, ctx, error):
@@ -30,10 +47,7 @@ class ErrorHandler(Cog):
 
         # Command is on Cooldown
         elif isinstance(error, commands.CommandOnCooldown):
-            message = utils.embed_message(title="Command on Cooldown.",
-                                          message=f"This command is on cooldown. **`{int(error.retry_after)}` seconds**",
-                                          footer_icon=self.bot.user.avatar_url)
-            return await ctx.send(embed=message, delete_after=2)
+            return await self.send_to_ctx_or_author(ctx, f"This command is on cooldown. **`{int(error.retry_after)}` seconds**")
 
         # Missing argument
         elif isinstance(error, commands.MissingRequiredArgument):
@@ -45,31 +59,19 @@ class ErrorHandler(Cog):
 
         # Missing Permissions
         elif isinstance(error, commands.MissingPermissions):
-            message = utils.embed_message(title="Missing Permissions.",
-                                          message=f"You're missing the required permission: `{error.missing_perms[0]}`",
-                                          footer_icon=self.bot.user.avatar_url)
-            return await ctx.send(embed=message, delete_after=2)
+            return await self.send_to_ctx_or_author(ctx, f"You're missing the required permission: `{error.missing_perms[0]}`")
 
         # Missing Permissions
         elif isinstance(error, commands.BotMissingPermissions):
-            message = utils.embed_message(title="Bot is Missing Permissions.",
-                                          message=f"Platform is missing the required permission: `{error.missing_perms[0]}`",
-                                          footer_icon=self.bot.user.avatar_url)
-            return await ctx.send(embed=message, delete_after=2)
+            return await self.send_to_ctx_or_author(ctx, f"Platform is missing the required permission: `{error.missing_perms[0]}`")
 
         # Discord Forbidden, usually if bot doesn't have permissions
         elif isinstance(error, discord.Forbidden):
-            message = utils.embed_message(title="Unable to complete action.",
-                                          message=f"I was unable to complete this action, this is most likely due to permissions.",
-                                          footer_icon=self.bot.user.avatar_url)
-            return await ctx.send(embed=message, delete_after=2)
+            return await self.send_to_ctx_or_author(ctx, f"I was unable to complete this action, this is most likely due to permissions.")
 
         # User who invoked command is not owner
         elif isinstance(error, commands.NotOwner):
-            message = utils.embed_message(title="Unable to complete action.",
-                                          message=f"You must be the owner of the bot to run this.",
-                                          footer_icon=self.bot.user.avatar_url)
-            return await ctx.send(embed=message, delete_after=2)
+            return await self.send_to_ctx_or_author(ctx, f"You must be the owner of the bot to run this.")
         
         raise error
 

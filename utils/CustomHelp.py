@@ -13,7 +13,7 @@ class CustomHelp(commands.HelpCommand):
 
     def get_command_signature(self, command: commands.Command):
         return f"{self.clean_prefix}{command.qualified_name} {command.signature}"
-    
+
     async def send_bot_help(self, mapping):
         embed = utils.embed_message(title="Bot Commands")
         embed.description = self.context.bot.description + "\n\n" + \
@@ -60,3 +60,9 @@ class CustomHelp(commands.HelpCommand):
         await self.get_destination().send(embed=embed)
     
     send_command_help = send_group_help
+    
+    # This doesnt appear to work...
+    # yes I've even tried without my error handler, same result.
+
+    # async def send_error_message(self, error):
+    #     await self.context.author.send(error)

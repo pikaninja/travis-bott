@@ -1,4 +1,4 @@
-from discord.ext import commands, tasks
+from discord.ext import commands, tasks, menus
 
 from utils import utils, db
 
@@ -48,6 +48,42 @@ class MemberID(commands.Converter):
             raise commands.BadArgument('You cannot do this action on this user due to role hierarchy.')
         return m
 
+# class BanMenu(menus.Menu):
+#     def __init__(self, *, fields=None, timeout=180.0, delete_message_after=False, clear_reactions_after=True, check_embeds=False, message=None):
+#         self.fields = fields
+#         self.page = 0
+#         self.msg = []
+#         super().__init__(timeout=timeout, delete_message_after=delete_message_after, clear_reactions_after=clear_reactions_after, check_embeds=check_embeds, message=message)
+
+#     async def send_initial_message(self, ctx, channel):
+#         embed = utils.embed_message(title="All Bans")
+#         [embed.add_field(name=n, value=v, inline=False) for n, v in self.fields]
+#         self.msg = await channel.send(embed=embed)
+#         return self.msg
+
+#     @menus.button("👈")
+#     async def on_back_page(self, payload):
+#         self.page -= 1
+
+#     @menus.button("👉")
+#     async def on_forward_page(self, payload):
+#         self.page += 1
+
+#     @menus.button('\N{CROSS MARK}')
+#     async def on_stop_press(self, payload):
+#         self.page = 0
+#         self.stop()
+
+class BanMenusI2(menus.ListPageSource):
+    def __init__(self, data):
+        self.data = data
+        super().__init__(data, per_page=4)
+
+    async def format_page(self, menu, page):
+        embed = utils.embed_message(title="All Bans")
+        [embed.add_field(name=n, value=v, inline=False) for n, v in self.data]
+        return embed
+
 class Moderation(commands.Cog, name="⚔ Moderation"):
     """Moderation Commands"""
     def __init__(self, bot):
@@ -72,9 +108,24 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
             else:
                 pass
 
+    # @commands.command()
+    # @commands.guild_only()
+    # @commands.has_permissions(manage_messages=True)
+    # @commands.bot_has_permissions(send_messages=True)
+    # async def bans(self, ctx):
+    #     """Gives a list of all the bans in the server."""
+
+    #     bans = await ctx.guild.bans()
+    #     fields = []
+    #     for i in range(10):
+    #         [fields.append([f"{x.user.name}#{x.user.discriminator}", f"{x.reason}"]) for x in bans]
+    #     ban_list = menus.MenuPages(source=BanMenusI2(fields), delete_message_after=True, timeout=60.0, clear_reactions_after=True)
+    #     await ban_list.start(ctx)
+
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
+    @commands.bot_has_permissions(send_messages=True)
     async def moderations(self, ctx):
         """Gives a list of all of the active mutes."""
 
@@ -99,9 +150,10 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
+    @commands.bot_has_permissions(manage_roles=True)
     async def mute(self, ctx, user: discord.Member, time: str, reason: str = "No reason provided."):
         """Mutes someone for a given amount of time.
-        Permissions needed:
+        Permissions needed: `Manage Messages`
         Example: `mute @kal#1806 5m Way too cool for me`"""
 
         mute_role_id = await db.field("SELECT mute_role_id FROM guild_settings WHERE guild_id = ?", ctx.guild.id)
@@ -142,11 +194,12 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         
         await db.commit()
         await user.add_roles(role, reason=f"Muted by: {ctx.author}")
-        await ctx.thumbsup()
+        await ctx.send(f"⚔ Successfully muted {user} for {time} with the reason: {reason}")
 
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
+    @commands.bot_has_permissions(manage_roles=True)
     async def unmute(self, ctx, user: discord.Member):
         """Unmutes a given user who has the servers muted role"""
 
@@ -166,6 +219,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     @commands.command(aliases=["unbanall"])
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
+    @commands.bot_has_permissions(ban_members=True)
     async def massunban(self, ctx):
         """Gives a prompt to unban everyone.
         Permissions needed: `Manage Server`"""
@@ -174,7 +228,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
             return m.author == ctx.author and m.channel == ctx.channel
         await ctx.send("Are you sure you would like to unban everyone? (10 Seconds)")
         try:
-            user_input = ctx.bot.wait_for("message", timeout=10.0, check=check)
+            user_input = await self.bot.wait_for("message", timeout=10.0, check=check)
         except asyncio.TimeoutError:
             return await ctx.send(f"{ctx.author.mention} you did not reply in time.")
         else:
@@ -187,11 +241,12 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
                 for ban in bans:
                     user = ban.user
                     await ctx.guild.unban(user, reason=f"Mass Unban | Responsible User: {ctx.author}")
-                await ctx.send(f"Successfully unbanned {len(bans)}")
+                await ctx.send(f"Successfully unbanned {len(bans)} people")
     
     @commands.command(aliases=["barn", "banish"])
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
+    @commands.bot_has_permissions(ban_members=True)
     async def ban(self, ctx, user: MemberID, *, reason: str = "No reason provided."):
         """Bans someone for a given reason.
         Permissions needed: `Ban Members`"""
@@ -205,6 +260,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
 
     @commands.command(aliases=["unbarn", "unbanish"])
     @commands.has_permissions(ban_members=True)
+    @commands.bot_has_permissions(ban_members=True)
     async def unban(self, ctx, user: str):
         """Unbans a given user.
         Permissions needed: `Ban Members`"""
@@ -216,6 +272,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(kick_members=True)
+    @commands.bot_has_permissions(kick_members=True)
     async def kick(self, ctx, user: discord.Member, *, reason: str = "No reason provided."):
         """Kicks a user for a given reason.
         Permissions needed: `Kick Members`"""
@@ -229,6 +286,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
+    @commands.bot_has_permissions(manage_nicknames=True)
     async def setnick(self, ctx, user: discord.Member, new_name: str = None):
         """Sets a new nickname for a given user.
         Permissions needed: `Manage Messages`"""
@@ -245,6 +303,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
+    @commands.bot_has_permissions(send_messages=True)
     async def members(self, ctx, role: str):
         """Check the list of members in a certain role.
         Permissions needed: `Manage Messages`"""
@@ -264,6 +323,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
+    @commands.bot_has_permissions(manage_messages=True)
     async def clean(self, ctx):
         """Cleans all 100 previous bot messages.
         Permissions needed: `Manage Messages`"""
@@ -276,6 +336,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
+    @commands.bot_has_permissions(manage_messages=True)
     async def purge(self, ctx, amount: int):
         """Purges a given amount of messages
         Permissions needed: `Manage Messages`"""
@@ -286,7 +347,8 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     @commands.group(invoke_without_command=True)
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
-    async def role(self, ctx, user: discord.Member = None, *roles: str):
+    @commands.bot_has_permissions(manage_roles=True)
+    async def role(self, ctx, user: discord.Member, *roles: str):
         """
         Permissions needed: `Manage Roles`
 
@@ -318,6 +380,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     @role.command(name="add")
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
+    @commands.bot_has_permissions(manage_roles=True)
     async def role_add(self, ctx, *, role: str):
         """Adds a new role with a given name."""
 
@@ -327,6 +390,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     @role.command(name="del")
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
+    @commands.bot_has_permissions(manage_roles=True)
     async def role_del(self, ctx, *, role: str):
         """Deletes a given role."""
 
@@ -337,6 +401,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     @role.command(name="colour", aliases=["color"])
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
+    @commands.bot_has_permissions(manage_roles=True)
     async def role_colour(self, ctx, role: str, colour: str):
         """Sets the colour of a given role."""
 
@@ -354,6 +419,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     @role.command(name="info")
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
+    @commands.bot_has_permissions(send_messages=True)
     async def role_info(self, ctx, role: str):
         """Get information on a given role."""
 

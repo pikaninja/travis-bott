@@ -13,6 +13,7 @@ class Management(commands.Cog, name="🛡 Management"):
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
+    @commands.bot_has_permissions(manage_channels=True)
     async def muterole(self, ctx, role: str):
         """Sets the mute role for the server."""
 
@@ -69,6 +70,7 @@ class Management(commands.Cog, name="🛡 Management"):
     @commands.group(aliases=["verify"], invoke_without_command=True)
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
+    @commands.bot_has_permissions(send_messages=True)
     async def verification(self, ctx):
         """Permissions needed: `Manage Server`
         Verification Setup."""
@@ -78,6 +80,7 @@ class Management(commands.Cog, name="🛡 Management"):
     @verification.command(name="setup")
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
+    @commands.bot_has_permissions(send_messages=True)
     async def verification_setup(self, ctx, channel: discord.TextChannel, *, role: str):
         """Goes through the process to set up verification."""
 
