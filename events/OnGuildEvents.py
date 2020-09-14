@@ -9,7 +9,7 @@ class OnGuildEvents(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
-        await db.execute(f"INSERT INTO guild_settings(guild_id) VALUES(?)", guild.id)
+        await db.execute(f"INSERT INTO guild_settings(guild_id, guild_prefix) VALUES(?, ?)", guild.id, "tb!")
 
         await db.commit()
 

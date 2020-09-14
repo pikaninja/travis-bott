@@ -63,7 +63,7 @@ class General(commands.Cog, name="🤖 General"):
         """Get the bots ping."""
 
         embed = utils.embed_message(message=f"**{int(ctx.bot.latency * 1000)} ms**")
-        embed.set_author(name="Platforms Latency:", icon_url=self.bot.user.avatar_url)
+        embed.set_author(name="Travis Bott's Latency:", icon_url=self.bot.user.avatar_url)
         await ctx.send(embed=embed)
     
     @commands.command()
