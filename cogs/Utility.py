@@ -159,8 +159,9 @@ class Utility(commands.Cog, name="📝 Utility"):
                 prefix = " Pretty sure they're safe"
             return "Should be clear." + prefix
 
-        [user_roles.append(role.mention) for role in user.roles]
-        user_roles.pop(0)
+        roles = user.roles
+        roles.reverse()
+        [user_roles.append(role.mention) for role in roles if len(user_roles) < 30]
         readable_roles = " ".join(user_roles)
 
         fields = [
@@ -170,7 +171,7 @@ class Utility(commands.Cog, name="📝 Utility"):
             ["Created at", created_at_str, True],
             ["Joined at", joined_at_str, True],
             ["Boosting", check_boosted(user), True],
-            [f"Roles [{len(user_roles)}]", readable_roles, False],
+            [f"Roles [{len(user_roles) if len(user_roles) < 30 else '30*'}]", readable_roles, False],
             ["Permissions", utils.check_permissions(ctx, user), False],
             [f"Activity - {user.activity.type.name.capitalize() if user.activity else 'No Activity'}:", "\n".join(get_activity(user)), False]
         ]

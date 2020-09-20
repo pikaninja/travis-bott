@@ -84,7 +84,19 @@ class XP(commands.Cog, name="⚗ XP"):
                 await db.execute("UPDATE xp_levels SET xp_required = ? WHERE user_id = ?",
                                  int(xp + xp * get_xp_modifier()), user.id)
                 await db.commit()
-                # await ctx.send(f"🎉🥳 {ctx.author.name} has leveled up to `{level + 1}`!")
+
+                messages = await db.field("SELECT messages FROM xp_settings WHERE guild_id = ?", ctx.guild.id)
+                message_channel_id = await db.field("SELECT messages_channel FROM xp_settings WHERE guild_id = ?", ctx.guild.id)
+
+                if messages == "yes":
+                    embed = utils.embed_message(title="🎉🥳 Level Up!",
+                                                message=f"Congratulations to {ctx.author.mention}, they reached level {level + 1}")
+                    if not message_channel_id:
+                        await ctx.send(embed=embed)
+                    else:
+                        channel = ctx.bot.get_channel(message_channel_id)
+                        await channel.send(embed=embed)
+
             await db.execute("UPDATE xp_levels SET xp_lock = ? WHERE user_id = ?",
                              int(time.time() + 60), user.id)
             await db.commit()
@@ -126,22 +138,56 @@ class XP(commands.Cog, name="⚗ XP"):
     async def xp_messages(self, ctx):
         """Enables or disables level up messages for the server."""
 
-        msg = await ctx.send("✅ | `To enable level up messages in this server.`\n" + \
-                             "❌ | `To disable level up messages in this server.`")
-
-        await msg.add_reaction("✅")
-        await msg.add_reaction("❌")
-
-        await asyncio.sleep(1)
+        await ctx.send("Would you like to enable level up messages in this server? `yes` or `no`.")
 
         try:
-            def check(reaction, user):
-                return user == ctx.author and reaction.message == msg and str(reaction.emoji) == "✅" or "❌"
-            reaction, user = await self.bot.wait_for("reaction_add", timeout=10.0, check=check)
+            def check(m):
+                return ctx.author == m.author and ctx.channel == m.channel
+            user_input = await self.bot.wait_for("message", timeout=10.0, check=check)
         except asyncio.TimeoutError:
-            return await ctx.send("You did not react in time!")
+            return await ctx.send(f"You didn't respond in time! {ctx.author.mention}")
         else:
-            await ctx.send(f"{reaction.emoji}")
+            content = user_input.content.lower()
+            if content == "no":
+                settings = await db.record("SELECT messages FROM xp_settings WHERE guild_id = ?", ctx.guild.id)
+                if not settings:
+                    await db.execute("INSERT INTO xp_settings(guild_id, messages) VALUES(?, ?)", ctx.guild.id, "no")
+                    await db.commit()
+                    await ctx.send(f"Successfully disabled XP messages")
+                else:
+                    await db.execute("UPDATE xp_settings SET messages = ? WHERE guild_id = ?", "no", ctx.guild.id)
+                    await db.commit()
+                    await ctx.send(f"Successfully disabled XP messages")
+            elif content == "yes":
+                settings = await db.record("SELECT messages FROM xp_settings WHERE guild_id = ?", ctx.guild.id)
+                if not settings:
+                    await db.execute("INSERT INTO xp_settings(guild_id, messages) VALUES(?, ?)", ctx.guild.id, "yes")
+                    await db.commit()
+                    await ctx.send(f"Successfully enabled XP messages, if you'd like to set where they go do `{ctx.prefix}xp channel #Channel-Here`")
+                else:
+                    await db.execute("UPDATE xp_settings SET messages = ? WHERE guild_id = ?", "yes", ctx.guild.id)
+                    await db.commit()
+                    await ctx.send(f"Successfully enabled XP messages, if you'd like to set where they go do `{ctx.prefix}xp channel #Channel-Here`")
+            else:
+                return await ctx.send("That was an invalid option.")
+
+    @xp.command(name="channel")
+    @commands.has_permissions(manage_guild=True)
+    async def xp_channel(self, ctx, channel: discord.TextChannel):
+        """Allows you to set the text channel for where level ups go."""
+
+        config = await db.record("SELECT * from xp_settings WHERE guild_id = ?", ctx.guild.id)
+
+        if channel is None:
+            return await ctx.send("You either did not supply a channel or it doesn't exist (I may not be able to see it).")
+
+        if not config:
+            await db.execute("INSERT INTO xp_settings(guild_id, messages_channel) VALUES(?, ?)", ctx.guild.id, channel.id)
+        elif config:
+            await db.execute("UPDATE xp_settings SET messages_channel = ? WHERE guild_id = ?", channel.id, ctx.guild.id)
+        await db.commit()
+
+        await ctx.send(f"Successfully set level up messages to go to {channel.mention}")
 
     @commands.command()
     async def rank(self, ctx, user: discord.Member = None):

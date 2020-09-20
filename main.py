@@ -53,7 +53,7 @@ cogs = [
     "cogs.XP",
     "cogs.custom.MotherRussia",
     "cogs.custom.SCrib",
-    "cogs.custom.Succ",
+    "cogs.custom.antinuke",
     "cogs.custom.UserRequests"
 ]
 

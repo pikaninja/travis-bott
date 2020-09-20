@@ -48,7 +48,8 @@ class Management(commands.Cog, name="🛡 Management"):
     async def prefix(self, ctx):
         """Gets the current prefix."""
 
-        await ctx.send(f"The current prefix for this server is: `{ctx.prefix}`")
+        prefix = await utils.get_guild_prefix(ctx.guild.id) or "tb!"
+        await ctx.send(f"The current prefix for this server is: `{prefix}`")
     
     @prefix.command(name="set")
     @commands.guild_only()

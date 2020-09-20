@@ -74,6 +74,8 @@ def check_permissions(ctx, m: discord.Member):
         return "Server Owner"
     elif m.permissions_in(ctx.channel).administrator:
         return "Server Admin"
+    elif m.permissions_in(ctx.channel).manage_guild:
+        return "Server Manager"
     elif m.permissions_in(ctx.channel).manage_messages:
         return "Server Moderator"
     else:
@@ -82,6 +84,8 @@ def check_permissions(ctx, m: discord.Member):
 def check_role_permissions(ctx, role: discord.Role):
     if role.permissions.administrator:
         return "Administrator"
+    elif role.permissions.manage_guild:
+        return "Manager"
     elif role.permissions.manage_messages:
         return "Moderator"
     elif role.permissions.mute_members:

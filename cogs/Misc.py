@@ -37,6 +37,16 @@ How to remove your data.
         await ctx.thumbsup()
 
     @commands.command()
+    async def invite(self, ctx):
+        """Sends an link to invite the bot to your server."""
+
+        bot_invite = f"https://discord.com/api/oauth2/authorize?client_id={self.bot.user.id}&permissions=8&scope=bot"
+
+        embed = utils.embed_message(title="Invite the bot to your server here!",
+                                    url=bot_invite)
+        await ctx.send(embed=embed)
+
+    @commands.command()
     async def support(self, ctx):
         """Gives a link to the support server."""
 

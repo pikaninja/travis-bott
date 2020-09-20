@@ -9,7 +9,7 @@ from utils.CustomContext import CustomContext
 
 def get_prefix(bot: commands.AutoShardedBot, message: discord.Message):
     if message.guild is None:
-        return "p?"
+        return "tb!"
     else:
         prefix = db.field_nonasync("SELECT guild_prefix FROM guild_settings WHERE guild_id = ?", message.guild.id)
         return commands.when_mentioned_or(prefix)(bot, message)
