@@ -27,7 +27,26 @@ class Utility(commands.Cog, name="📝 Utility"):
         self.weather_api_key = config("WEATHER_API_KEY")
         self.ksoft_api_key = config("KSOFT_API")
 
-    @commands.command(disabled=True)
+    @commands.command()
+    async def channel(self, ctx, channel: discord.TextChannel = None):
+        """Gives you information on a channel."""
+
+        channel: discord.TextChannel = channel or ctx.channel
+
+        embed = utils.embed_message(title=f"Information on {channel.name}")
+        fields = [
+            ["Channel Topic:", f"{channel.topic or 'No Topic'}"],
+            ["Channel Type:", f"{channel.type}"],
+            ["How many can see this:", f"{len(channel.members)}"],
+            ["Last Message:", f"{channel.last_message.content or 'Not Available'}"],
+            ["Channel Category:", f"{channel.category.name}"],
+            ["Created At:", f"{channel.created_at}"]
+        ]
+
+        [embed.add_field(name=n, value=v) for n, v in fields]
+        await ctx.send(embed=embed)
+
+    @commands.command(enabled=False)
     async def tester(self, ctx):
         """test"""
 
@@ -162,6 +181,7 @@ class Utility(commands.Cog, name="📝 Utility"):
         roles = user.roles
         roles.reverse()
         [user_roles.append(role.mention) for role in roles if len(user_roles) < 30]
+        user_roles.pop(len(user_roles) - 1)
         readable_roles = " ".join(user_roles)
 
         fields = [
@@ -213,39 +233,39 @@ class Utility(commands.Cog, name="📝 Utility"):
             [embed.add_field(name=n, value=v, inline=False) for n, v in fields]
             await ctx.send(embed=embed)
 
-    @commands.command()
-    async def steam(self, ctx, profile: str):
-        """Gets a users steam profile and puts it in an embed."""
+    # @commands.command()
+    # async def steam(self, ctx, profile: str):
+    #     """Gets a users steam profile and puts it in an embed."""
 
-        complete_api_url = f"https://api.alexflipnote.dev/steam/user/{profile}"
-        async with request("GET", complete_api_url, headers={}) as r:
-            if r.status != 200:
-                return await ctx.send("I could not find that profile.")
-            data = await r.json()
-            url = data["profile"]["url"]
-            background = data["profile"]["background"]
-            avatar = data["avatars"]["avatarfull"]
-            steam_id = data["id"]["steamid32"]
+    #     complete_api_url = f"https://api.alexflipnote.dev/steam/user/{profile}"
+    #     async with request("GET", complete_api_url, headers={}) as r:
+    #         if r.status != 200:
+    #             return await ctx.send("I could not find that profile.")
+    #         data = await r.json()
+    #         url = data["profile"]["url"]
+    #         background = data["profile"]["background"]
+    #         avatar = data["avatars"]["avatarfull"]
+    #         steam_id = data["id"]["steamid32"]
 
-            fields = [
-                ["Username", data["profile"]["username"], True],
-                ["Real Name", data["profile"]["realname"], True],
-                ["Location", data["profile"]["location"], True],
-                ["State", data["profile"]["state"], True],
-                ["Date Created", data["profile"]["timecreated"], True],
-                ["Vac Banned", data["profile"]["vacbanned"], True],
-                ["Summary", "```\n" + data["profile"]["summary"] + "```", False],
-            ]
+    #         fields = [
+    #             ["Username", data["profile"]["username"], True],
+    #             ["Real Name", data["profile"]["realname"], True],
+    #             ["Location", data["profile"]["location"], True],
+    #             ["State", data["profile"]["state"], True],
+    #             ["Date Created", data["profile"]["timecreated"], True],
+    #             ["Vac Banned", data["profile"]["vacbanned"], True],
+    #             ["Summary", "```\n" + data["profile"]["summary"] + "```", False],
+    #         ]
             
-            embed = utils.embed_message(title=f"Profile of {profile}",
-                                        footer_text=f"Steam ID: {steam_id}",
-                                        thumbnail=avatar,
-                                        url=url)
-            embed.set_image(url=background)
+    #         embed = utils.embed_message(title=f"Profile of {profile}",
+    #                                     footer_text=f"Steam ID: {steam_id}",
+    #                                     thumbnail=avatar,
+    #                                     url=url)
+    #         embed.set_image(url=background)
 
-            [embed.add_field(name=n, value=str(v), inline=il) for n, v, il in fields]
+    #         [embed.add_field(name=n, value=str(v), inline=il) for n, v, il in fields]
             
-            await ctx.send(embed=embed)
+    #         await ctx.send(embed=embed)
 
     @commands.command()
     async def country(self, ctx, *, country: str):
