@@ -14,8 +14,16 @@ class Management(commands.Cog, name="🛡 Management"):
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
     @commands.bot_has_permissions(manage_channels=True)
-    async def muterole(self, ctx, role: str):
+    async def muterole(self, ctx, role: str = None):
         """Sets the mute role for the server."""
+
+        if role is None:
+            current_mute_role = await db.field("SELECT mute_role_id FROM guild_settings WHERE guild_id = ?", ctx.guild.id)
+            if current_mute_role is None:
+                return await ctx.send_help(ctx.command)
+            role = ctx.guild.get_role(current_mute_role)
+            fmt = f"Your current mute role is: {role.name}, ID: {role.id}.\nYou can set a new mute role using {ctx.prefix}muterole <Role>"
+            return await ctx.send(fmt)
 
         await ctx.send("This will deny this role from being able to speak in all channels, are you sure you want this to be your mute role?")
 

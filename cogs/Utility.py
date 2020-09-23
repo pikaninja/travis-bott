@@ -38,7 +38,7 @@ class Utility(commands.Cog, name="📝 Utility"):
             ["Channel Topic:", f"{channel.topic or 'No Topic'}"],
             ["Channel Type:", f"{channel.type}"],
             ["How many can see this:", f"{len(channel.members)}"],
-            ["Last Message:", f"{channel.last_message.content or 'Not Available'}"],
+            #["Last Message:", f"{channel.last_message.content or 'Not Available'}"],
             ["Channel Category:", f"{channel.category.name}"],
             ["Created At:", f"{channel.created_at}"]
         ]

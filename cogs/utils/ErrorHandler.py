@@ -14,15 +14,15 @@ class ErrorHandler(Cog):
     """Pretty much from here:
     https://github.com/4Kaylum/DiscordpyBotBase/blob/master/cogs/error_handler.py"""
 
-    async def send_to_ctx_or_author(self, ctx, text: str = None) -> typing.Optional[discord.Message]:
+    async def send_to_ctx_or_author(self, ctx, text: str = None, *args, **kwargs) -> typing.Optional[discord.Message]:
         """Tries to send the given text to ctx, but failing that, tries to send it to the author
         instead. If it fails that too, it just stays silent."""
 
         try:
-            return await ctx.send(text)
+            return await ctx.send(text, *args, **kwargs)
         except discord.Forbidden:
             try:
-                return await ctx.author.send(text)
+                return await ctx.author.send(text, *args, **kwargs)
             except discord.Forbidden:
                 pass
         except discord.NotFound:
@@ -47,7 +47,7 @@ class ErrorHandler(Cog):
 
         # Command is on Cooldown
         elif isinstance(error, commands.CommandOnCooldown):
-            return await self.send_to_ctx_or_author(ctx, f"This command is on cooldown. **`{int(error.retry_after)}` seconds**")
+            return await self.send_to_ctx_or_author(ctx, f"This command is on cooldown. **`{int(error.retry_after)}` seconds**", delete_after=5.0)
 
         # Missing argument
         elif isinstance(error, commands.MissingRequiredArgument):
@@ -63,7 +63,7 @@ class ErrorHandler(Cog):
 
         # Missing Permissions
         elif isinstance(error, commands.BotMissingPermissions):
-            return await self.send_to_ctx_or_author(ctx, f"Platform is missing the required permission: `{error.missing_perms[0]}`")
+            return await self.send_to_ctx_or_author(ctx, f"Travis is missing the required permission: `{error.missing_perms[0]}`")
 
         # Discord Forbidden, usually if bot doesn't have permissions
         elif isinstance(error, discord.Forbidden):
