@@ -29,3 +29,11 @@ CREATE TABLE IF NOT EXISTS xp_settings (
     messages TEXT DEFAULT "no",
     messages_channel INTEGER
 );
+CREATE TABLE IF NOT EXISTS warns(
+    warn_id TEXT PRIMARY KEY,
+    guild_id INTEGER,
+    user_id INTEGER,
+    warner_id INTEGER,
+    warn_reason TEXT,
+    date_warned INTEGER
+);

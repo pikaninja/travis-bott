@@ -9,6 +9,7 @@ from datetime import datetime as dt, timedelta
 import asyncio
 import discord
 import typing
+import uuid
 import re
 
 def can_execute_action(ctx, user, target):
@@ -121,6 +122,84 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     #         [fields.append([f"{x.user.name}#{x.user.discriminator}", f"{x.reason}"]) for x in bans]
     #     ban_list = menus.MenuPages(source=BanMenusI2(fields), delete_message_after=True, timeout=60.0, clear_reactions_after=True)
     #     await ban_list.start(ctx)
+
+    @commands.command()
+    @commands.guild_only()
+    @commands.has_permissions(manage_messages=True)
+    @commands.bot_has_permissions(send_messages=True)
+    async def warn(self, ctx, user: discord.Member, *, reason: str = "No Reason Provided"):
+        """Warns a given user for a given reason, 20 warns maximum on each user."""
+
+        user_warns = await db.records("SELECT * FROM warns WHERE user_id = ?", user.id)
+
+        if len(user_warns) > 20:
+            return await ctx.send("That user has 20 warns, please delete (at least) one to make more space.")
+
+        warn_info = {
+            "warn_id": str(uuid.uuid1()),
+            "guild_id": ctx.guild.id,
+            "warner_id": ctx.author.id,
+            "user_id": user.id,
+            "warn_reason": reason if "@" not in reason else reason.replace("@", "@\u200b"),
+            "date_warned": int(t())
+        }
+
+        await db.execute("INSERT INTO warns(warn_id, guild_id, user_id, warner_id, warn_reason, date_warned) VALUES(?, ?, ?, ?, ?, ?)",
+            warn_info["warn_id"],
+            warn_info["guild_id"],
+            warn_info["user_id"],
+            warn_info["warner_id"],
+            warn_info["warn_reason"],
+            warn_info["date_warned"])
+        await db.commit()
+
+        user_fmt = f"You were warned in **{ctx.guild.name}** by **{ctx.author}** for:\n{reason}"
+        chat_fmt = f"{user.mention} was warned by {ctx.author.mention} for {reason}"
+        await ctx.send(chat_fmt)
+        await user.send(user_fmt)
+
+    @commands.command()
+    @commands.guild_only()
+    @commands.has_permissions(manage_messages=True)
+    @commands.bot_has_permissions(send_messages=True)
+    async def delwarn(self, ctx, warn_id: str):
+        """Deletes a given warn by its ID."""
+
+        get_warn = await db.record("SELECT * FROM warns WHERE warn_id = ? AND guild_id = ?", warn_id, ctx.guild.id)
+
+        if get_warn is None:
+            return await ctx.send("That warn doesn't exist here.")
+        
+        await db.execute("DELETE FROM warns WHERE warn_id = ?", warn_id)
+        await db.commit()
+        await ctx.send(f"Successfully removed warning **{warn_id}**")
+
+    @commands.command(aliases=["warnings"])
+    @commands.guild_only()
+    @commands.has_permissions(manage_messages=True)
+    @commands.bot_has_permissions(send_messages=True)
+    async def warns(self, ctx, user: discord.Member):
+        """Gets all of a given users warnings"""
+        
+        user_warns = await db.records("SELECT * FROM warns WHERE user_id = ? AND guild_id = ?", user.id, ctx.guild.id)
+        embed = utils.embed_message(title=f"Warns for {user}")
+        fmt = ""
+        warns = []
+        for row in user_warns:
+            info = {
+                "warn_id": row[0],
+                "guild_id": row[1],
+                "user_id": row[2],
+                "warner_id": row[3],
+                "warn_reason": row[4],
+                "date_warned": row[5]
+            }
+            date_warned = dt.fromtimestamp(info["date_warned"])
+            moderator = ctx.guild.get_member(info['warner_id'])
+            warns.append(f"ID: **{info['warn_id']}** - Moderator: **{moderator}**\nWarned At: **{date_warned}** - Reason:\n{info['warn_reason']}")
+        fmt = "No warnings for this user." if len(warns) == 0 else "\n".join(warns)
+        embed.description = fmt
+        await ctx.send(embed=embed)
 
     @commands.command()
     @commands.guild_only()

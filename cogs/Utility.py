@@ -178,7 +178,7 @@ class Utility(commands.Cog, name="📝 Utility"):
                 prefix = " Pretty sure they're safe"
             return "Should be clear." + prefix
 
-        roles = user.roles
+        roles = user.roles[1:]
         roles.reverse()
         [user_roles.append(role.mention) for role in roles if len(user_roles) < 30]
         user_roles.pop(len(user_roles) - 1)
