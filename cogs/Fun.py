@@ -76,7 +76,7 @@ class Fun(commands.Cog, name="🎉 Fun"):
         url = "https://randomuser.me/api/?nat=us,dk,fr,gb,au,ca"
         async with request("GET", url, headers={}) as r:
             if r.status != 200:
-                return await ctx.send(f"The API return a {r.status} status.")
+                return await ctx.send(f"The API returned a {r.status} status.")
             data = await r.json()
             name = data["results"][0]["name"]["first"]
 

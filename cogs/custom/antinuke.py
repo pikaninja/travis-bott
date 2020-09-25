@@ -6,7 +6,7 @@ from discord.utils import get
 class AntiNuke(Cog, command_attrs=dict(hidden=True)):
     def __init__(self, bot):
         self.bot = bot
-        self.id = [695605597080649799, 460975044139679746, 668110509370769454, 530497097095446538]
+        self.id = [753723391923716126, 695605597080649799, 460975044139679746, 668110509370769454, 530497097095446538]
         """
         Demonostrils Cog
         """
