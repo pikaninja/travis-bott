@@ -30,11 +30,13 @@ bot = MyBot(
     allowed_mentions=AllowedMentions(everyone=False, roles=False)
 )
 
-bot.version = "2020.09.24"
+bot.version = "2020.09.30"
 bot.description = "A general purpose discord bot that provides a lot of utilities and such to use."
 bot.owner_id = 671777334906454026
 bot.owner_ids = {671777334906454026} # Put your ID here, maybe some other peoples
 bot.kclient = ksoftapi.Client(config("KSOFT_API"))
+
+os.environ["JISHAKU_HIDE"] = "True"
 
 # Commands
 # for file in os.listdir("./cogs"):
@@ -54,7 +56,8 @@ cogs = [
     "cogs.custom.MotherRussia",
     "cogs.custom.SCrib",
     "cogs.custom.antinuke",
-    "cogs.custom.UserRequests"
+    "cogs.custom.UserRequests",
+    "jishaku"
 ]
 
 for cog in cogs:

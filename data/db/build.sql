@@ -37,3 +37,9 @@ CREATE TABLE IF NOT EXISTS warns(
     warn_reason TEXT,
     date_warned INTEGER
 );
+CREATE TABLE IF NOT EXISTS reaction_roles(
+    guild_id INTEGER,
+    emoji_id INTEGER,
+    message_id INTEGER,
+    role_id INTEGER
+);

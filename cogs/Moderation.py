@@ -389,7 +389,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
 
         in_role = []
         role = await utils.find_roles(ctx.guild, role)
-        [in_role.append(member.mention) for member in role.members]
+        [in_role.append(f"{member.mention} ({member})") for member in role.members]
         columns = [in_role, ["\u200b"]]
         if len(in_role) > 1:
             columns[0], columns[1] = utils.split_list(in_role)
