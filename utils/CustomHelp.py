@@ -49,7 +49,8 @@ class CustomHelp(commands.HelpCommand):
         embed = utils.embed_message(title=f"{self.clean_prefix}{group.qualified_name} {group.signature}")
         if group.help:
             aliases = f"*Aliases: {' | '.join('`' + x + '`' for x in  group.aliases)}*" if group.aliases else ""
-            embed.description = str(group.help).format(prefix=self.clean_prefix) + "\n" + aliases
+            group_cat = group.cog.qualified_name[2:]
+            embed.description = str(group.help).format(prefix=self.clean_prefix) + "\n" + aliases + "\n" + f"Category: {group_cat}"
 
         if isinstance(group, commands.Group):
             filtered = await self.filter_commands(group.commands, sort=True)

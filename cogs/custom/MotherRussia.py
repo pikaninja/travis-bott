@@ -44,6 +44,11 @@ class MotherRussia(Cog, command_attrs=dict(hidden=True)):
             # Nuke Bot Protection
             if member.bot:
                 await member.kick(reason="No fuckin bots")
+
+            name = f"spooky {member.name}"
+            if len(name) > 32:
+                name = name[:len(name) - (len(name) - 32)]
+            await member.edit(nick=name)
             # Nuke bot Protection End
 
     @Cog.listener()

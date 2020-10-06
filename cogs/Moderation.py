@@ -230,7 +230,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_roles=True)
-    async def mute(self, ctx, user: discord.Member, time: str, reason: str = "No reason provided."):
+    async def mute(self, ctx, user: discord.Member, time: str, *, reason: str = "No reason provided."):
         """Mutes someone for a given amount of time.
         Permissions needed: `Manage Messages`
         Example: `mute @kal#1806 5m Way too cool for me`"""
@@ -436,12 +436,17 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         `{prefix}role @kal#1806 "role one" role2 role`
         """
 
+        mr_ids = [622258457785008150,
+                  668232158862639134]
+
         modifiers = []
 
         current_roles = user.roles
 
         for role in roles:
             role = await utils.find_roles(ctx.guild, role)
+            if role.id in mr_ids:
+                pass
             if role in user.roles:
                 modifiers.append(f"-{role.mention}")
                 current_roles.remove(role)
@@ -518,6 +523,29 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         ]
         embed = utils.embed_message(colour=discord.Color.from_rgb(role_colour[0], role_colour[1], role_colour[2]))
         [embed.add_field(name=n, value=v) for n, v in fields]
+        await ctx.send(embed=embed)
+
+    @role.command(name="id")
+    @commands.guild_only()
+    @commands.has_permissions(manage_messages=True)
+    @commands.bot_has_permissions(send_messages=True)
+    async def role_id(self, ctx, *role: str):
+        """Gets the ID of one or multiple role(s).
+        e.g. {prefix}role id Developer support \"Hello World\""""
+
+        role_names = []
+        role_ids = []
+
+        for r in role:
+            _role = await utils.find_roles(ctx.guild, r)
+            if _role.id in role_ids:
+                return
+            role_names.append(f"{_role.mention}")
+            role_ids.append(f"{_role.id}")
+
+        embed = utils.embed_message()
+        embed.add_field(name="Names", value="\n".join(role_names))
+        embed.add_field(name="IDs", value="\n".join(role_ids))
         await ctx.send(embed=embed)
 
 def setup(bot):

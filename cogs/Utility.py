@@ -1,5 +1,6 @@
 from decouple import config
 from discord.ext import commands
+from discord.ext import menus
 
 from utils import utils
 from aiohttp import request
@@ -11,6 +12,7 @@ import discord
 import typing
 import random
 import numexpr
+import asyncio
 from io import StringIO
 
 status_icons = {
@@ -26,6 +28,88 @@ class Utility(commands.Cog, name="📝 Utility"):
         self.bot = bot
         self.weather_api_key = config("WEATHER_API_KEY")
         self.ksoft_api_key = config("KSOFT_API")
+
+    @commands.command()
+    async def emoji(self, ctx, emoji: discord.PartialEmoji):
+        """Get's the full image of an emoji and adds some more info.
+        If you have `manage_emojis` permissions if you react with the detective, the emoji gets added to the server."""
+
+        embed = utils.embed_message(title=f"Showing for {emoji.name}",
+                                    message=f"ID: {emoji.id}",
+                                    url=str(emoji.url))
+
+        embed.set_image(url=emoji.url)
+        embed.add_field(name="Animated", value=emoji.animated)
+
+        msg = await ctx.send(embed=embed)
+
+        user_permissions: discord.Permissions = ctx.author.permissions_in(ctx.channel)
+        if user_permissions.manage_emojis:
+            await msg.add_reaction("🕵️‍♀️")
+
+            def check(reaction, user):
+                return user == ctx.author and str(reaction.emoji) == "🕵️‍♀️" and reaction.message == msg
+            
+            try:
+                reaction, user = await self.bot.wait_for("reaction_add", timeout=30.0, check=check)
+            except asyncio.TimeoutError:
+                await msg.remove_reaction("🕵️‍♀️", ctx.guild.me)
+            else:
+                emoji_bytes = await emoji.url.read()
+                await ctx.guild.create_custom_emoji(name=emoji.name, image=emoji_bytes, reason=f"Responsible user: {ctx.author}")
+                embed.set_footer(text="Successfully stolen that emoji!")
+                await msg.edit(embed=embed)
+
+    @emoji.error
+    async def on_emoji_error(self, ctx, error):
+        if isinstance(error, commands.PartialEmojiConversionFailure):
+            return await ctx.send("I could not convert that emoji.")
+
+    @commands.command(aliases=["server"])
+    async def serverinfo(self, ctx):
+        """Gives you information based on the current server"""
+
+
+        guild_features = []
+        title = f"Information on {ctx.guild.name}"
+        icon = ctx.guild.icon_url
+
+        features_dict = {
+            "VIP_REGIONS": "VIP Voice Servers",
+            "PARTNERED": "Partnered",
+            "VERIFIED": "Verified",
+            "DISCOVERABLE": "Discoverable",
+            "COMMUNITY": "Community Server",
+            "ANIMATED_ICON": "Animated Icon",
+            "BANNER": "Banner"
+        }
+
+        features = set(ctx.guild.features)
+
+        for feature, label in features_dict.items():
+            if feature in features:
+                guild_features.append(f"✅: {label}")
+
+        info = [
+            ["Emoji Count", str(len(ctx.guild.emojis)), True],
+            ["Member Count", f"{ctx.guild.member_count}\nHumans: {len([m for m in ctx.guild.members if not m.bot])} Bots: {len([m for m in ctx.guild.members if m.bot])}", True],
+            ["Boosters", str(len(ctx.guild.premium_subscribers)), True],
+            ["Role Count", str(len(ctx.guild.roles)), True],
+            ["Voice Region", str(ctx.guild.region), True],
+            ["AFK Channel", str(ctx.guild.afk_channel), True],
+            ["<:text_channel:762721785502236716> / <:voice_channel:762721785984188436>", f"{len(ctx.guild.text_channels)} / {len(ctx.guild.voice_channels)}", True],
+            ["Features", "\n".join(guild_features), False]
+        ]
+
+        embed = utils.embed_message(title=title,
+                                    message=f"**ID:** {ctx.guild.id}\n**Owner:** {ctx.guild.owner}",
+                                    thumbnail=icon if ctx.guild.icon else discord.Embed.Empty(),
+                                    footer_text="Created at ",
+                                    timestamp=ctx.guild.created_at)
+
+        [embed.add_field(name=k, value=v, inline=i) for k, v, i in info]
+
+        await ctx.send(embed=embed)
 
     @commands.command()
     async def channel(self, ctx, channel: discord.TextChannel = None):
@@ -181,7 +265,6 @@ class Utility(commands.Cog, name="📝 Utility"):
         roles = user.roles[1:]
         roles.reverse()
         [user_roles.append(role.mention) for role in roles if len(user_roles) < 30]
-        user_roles.pop(len(user_roles) - 1)
         readable_roles = " ".join(user_roles)
 
         fields = [
@@ -293,17 +376,44 @@ class Utility(commands.Cog, name="📝 Utility"):
             await ctx.send(embed=embed)
     
     @commands.command()
-    async def poll(self, ctx, *, query):
-        """Starts a poll with a given query."""
+    async def poll(self, ctx, mode: typing.Optional[int] = 0, *, query: str):
+        """Starts a poll with a given query.
+        Modes:
+        0 (Default) -> Standard poll, adds Yes, No and Maybe emoji.
+        1 -> Numbered poll, adds as many options as you give queries.
+        Up to ten.
+        
+        Query:
+        To have multiple options (for 1) seperate them with |"""
 
-        embed = utils.embed_message(message=str(query),
-                                    footer_text="")
-        embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
-        msg = await ctx.send(embed=embed)
+        if mode == 0:
+            embed = utils.embed_message(message=str("".join(query)),
+                                        footer_text="")
+            embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+            msg = await ctx.send(embed=embed)
 
-        await msg.add_reaction("👍")
-        await msg.add_reaction("👎")
-        await msg.add_reaction("🤷‍♀️")
+            await msg.add_reaction("👍")
+            await msg.add_reaction("👎")
+            await msg.add_reaction("🤷‍♀️")
+        elif mode == 1:
+            query = query.split("|")
+            emojis = ["1️⃣", "2️⃣" ,"3️⃣" ,"4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"]
+            amount = len(query)
+
+            if amount > 10:
+                return await ctx.send("There are too many queries! We'll hopefully allow more soon.")
+
+            embed = utils.embed_message(footer_text="")
+            embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
+            print(query)
+            for _ in range(amount):
+                embed.add_field(name=str(_ + 1), value=query[_])
+            
+            msg = await ctx.send(embed=embed)
+
+            for _ in range(amount):
+                await msg.add_reaction(emojis[_])
+
 
 def setup(bot):
     bot.add_cog(Utility(bot))

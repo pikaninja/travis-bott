@@ -33,6 +33,14 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
     @command()
     @is_owner()
+    async def say(self, ctx, channel: discord.TextChannel, *, msg: str = None):
+        """You can force the bot to say stuff, cool."""
+
+        channel = channel or ctx.channel
+        await channel.send(msg)
+
+    @command()
+    @is_owner()
     async def kill(self, ctx):
         try:
             self.bot.clear()

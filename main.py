@@ -1,10 +1,11 @@
 import os
 import logging
 import time
+from discord.flags import MemberCacheFlags
 import ksoftapi
 
 from decouple import config
-from discord import Game, Status, AllowedMentions
+from discord import Game, Status, AllowedMentions, Intents
 from discord.ext import commands
 
 from utils.CustomHelp import CustomHelp
@@ -22,15 +23,33 @@ from utils.CustomBot import MyBot
 
 new_guilds = False
 
+my_mentions = AllowedMentions(
+    everyone=False,
+    roles=False
+)
+
+my_intents = Intents(
+    guilds=True,
+    members=True,
+    bans=True,
+    presences=True,
+    messages=True,
+    reactions=True
+)
+
+stuff_to_cache = MemberCacheFlags.from_intents(my_intents)
+
 bot = MyBot(
     status=Status.dnd,
     activity=Game(name="Connecting..."), # Connecting to the gateway :thonk:
     case_insensitive=True,
     max_messages=100, # Minimum we can cache, just drops resource usage.
-    allowed_mentions=AllowedMentions(everyone=False, roles=False)
+    allowed_mentions=my_mentions,
+    intents=my_intents,
+    member_cache_flags=stuff_to_cache
 )
 
-bot.version = "2020.09.30"
+bot.version = "2020.11.06"
 bot.description = "A general purpose discord bot that provides a lot of utilities and such to use."
 bot.owner_id = 671777334906454026
 bot.owner_ids = {671777334906454026} # Put your ID here, maybe some other peoples
