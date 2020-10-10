@@ -97,6 +97,8 @@ class Utility(commands.Cog, name="📝 Utility"):
 
         async with aiohttp.ClientSession() as cs:
             async with cs.get(url) as r:
+                if r.status != 200:
+                    return await ctx.send("You probably didn't use the right ID.")
                 emoji_bytes = await r.read()
 
                 new_emoji = await ctx.guild.create_custom_emoji(name=emoji_name, image=emoji_bytes, reason=f"Responsible user: {ctx.author}")
