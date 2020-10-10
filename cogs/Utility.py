@@ -7,6 +7,7 @@ from aiohttp import request
 
 from datetime import datetime as dt
 
+import aiohttp
 import psutil
 import discord
 import typing
@@ -83,6 +84,24 @@ class Utility(commands.Cog, name="📝 Utility"):
         new_emoji = await ctx.guild.create_custom_emoji(name=emoji_name, image=emoji_bytes, reason=f"Responsible user: {ctx.author}")
 
         await ctx.send(f"Successfully stolen {new_emoji} with the name `{new_emoji.name}`")
+    
+    @emoji.command(name="fromid")
+    @commands.has_permissions(manage_emojis=True)
+    async def steal_emoji_from_id(self, ctx, emoji_id: int, *, name: str = None):
+        """Steals a given emoji by its ID you're able to give it a new name.
+        Permissions needed: `Manage Emojis`"""
+
+        emoji_name = name or str(emoji_id)
+
+        url = f"https://cdn.discordapp.com/emojis/{emoji_id}.png"
+
+        async with aiohttp.ClientSession() as cs:
+            async with cs.get(url) as r:
+                emoji_bytes = await r.read()
+
+                new_emoji = await ctx.guild.create_custom_emoji(name=emoji_name, image=emoji_bytes, reason=f"Responsible user: {ctx.author}")
+
+                await ctx.send(f"Successfully stolen {new_emoji} with the name `{new_emoji.name}`")
 
     @emoji.error
     async def on_emoji_error(self, ctx, error):
