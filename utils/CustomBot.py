@@ -7,11 +7,11 @@ from datetime import timedelta
 from utils import db
 from utils.CustomContext import CustomContext
 
-def get_prefix(bot: commands.AutoShardedBot, message: discord.Message):
+async def get_prefix(bot: commands.AutoShardedBot, message: discord.Message):
     if message.guild is None:
         return "tb!"
     else:
-        prefix = db.field_nonasync("SELECT guild_prefix FROM guild_settings WHERE guild_id = ?", message.guild.id)
+        prefix = await db.field("SELECT guild_prefix FROM guild_settings WHERE guild_id = ?", message.guild.id)
         return commands.when_mentioned_or(prefix)(bot, message)
 
 class MyBot(commands.AutoShardedBot):
@@ -32,4 +32,4 @@ class MyBot(commands.AutoShardedBot):
         """Get all records of a specific guild at a specific table"""
 
         records = await db.records(f"SELECT * FROM {table} WHERE guild_id = ?", guild_id)
-        return records
+        return records[0]

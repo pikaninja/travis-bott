@@ -5,6 +5,7 @@ from utils import CustomContext, utils
 from aiohttp import request
 
 import psutil
+import asyncio
 import discord
 import typing
 import random
@@ -27,6 +28,58 @@ class Fun(commands.Cog, name="🎉 Fun"):
                          1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
                          1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
                          100]
+
+    @commands.command(aliases=["rps"])
+    @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
+    async def rockpaperscissors(self, ctx):
+        """Play rock paper scissors with the bot!"""
+
+        fmt = "What's your choice? Rock, Paper or Scissors..."
+        embed = utils.embed_message(message=fmt)
+
+        msg = await ctx.send(embed=embed)
+
+        emojis = ["\U0001faa8", # Rock
+                  "\U0001f4f0", # Paper
+                  "\U00002702"] # Scissors
+
+        bots_choice = random.choice(emojis)
+
+        for _ in emojis:
+            await msg.add_reaction(_)
+
+        def check(reaction, user):
+                return user == ctx.author and str(reaction.emoji) in emojis and reaction.message == msg
+            
+        try:
+            reaction, user = await self.bot.wait_for("reaction_add", timeout=30.0, check=check)
+        except asyncio.TimeoutError:
+            await msg.clear_reactions()
+            embed.description = "You ran out of time!"
+            await msg.edit(embed=embed)
+        else:
+            if str(reaction) == bots_choice:
+                embed.description = f"You drew!"
+                embed.colour = 0x0000ff
+
+            elif str(reaction) == emojis[0] and bots_choice == emojis[2]:
+                embed.description = f"You win! the bot chose {bots_choice}"
+                embed.colour = 0x00ff00
+
+            elif str(reaction) == emojis[1] and bots_choice == emojis [0]:
+                embed.description = f"You win! the bot chose {bots_choice}"
+                embed.colour = 0x00ff00
+                
+            elif str(reaction) == emojis[2] and bots_choice == emojis [1]:
+                embed.description = f"You win! the bot chose {bots_choice}"
+                embed.colour = 0x00ff00
+
+            else:
+                embed.description = f"You lost :( the bot chose {bots_choice}"
+                embed.colour = 0xff0000
+            
+            await msg.clear_reactions()
+            await msg.edit(embed=embed)
 
     @commands.command(aliases=["pp"])
     @commands.cooldown(1, standard_cooldown, commands.BucketType.member)

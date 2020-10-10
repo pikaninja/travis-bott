@@ -30,6 +30,17 @@ class Utility(commands.Cog, name="📝 Utility"):
         self.ksoft_api_key = config("KSOFT_API")
 
     @commands.command()
+    async def translate(self, ctx, *, text: str):
+        """Automatically translates a given text to English"""
+
+        translation = await self.bot.translate_api.translate(str(text), dest="en")
+        embed = utils.embed_message(title="Translation",
+                                    message=str(translation.text),
+                                    footer_text=f"Translated to English from {translation.src} - Confidence: {translation.confidence}")
+        
+        await ctx.send(embed=embed)
+
+    @commands.group(invoke_without_command=True)
     async def emoji(self, ctx, emoji: discord.PartialEmoji):
         """Get's the full image of an emoji and adds some more info.
         If you have `manage_emojis` permissions if you react with the detective, the emoji gets added to the server."""
@@ -60,6 +71,19 @@ class Utility(commands.Cog, name="📝 Utility"):
                 embed.set_footer(text="Successfully stolen that emoji!")
                 await msg.edit(embed=embed)
 
+    @emoji.command(name="steal")
+    @commands.has_permissions(manage_emojis=True)
+    async def steal_emoji(self, ctx, emoji: discord.PartialEmoji, *, name: str = None):
+        """Steals a given emoji and you're able to give it a new name.
+        Permissions needed: `Manage Emojis`"""
+
+        emoji_name = name or emoji.name
+
+        emoji_bytes = await emoji.url.read()
+        new_emoji = await ctx.guild.create_custom_emoji(name=emoji_name, image=emoji_bytes, reason=f"Responsible user: {ctx.author}")
+
+        await ctx.send(f"Successfully stolen {new_emoji} with the name `{new_emoji.name}`")
+
     @emoji.error
     async def on_emoji_error(self, ctx, error):
         if isinstance(error, commands.PartialEmojiConversionFailure):
@@ -68,7 +92,6 @@ class Utility(commands.Cog, name="📝 Utility"):
     @commands.command(aliases=["server"])
     async def serverinfo(self, ctx):
         """Gives you information based on the current server"""
-
 
         guild_features = []
         title = f"Information on {ctx.guild.name}"

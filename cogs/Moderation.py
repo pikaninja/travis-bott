@@ -49,42 +49,6 @@ class MemberID(commands.Converter):
             raise commands.BadArgument('You cannot do this action on this user due to role hierarchy.')
         return m
 
-# class BanMenu(menus.Menu):
-#     def __init__(self, *, fields=None, timeout=180.0, delete_message_after=False, clear_reactions_after=True, check_embeds=False, message=None):
-#         self.fields = fields
-#         self.page = 0
-#         self.msg = []
-#         super().__init__(timeout=timeout, delete_message_after=delete_message_after, clear_reactions_after=clear_reactions_after, check_embeds=check_embeds, message=message)
-
-#     async def send_initial_message(self, ctx, channel):
-#         embed = utils.embed_message(title="All Bans")
-#         [embed.add_field(name=n, value=v, inline=False) for n, v in self.fields]
-#         self.msg = await channel.send(embed=embed)
-#         return self.msg
-
-#     @menus.button("👈")
-#     async def on_back_page(self, payload):
-#         self.page -= 1
-
-#     @menus.button("👉")
-#     async def on_forward_page(self, payload):
-#         self.page += 1
-
-#     @menus.button('\N{CROSS MARK}')
-#     async def on_stop_press(self, payload):
-#         self.page = 0
-#         self.stop()
-
-class BanMenusI2(menus.ListPageSource):
-    def __init__(self, data):
-        self.data = data
-        super().__init__(data, per_page=4)
-
-    async def format_page(self, menu, page):
-        embed = utils.embed_message(title="All Bans")
-        [embed.add_field(name=n, value=v, inline=False) for n, v in self.data]
-        return embed
-
 class Moderation(commands.Cog, name="⚔ Moderation"):
     """Moderation Commands"""
     def __init__(self, bot):
@@ -157,6 +121,8 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         chat_fmt = f"{user.mention} was warned by {ctx.author.mention} for {reason}"
         await ctx.send(chat_fmt)
         await user.send(user_fmt)
+
+        ctx.bot.dispatch("mod_cmd", "warn", ctx.author, user, reason)
 
     @commands.command()
     @commands.guild_only()
@@ -275,6 +241,8 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         await user.add_roles(role, reason=f"Muted by: {ctx.author}")
         await ctx.send(f"⚔ Successfully muted {user} for {time} with the reason: {reason}")
 
+        ctx.bot.dispatch("mod_cmd", "mute", ctx.author, user, reason)
+
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
@@ -294,6 +262,8 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
             await ctx.thumbsup()
         else:
             await ctx.send("That user is not muted!")
+
+        ctx.bot.dispatch("mod_cmd", "unmute", ctx.author, user, None)
 
     @commands.command(aliases=["unbanall"])
     @commands.guild_only()
@@ -321,6 +291,8 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
                     user = ban.user
                     await ctx.guild.unban(user, reason=f"Mass Unban | Responsible User: {ctx.author}")
                 await ctx.send(f"Successfully unbanned {len(bans)} people")
+        
+        ctx.bot.dispatch("mod_cmd", "mass unban", ctx.author, "N/A", None)
     
     @commands.command(aliases=["barn", "banish"])
     @commands.guild_only()
@@ -336,6 +308,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         
         await ctx.guild.ban(user, reason=f"{reason} | Responsible User: {ctx.author}")
         await ctx.thumbsup()
+        ctx.bot.dispatch("mod_cmd", "ban", ctx.author, user, reason)
 
     @commands.command(aliases=["unbarn", "unbanish"])
     @commands.has_permissions(ban_members=True)
@@ -347,6 +320,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         await ctx.guild.unban(await utils.get_user_banned(ctx.guild, user),
                               reason=f"Responsible User: {ctx.author}")
         await ctx.thumbsup()
+        ctx.bot.dispatch("mod_cmd", "unban", ctx.author, user, None)
 
     @commands.command()
     @commands.guild_only()
@@ -361,12 +335,13 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         
         await user.kick(reason=f"{reason} | Responsible User: {ctx.author}")
         await ctx.thumbsup()
+        ctx.bot.dispatch("mod_cmd", "kick", ctx.author, user, reason)
 
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_nicknames=True)
-    async def setnick(self, ctx, user: discord.Member, new_name: str = None):
+    async def setnick(self, ctx, user: discord.Member, *, new_name: str = None):
         """Sets a new nickname for a given user.
         Permissions needed: `Manage Messages`"""
 
@@ -378,6 +353,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
             return await ctx.send("I was unable to change the nickname for that user.")
         
         await ctx.thumbsup()
+        ctx.bot.dispatch("mod_cmd", "setnick", ctx.author, user, None)
 
     @commands.command()
     @commands.guild_only()
@@ -437,7 +413,10 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         """
 
         mr_ids = [622258457785008150,
-                  668232158862639134]
+                  668232158862639134,
+                  622267750232096808,
+                  703780954602471445,
+                  735699294174183454]
 
         modifiers = []
 
@@ -446,7 +425,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         for role in roles:
             role = await utils.find_roles(ctx.guild, role)
             if role.id in mr_ids:
-                pass
+                continue
             if role in user.roles:
                 modifiers.append(f"-{role.mention}")
                 current_roles.remove(role)
@@ -479,6 +458,10 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         """Deletes a given role."""
 
         role = await utils.find_roles(ctx.guild, role)
+        
+        if role is None:
+            return await ctx.send("That role does not exist or I could not find it.")
+
         await role.delete(reason=f"Responsible User: {ctx.author}")
         await ctx.thumbsup()
 
@@ -490,6 +473,10 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         """Sets the colour of a given role."""
 
         role = await utils.find_roles(ctx.guild, role)
+
+        if role is None:
+            return await ctx.send("That role does not exist or I could not find it.")
+
         hex_regex = r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
 
         if not re.match(hex_regex, colour):
@@ -504,10 +491,14 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     @commands.bot_has_permissions(send_messages=True)
-    async def role_info(self, ctx, role: str):
+    async def role_info(self, ctx, *, role: str):
         """Get information on a given role."""
 
         role = await utils.find_roles(ctx.guild, role)
+
+        if role is None:
+            return await ctx.send("That role does not exist or I could not find it.")
+
         created_at_str = f"{role.created_at.day}/{role.created_at.month}/{role.created_at.year} {role.created_at.hour}:{role.created_at.minute}:{role.created_at.second}"
         role_colour = (role.colour.r, role.colour.g, role.colour.b)
         fields = [
@@ -539,7 +530,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         for r in role:
             _role = await utils.find_roles(ctx.guild, r)
             if _role.id in role_ids:
-                return
+                continue
             role_names.append(f"{_role.mention}")
             role_ids.append(f"{_role.id}")
 

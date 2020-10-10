@@ -13,6 +13,8 @@ from utils.CustomHelp import CustomHelp
 from utils import db, utils
 from utils.CustomBot import MyBot
 
+import aiogoogletrans as translator
+
 # logger = logging.getLogger("commands")
 # logger.setLevel(logging.DEBUG)
 # filename = "logs/bot_commands_" + time.ctime()[4:16].replace(":", ".") + ".log"
@@ -49,13 +51,16 @@ bot = MyBot(
     member_cache_flags=stuff_to_cache
 )
 
-bot.version = "2020.11.06"
+bot.version = "2020.10.10"
 bot.description = "A general purpose discord bot that provides a lot of utilities and such to use."
 bot.owner_id = 671777334906454026
 bot.owner_ids = {671777334906454026} # Put your ID here, maybe some other peoples
 bot.kclient = ksoftapi.Client(config("KSOFT_API"))
+bot.translate_api = translator.Translator()
 
 os.environ["JISHAKU_HIDE"] = "True"
+os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
+os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True" 
 
 # Commands
 # for file in os.listdir("./cogs"):

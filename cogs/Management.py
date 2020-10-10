@@ -14,6 +14,18 @@ class Management(commands.Cog, name="🛡 Management"):
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
     @commands.bot_has_permissions(manage_channels=True)
+    async def superlogs(self, ctx, channel: discord.TextChannel):
+        """Sets the channel that all of Travis' logs go to."""
+
+        await db.execute("UPDATE guild_settings SET log_channel = ? WHERE guild_id = ?", channel.id, ctx.guild.id)
+        await db.commit()
+
+        await ctx.send(f"Successfully set {channel.mention} to the super-logs channel.")
+
+    @commands.command()
+    @commands.guild_only()
+    @commands.has_permissions(manage_guild=True)
+    @commands.bot_has_permissions(manage_channels=True)
     async def muterole(self, ctx, role: str = None):
         """Sets the mute role for the server."""
 

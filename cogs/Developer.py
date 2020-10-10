@@ -9,7 +9,7 @@ from discord.ext.commands import Cog
 from discord.ext.commands import command
 from discord.ext.commands import is_owner
 
-from utils import utils
+from utils import utils, db
 
 
 # noinspection PyBroadException

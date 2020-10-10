@@ -1,7 +1,8 @@
 CREATE TABLE IF NOT EXISTS guild_settings(
 	guild_id INTEGER PRIMARY KEY,
 	guild_prefix TEXT DEFAULT "tb!",
-	mute_role_id INTEGER
+	mute_role_id INTEGER,
+    log_channel INTEGER
 );
 CREATE TABLE IF NOT EXISTS guild_verification(
     guild_id INTEGER PRIMARY KEY,
