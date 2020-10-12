@@ -9,6 +9,7 @@ import asyncio
 import discord
 import typing
 import random
+import vacefron
 
 standard_cooldown = 3.0
 
@@ -28,6 +29,44 @@ class Fun(commands.Cog, name="🎉 Fun"):
                          1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
                          1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
                          100]
+
+        self.all_colours = [
+            "darkgreen",
+            "purple",
+            "orange",
+            "yellow",
+            "random",
+            "black",
+            "brown",
+            "white",
+            "blue",
+            "cyan",
+            "lime",
+            "pink",
+            "red"
+        ]
+
+    @commands.command()
+    @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
+    async def eject(self, ctx, user: discord.Member, colour: str, confirm: bool = True):
+        """Ejects someone from the game.
+        Usage: `{prefix}eject @kal#1806 red True`"""
+
+        if colour.lower() not in self.all_colours:
+            return await ctx.send(f"List of available colours: {', '.join(self.all_colours)}")
+
+        if confirm is not True and confirm is not False:
+            return await ctx.send("Confirm must be `true` or `false`")
+
+        image = await self.bot.vac_api.ejected(user.name, colour, confirm, confirm)
+        image = await image.read(bytesio=True)
+
+        await ctx.send(file=discord.File(image, filename="ejected.png"))
+
+    @eject.error
+    async def on_eject_error(self, ctx, error):
+        if isinstance(error, vacefron.BadRequest):
+            return await ctx.send(f"List of available colours: {', '.join(self.all_colours)}")
 
     @commands.command(aliases=["rps"])
     @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
