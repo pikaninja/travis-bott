@@ -23,6 +23,12 @@ class MyBot(commands.AutoShardedBot):
     async def get_context(self, message, *, cls=CustomContext):
         return await super().get_context(message, cls=cls)
 
+    async def on_message(self, message):
+        if not self.is_ready():
+            return
+
+        await self.process_commands(message)
+
     def get_uptime(self) -> timedelta:
         """Gets the uptime of the bot"""
 
