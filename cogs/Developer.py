@@ -1,22 +1,61 @@
+import asyncio
 import contextlib
 import io
 import json
 import textwrap
 import traceback
+import re
+import time
+from utils.utils import check_role_permissions
 
 import discord
-from discord.ext.commands import Cog
-from discord.ext.commands import command
-from discord.ext.commands import is_owner
+from discord.ext import tasks
+from discord.ext.commands import (
+    Cog, command, is_owner, Converter,
+    BadArgument
+)
+from discord.ext.commands.core import check
 
 from utils import utils, db
 
+time_regex = re.compile("(?:(\d{1,5})(h|s|m|d))+?")
+time_dict = {"h":3600, "s":1, "m":60, "d":86400}
+
+class TimeConverter(Converter):
+    async def convert(self, ctx, argument):
+        args = argument.lower()
+        matches = re.findall(time_regex, args)
+        time = 0
+        for v, k in matches:
+            try:
+                time += time_dict[k]*float(v)
+            except KeyError:
+                raise BadArgument("{} is an invalid time-key! h/m/s/d are valid!".format(k))
+            except ValueError:
+                raise BadArgument("{} is not a number!".format(v))
+        return time
 
 # noinspection PyBroadException
 class Developer(Cog, command_attrs=dict(hidden=True)):
     def __init__(self, bot):
         self._last_result = None
         self.bot = bot
+        self.check_premium.start()
+
+    @tasks.loop(seconds=5.0)
+    async def check_premium(self):
+        await self.bot.wait_until_ready()
+        now = int(time.time())
+        rows = await db.records("SELECT * FROM premium")
+        for row in rows:
+            guild_id = row[0]
+            end_time = row[1]
+            if end_time - now <= 0:
+                await db.execute("DELETE FROM premium WHERE guild_id = ?", guild_id)
+                await db.commit()
+                utils.log(f"Successfully removed {guild_id} from the premium table.")
+            else:
+                continue
 
     @staticmethod
     def _cleanup_code(content):
@@ -30,6 +69,19 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
         # remove `foo`
         return content.strip('` \n')
+
+    @command()
+    @is_owner()
+    async def add_premium(self, ctx, guild_id: int, sub_time: TimeConverter):
+        """Adds premium to a guild for a given amount of time."""
+
+        prem_time = int((time.time() + sub_time))
+
+        await db.execute("INSERT INTO premium(guild_id, end_time) VALUES(?, ?)",
+            guild_id, prem_time
+        )
+        await db.commit()
+        await ctx.send(f"Successfully added premium to {guild_id} for {sub_time} seconds.")
 
     @command()
     @is_owner()

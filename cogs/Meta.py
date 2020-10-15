@@ -354,15 +354,19 @@ class Meta(commands.Cog, name="🤖 Meta"):
 
         def get_activity(m: discord.Member):
             activities = []
-            if isinstance(user.activity, discord.Spotify):
-                track = f"https://open.spotify.com/track/{user.activity.track_id if not None else 'None'}"
+            if isinstance(m.activity, discord.Spotify):
+                track = f"https://open.spotify.com/track/{m.activity.track_id if not None else 'None'}"
                 activities = [
-                    f"{', '.join(user.activity.artists)} - {user.activity.title}",
-                    f"Duration: {str(user.activity.duration).split('.')[0]}",
+                    f"{', '.join(m.activity.artists)} - {m.activity.title}",
+                    f"Duration: {str(m.activity.duration).split('.')[0]}",
                     f"URL: {track}"
                 ]
-            elif isinstance(user.activity, discord.BaseActivity):
-                activities = [f"{user.activity.name}"]
+            elif isinstance(m.activity, discord.CustomActivity):
+                activities = [f"{m.activity.name}"]
+            elif isinstance(m.activity, discord.Game):
+                activities = [f"{m.activity.name}"]
+            elif isinstance(m.activity, discord.Streaming):
+                activities = [f"{m.activity.name}"]
             else:
                 activities = ["Currently doing nothing, they might just have their game or spotify hidden."]
             return activities

@@ -10,6 +10,12 @@ class Management(commands.Cog, name="🛡 Management"):
     def __init__(self, bot):
         self.bot = bot
 
+    # @commands.command()
+    # @commands.guild_only()
+    # @commands.has_permissions(manage_guild=True)
+    # @commands.bot_has_permissions(manage_roles=True)
+    # async def 
+
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
@@ -122,6 +128,12 @@ class Management(commands.Cog, name="🛡 Management"):
                          ctx.guild.id, msg.id, role.id)
         await db.commit()
         await ctx.thumbsup()
+
+    @verification.command(name="interactive")
+    @commands.guild_only()
+    @commands.has_permissions(manage_guild=True)
+    async def verification_interaction(self, ctx):
+        """__**PREMIUM**__ Goes through a more customizable, interactive version of verification."""
     
     @verification.command(name="reset")
     @commands.guild_only()
