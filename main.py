@@ -60,6 +60,16 @@ bot.kclient = ksoftapi.Client(config("KSOFT_API"))
 bot.translate_api = translator.Translator()
 bot.vac_api = vacefron.Client()
 
+bot.exts = [
+    "cogs.Developer",
+    "cogs.Meta",
+    "cogs.Management",
+    "cogs.Moderation",
+    "cogs.Fun",
+    "cogs.Misc",
+    "cogs.XP"
+]
+
 os.environ["JISHAKU_HIDE"] = "True"
 os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
 os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True" 
@@ -71,13 +81,6 @@ os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
 #         utils.log(f"-> [MODULE] {file[:-3]} loaded.")
 
 cogs = [
-    "cogs.Developer",
-    "cogs.Meta",
-    "cogs.Management",
-    "cogs.Moderation",
-    "cogs.Fun",
-    "cogs.Misc",
-    "cogs.XP",
     "cogs.custom.MotherRussia",
     "cogs.custom.SCrib",
     "cogs.custom.antinuke",
@@ -88,6 +91,10 @@ cogs = [
 for cog in cogs:
     bot.load_extension(cog)
     utils.log(f"-> [MODULE] {cog[5:]} loaded.")
+
+for ext in bot.exts:
+    bot.load_extension(ext)
+    utils.log(f"-> [MODULE] {ext[5:]} loaded.")
 
 # Utilities
 for file in os.listdir("./cogs/utils"):

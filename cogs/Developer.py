@@ -133,14 +133,24 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
     @command()
     @is_owner()
-    async def reload(self, ctx, cog: str):
+    async def reload(self, ctx, cog: str = None):
         # Reloads a given Cog
-        try:
-            self.bot.reload_extension(cog)
-        except Exception as e:
-            await ctx.send(f'**`ERROR:`** {type(e).__name__} - {e}')
+
+        if cog is None:
+            for ext in self.bot.exts:
+                try:
+                    self.bot.reload_extension(ext)
+                except Exception as e:
+                    await ctx.send(f'**`ERROR:`** {type(e).__name__} - {e}')
+            embed = utils.embed_message(message=f"Successfully reloaded:\n{', '.join([f'`{ext[5:]}`' for ext in self.bot.exts])}")
+            await ctx.send(embed=embed)
         else:
-            await ctx.send('**`SUCCESS`**')
+            try:
+                self.bot.reload_extension(cog)
+            except Exception as e:
+                await ctx.send(f'**`ERROR:`** {type(e).__name__} - {e}')
+            else:
+                await ctx.send('**`SUCCESS`**')
 
     @command()
     @is_owner()

@@ -117,7 +117,11 @@ class Fun(commands.Cog, name="🎉 Fun"):
                 embed.description = f"You lost :( the bot chose {bots_choice}"
                 embed.colour = 0xff0000
             
-            await msg.clear_reactions()
+            try:
+                await msg.clear_reactions()
+            except discord.Forbidden:
+                pass
+            
             await msg.edit(embed=embed)
 
     @commands.command(aliases=["pp"])

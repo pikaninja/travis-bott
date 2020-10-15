@@ -134,6 +134,11 @@ class Management(commands.Cog, name="🛡 Management"):
     @commands.has_permissions(manage_guild=True)
     async def verification_interaction(self, ctx):
         """__**PREMIUM**__ Goes through a more customizable, interactive version of verification."""
+
+        check_guild = await db.record("SELECT * FROM guild_verification WHERE guild_id = ?", ctx.guild.id)
+
+        if check_guild:
+            return await ctx.send("❌ Verification is already set up.")
     
     @verification.command(name="reset")
     @commands.guild_only()
