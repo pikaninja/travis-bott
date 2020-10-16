@@ -71,6 +71,7 @@ class Management(commands.Cog, name="🛡 Management"):
 
     @commands.group(invoke_without_command=True)
     @commands.guild_only()
+    @commands.has_permissions(manage_guild=True)
     async def prefix(self, ctx):
         """Gets the current prefix."""
 

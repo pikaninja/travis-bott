@@ -8,6 +8,27 @@ class CustomHelp(commands.HelpCommand):
     def __init__(self, context=CustomContext, **options):
         super().__init__(**options)
 
+    async def filter_commands(self, commands, *, sort=False, key=None):
+        """Custom version of filter commands due to me not liking the way it filters out cmds that are permission based."""
+
+        if sort and key is None:
+            key = lambda c: c.name
+
+        iterator = commands if self.show_hidden else filter(lambda c: not c.hidden, commands)
+
+        if not self.verify_checks:
+            # if we do not need to verify the checks then we can just
+            # run it straight through normally without using await.
+            return sorted(iterator, key=key) if sort else list(iterator)
+
+        ret = []
+        for cmd in iterator:
+            ret.append(cmd)
+
+        if sort:
+            ret.sort(key=key)
+        return ret
+
     def get_ending_note(self):
         return f"Use {self.clean_prefix}{self.invoked_with} [Command] for more info on a command."
 
@@ -16,12 +37,10 @@ class CustomHelp(commands.HelpCommand):
 
     async def send_bot_help(self, mapping):
         embed = utils.embed_message(title="Bot Commands")
-        desc = [
-            f"{self.context.bot.description}\n",
-            "`<arg> | Required`\n",
-            "`[arg] | Optional`\n",
+        embed.description = f"{self.context.bot.description}\n" + \
+            "`<arg> | Required`\n" + \
+            "`[arg] | Optional`\n" + \
             "`<|[arg...]|> Takes multiple arguments, follows the same rules as above.`\n"
-        ]
 
         for cog, commands in mapping.items():
             name = "No Category" if cog is None else cog.qualified_name
@@ -29,15 +48,13 @@ class CustomHelp(commands.HelpCommand):
             if filtered:
                 all_cmds = " ".join(f"`{c.name}`" for c in commands)
                 if cog and cog.description:
-                    desc.append(f"{name}")
-                    desc.append(f"> {all_cmds}\n")
+                    embed.add_field(name=name, value=f"> {all_cmds}\n", inline=False)
                 # value = " ".join("`" + c.name + "`" for c in commands)
                 # if cog and cog.description:
                 #     value = f"{cog.description}\n{value}"
 
                 # embed.add_field(name=name, value=value)
-        
-        embed.description = "\n".join(desc)
+
         embed.set_footer(text=self.get_ending_note())
         await self.get_destination().send(embed=embed)
     

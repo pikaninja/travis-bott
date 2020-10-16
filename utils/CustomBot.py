@@ -39,7 +39,7 @@ class MyBot(commands.AutoShardedBot):
             return
 
         if message.content == f"<@!{self.user.id}>" or message.content == f"<@{self.user.id}>":
-            prefix = await utils.get_guild_prefix(message.guild.id)
+            prefix = self.prefixes[str(message.guild.id)]
             await message.channel.send(f"Hey I saw you mentioned me, incase you didn't know my prefix here is `{prefix}`.")
 
         await self.process_commands(message)
