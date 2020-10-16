@@ -88,11 +88,14 @@ class Meta(commands.Cog, name="🤖 Meta"):
 
         invite_link = f"https://discord.com/api/oauth2/authorize?client_id={self.bot.user.id}&permissions=8&scope=bot"
 
+        astro_user = await self.bot.fetch_user(285506580919877633)
+
         cpu_percentage = psutil.cpu_percent()
         mem_used = (psutil.virtual_memory().total - psutil.virtual_memory().available) / 1000000
         total_mem = psutil.virtual_memory().total / 1000000
 
         embed = utils.embed_message(title=f"Info about {self.bot.user.name}",
+                                    message=f"Thank you to {astro_user} for making the avatar.",
                                     footer_text=f"Bot Version: {self.bot.version} | D.py Version: {discord.__version__}")
         embed.add_field(name="Invite the bot", value=f"[Here]({invite_link})")
         embed.add_field(name="GitHub", value=f"[Here]({config('GITHUB_LINK')})")

@@ -100,7 +100,7 @@ def split_list(a_list) -> typing.Tuple[typing.Any, typing.Any]:
 def embed_message(*, title: str = None,
                   message: str = None,
                   colour: discord.Colour = 0x2F3136,
-                  footer_text: str = f"Developed by: {config('DEVELOPER')}",
+                  footer_text: str = "",
                   footer_icon: str = "",
                   url: str = None,
                   thumbnail: str = "",

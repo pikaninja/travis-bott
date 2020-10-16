@@ -52,7 +52,7 @@ bot = MyBot(
     member_cache_flags=stuff_to_cache
 )
 
-bot.version = "2020.10.11"
+bot.version = "2020.10.16"
 bot.description = "A general purpose discord bot that provides a lot of utilities and such to use."
 bot.owner_id = 671777334906454026
 bot.owner_ids = {671777334906454026} # Put your ID here, maybe some other peoples

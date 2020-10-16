@@ -74,7 +74,7 @@ class Management(commands.Cog, name="🛡 Management"):
     async def prefix(self, ctx):
         """Gets the current prefix."""
 
-        prefix = await utils.get_guild_prefix(ctx.guild.id) or "tb!"
+        prefix = self.bot.prefixes[str(ctx.guild.id)]
         await ctx.send(f"The current prefix for this server is: `{prefix}`")
     
     @prefix.command(name="set")
@@ -92,6 +92,7 @@ class Management(commands.Cog, name="🛡 Management"):
 
         await db.execute("UPDATE guild_settings SET guild_prefix = ? WHERE guild_id = ?", prefix, ctx.guild.id)
         await db.commit()
+        await self.bot.cache_prefixes()
         await ctx.thumbsup()
 
     @commands.group(aliases=["verify"], invoke_without_command=True)
