@@ -128,9 +128,11 @@ class Meta(commands.Cog, name="🤖 Meta"):
 
         embed_list = []
 
-        for emoji in emojis:
+        for _ in range(len(emojis)):
+            emoji = emojis[_]
             embed = utils.embed_message(title=f"Showing for {emoji.name}",
                                         message=f"ID: {emoji.id}",
+                                        footer_text=f"Page {_ + 1}/{len(emojis)}",
                                         url=str(emoji.url))
 
             embed.set_image(url=emoji.url)
@@ -138,25 +140,32 @@ class Meta(commands.Cog, name="🤖 Meta"):
 
             embed_list.append(embed)
 
-        emoji_menu = Paginator(embed_list)
+        emoji_menu = Paginator(
+            embed_list,
+            emojis=["\N{SLEUTH OR SPY}"],
+            delete_after=False,
+            timeout=120.0,
+            clear_reactions=True
+        )
+        
         message = await emoji_menu.paginate(ctx)
 
-        # user_permissions: discord.Permissions = ctx.author.permissions_in(ctx.channel)
-        # if user_permissions.manage_emojis:
-        #     await message.add_reaction("🕵️‍♀️")
+        user_permissions: discord.Permissions = ctx.author.permissions_in(ctx.channel)
+        if user_permissions.manage_emojis:
+            await message.add_reaction("🕵️‍♀️")
 
-        #     def check(reaction, user):
-        #         return user == ctx.author and str(reaction.emoji) == "🕵️‍♀️" and reaction.message == message
+            def check(reaction, user):
+                return user == ctx.author and str(reaction.emoji) == "🕵️‍♀️" and reaction.message == message
             
-        #     try:
-        #         reaction, user = await self.bot.wait_for("reaction_add", timeout=30.0, check=check)
-        #     except asyncio.TimeoutError:
-        #         await message.remove_reaction("🕵️‍♀️", ctx.guild.me)
-        #     else:
-        #         for emoji in emojis:
-        #             emoji_bytes = await emoji.url.read()
-        #             await ctx.guild.create_custom_emoji(name=emoji.name, image=emoji_bytes, reason=f"Responsible user: {ctx.author}")
-        #             await ctx.send("Successfully stole all emojis.")
+            try:
+                reaction, user = await self.bot.wait_for("reaction_add", timeout=30.0, check=check)
+            except asyncio.TimeoutError:
+                await message.remove_reaction("🕵️‍♀️", ctx.guild.me)
+            else:
+                for emoji in emojis:
+                    emoji_bytes = await emoji.url.read()
+                    await ctx.guild.create_custom_emoji(name=emoji.name, image=emoji_bytes, reason=f"Responsible user: {ctx.author}")
+                    await ctx.send("Successfully stole all emojis.")
 
     @emoji.command(name="steal")
     @commands.has_permissions(manage_emojis=True)

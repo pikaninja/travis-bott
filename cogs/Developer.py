@@ -74,6 +74,12 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         return content.strip('` \n')
 
     @command()
+    async def testing(self, ctx):
+        embeds = [discord.Embed(colour=0xff0000), discord.Embed(colour=0x00ff00), discord.Embed(colour=0x0000ff)]
+        p = Paginator(embeds, ["\N{SLEUTH OR SPY}"], False, 10.0, True)
+        await p.paginate(ctx)
+
+    @command()
     @is_owner()
     async def add_premium(self, ctx, guild_id: int, sub_time: TimeConverter):
         """Adds premium to a guild for a given amount of time."""

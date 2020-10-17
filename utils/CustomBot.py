@@ -12,7 +12,7 @@ async def get_prefix(bot: commands.AutoShardedBot, message: discord.Message):
     if message.guild is None:
         return "tb!"
     else:
-        prefix = bot.prefixes[str(message.guild.id)]
+        prefix = bot.prefixes[message.guild.id]
         return commands.when_mentioned_or(prefix)(bot, message)
 
 class MyBot(commands.AutoShardedBot):
@@ -28,7 +28,7 @@ class MyBot(commands.AutoShardedBot):
         all_prefixes = await db.records("SELECT guild_id, guild_prefix FROM guild_settings")
         prefixes = {}
         for entry in all_prefixes:
-            prefixes[str(entry[0])] = entry[1]
+            prefixes[entry[0]] = entry[1]
         self.prefixes = prefixes
 
     async def get_context(self, message, *, cls=CustomContext):

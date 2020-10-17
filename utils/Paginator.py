@@ -12,11 +12,25 @@ NEXT_PAGE = "\N{BLACK RIGHTWARDS ARROW}"
 PAGINATION_EMOJI = (LAST_PAGE, NEXT_PAGE, END_PAGE)
 
 class Paginator():
-    def __init__(self, embeds: typing.List) -> None:
+    def __init__(
+        self,
+        embeds: typing.List,
+        *args,
+        emojis: typing.List,
+        delete_after: bool = False,
+        timeout: int = 60.0,
+        clear_reactions: bool = False
+    ) -> None:
         self.embeds = embeds
+        self.emojis = emojis
+        self.delete_after = delete_after
+        self.timeout = timeout
         self.page = 0
 
-    async def paginate(self, ctx, timeout: int = 60) -> discord.Message:
+        if self.delete_after == True and self.timeout <= 0:
+            raise Exception("You told me to delete the message after but provided no timeout.")
+
+    async def paginate(self, ctx) -> discord.Message:
         def event_check(reaction: discord.Reaction, member: discord.Member):
             return all((
                     member == ctx.author,
@@ -29,18 +43,37 @@ class Paginator():
 
         for emoji in PAGINATION_EMOJI:
             await message.add_reaction(emoji)
+
+        if self.emojis is not None:
+            for emoji in self.emojis:
+                await message.add_reaction(emoji)
         
         while True:
             try:
-                reaction, member = await ctx.bot.wait_for("reaction_add", timeout=timeout, check=event_check)
+                reaction, member = await ctx.bot.wait_for("reaction_add", timeout=self.timeout if self.timeout > 0 else None, check=event_check)
             except asyncio.TimeoutError:
+                try:
+                    await message.clear_reactions()
+                except discord.Forbidden:
+                    pass
+
+                if self.delete_after:
+                    await message.delete()
+
                 break
 
             else:
                 
                 if str(reaction.emoji) == END_PAGE:
                     self.page = 0
-                    return await message.delete()
+                    
+                    if self.delete_after:
+                        return await message.delete()
+                    else:
+                        try:
+                            await message.clear_reactions()
+                        except discord.Forbidden:
+                            pass
                 
                 if str(reaction.emoji) == NEXT_PAGE:
                     try:

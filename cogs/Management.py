@@ -14,7 +14,32 @@ class Management(commands.Cog, name="🛡 Management"):
     # @commands.guild_only()
     # @commands.has_permissions(manage_guild=True)
     # @commands.bot_has_permissions(manage_roles=True)
-    # async def 
+    # async def
+
+    @commands.command()
+    @commands.guild_only()
+    @commands.has_permissions(manage_guild=True)
+    async def config(self, ctx):
+        """Shows you all of the configuration for the current server."""
+
+        current_mute_role_id = await db.field("SELECT mute_role_id FROM guild_settings WHERE guild_id = ?", ctx.guild.id)
+        verification_role_id = await db.field("SELECT role_id FROM guild_verification WHERE guild_id = ?", ctx.guild.id)
+        super_logs_channel_id = await db.field("SELECT log_channel FROM guild_settings WHERE guild_id = ?", ctx.guild.id)
+        prefix = self.bot.prefixes[ctx.guild.id]
+
+        fields = [
+            ["Mute Role", ctx.guild.get_role(current_mute_role_id).mention if current_mute_role_id else "No role set."],
+            ["Verification Role", ctx.guild.get_role(verification_role_id).mention if verification_role_id else "No role set."],
+            ["Super Logging Channel", ctx.guild.get_channel(super_logs_channel_id).mention if super_logs_channel_id else "No channel set."],
+            ["Current prefix:", f"`{prefix}`"]
+        ]
+
+        embed = utils.embed_message(title=f"Configuration for {ctx.guild}")
+
+        for k, v in fields:
+            embed.add_field(name=k, value=v if v else "None set.", inline=False)
+
+        await ctx.send(embed=embed)
 
     @commands.command()
     @commands.guild_only()
@@ -75,7 +100,7 @@ class Management(commands.Cog, name="🛡 Management"):
     async def prefix(self, ctx):
         """Gets the current prefix."""
 
-        prefix = self.bot.prefixes[str(ctx.guild.id)]
+        prefix = self.bot.prefixes[ctx.guild.id]
         await ctx.send(f"The current prefix for this server is: `{prefix}`")
     
     @prefix.command(name="set")
