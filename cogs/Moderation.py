@@ -1,6 +1,7 @@
 from discord.ext import commands, tasks, menus
 
 from utils import utils, db
+from utils.Paginator import Paginator
 
 from time import time as t
 
@@ -120,7 +121,11 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         user_fmt = f"You were warned in **{ctx.guild.name}** by **{ctx.author}** for:\n{reason}"
         chat_fmt = f"{user.mention} was warned by {ctx.author.mention} for {reason}"
         await ctx.send(chat_fmt)
-        await user.send(user_fmt)
+
+        try:
+            await user.send(user_fmt)
+        except discord.HTTPException:
+            await ctx.send(f"I couldn't DM {user.mention} but they were warned anyways.")
 
         ctx.bot.dispatch("mod_cmd", "warn", ctx.author, user, reason)
 
@@ -359,21 +364,27 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(send_messages=True)
-    async def members(self, ctx, role: str):
+    async def members(self, ctx, *roles: str):
         """Check the list of members in a certain role.
         Permissions needed: `Manage Messages`"""
 
-        in_role = []
-        role = await utils.find_roles(ctx.guild, role)
-        [in_role.append(f"{member.mention} ({member})") for member in role.members]
-        columns = [in_role, ["\u200b"]]
-        if len(in_role) > 1:
-            columns[0], columns[1] = utils.split_list(in_role)
-            columns.sort(reverse=True)
-        
-        embed = utils.embed_message(title=f"Members in {role.name} [{len(role.members)}]")
-        [embed.add_field(name="\u200b", value="\n".join(column) if column else "\u200b") for column in columns]
-        await ctx.send(embed=embed)
+        embed_list = []
+
+        for role in roles:
+            in_role = []
+            role = await utils.find_roles(ctx.guild, role)
+            [in_role.append(f"{member.mention} ({member})") for member in role.members]
+            columns = [in_role, ["\u200b"]]
+            if len(in_role) > 1:
+                columns[0], columns[1] = utils.split_list(in_role)
+                columns.sort(reverse=True)
+            
+            embed = utils.embed_message(title=f"Members in {role.name} [{len(role.members)}]")
+            [embed.add_field(name="\u200b", value="\n".join(column) if column else "\u200b") for column in columns]
+            embed_list.append(embed)
+
+        p = Paginator(embed_list)
+        await p.paginate(ctx)
 
     @commands.command()
     @commands.guild_only()

@@ -63,11 +63,7 @@ class ErrorHandler(Cog):
 
         # Missing Permissions
         elif isinstance(error, commands.BotMissingPermissions):
-            return await self.send_to_ctx_or_author(ctx, f"Travis is missing the required permission: `{error.missing_perms[0]}`")
-
-        # Discord Forbidden, usually if bot doesn't have permissions
-        elif isinstance(error, discord.Forbidden):
-            return await self.send_to_ctx_or_author(ctx, f"I was unable to complete this action, this is most likely due to permissions.")
+            return await self.send_to_ctx_or_author(ctx, f"I'm missing the required permission: `{error.missing_perms[0]}`")
 
         # User who invoked command is not owner
         elif isinstance(error, commands.NotOwner):

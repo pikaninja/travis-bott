@@ -19,6 +19,8 @@ class OnGuildEvents(commands.Cog):
         await db.execute(f"DELETE FROM guild_settings WHERE guild_id = ?", guild.id)
         await db.execute(f"DELETE FROM guild_mutes WHERE guild_id = ?", guild.id)
 
+        del self.bot.prefixes[str(guild.id)]
+
         await db.commit()
 
 def setup(bot):

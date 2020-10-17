@@ -6,6 +6,8 @@ import textwrap
 import traceback
 import re
 import time
+
+from discord import colour
 from utils.utils import check_role_permissions
 
 import discord
@@ -17,6 +19,7 @@ from discord.ext.commands import (
 from discord.ext.commands.core import check
 
 from utils import utils, db
+from utils.Paginator import Paginator
 
 time_regex = re.compile("(?:(\d{1,5})(h|s|m|d))+?")
 time_dict = {"h":3600, "s":1, "m":60, "d":86400}
@@ -42,7 +45,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         self.bot = bot
         self.check_premium.start()
 
-    @tasks.loop(seconds=5.0)
+    @tasks.loop(seconds=300.0)
     async def check_premium(self):
         await self.bot.wait_until_ready()
         now = int(time.time())

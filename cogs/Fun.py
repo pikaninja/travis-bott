@@ -129,7 +129,7 @@ class Fun(commands.Cog, name="🎉 Fun"):
     async def penis(self, ctx):
         """Gives you your penis size."""
 
-        size = random.choice(self.pp_sizes)
+        size = 100 if ctx.author.id == self.bot.owner_id else random.choice(self.pp_sizes)
         pp = f"8{'=' * size}D"
         await ctx.send(f"ur pp size is {pp} 😎")
 

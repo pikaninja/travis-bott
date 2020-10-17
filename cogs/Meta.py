@@ -3,6 +3,7 @@ from discord.ext import commands
 from discord.ext import menus
 
 from utils import utils
+from utils.Paginator import Paginator
 from aiohttp import request
 
 from datetime import datetime as dt
@@ -121,35 +122,41 @@ class Meta(commands.Cog, name="🤖 Meta"):
         await ctx.send(embed=embed)
 
     @commands.group(invoke_without_command=True)
-    async def emoji(self, ctx, emoji: discord.PartialEmoji):
+    async def emoji(self, ctx, *emojis: discord.PartialEmoji):
         """Get's the full image of an emoji and adds some more info.
-        If you have `manage_emojis` permissions if you react with the detective, the emoji gets added to the server."""
+        ~~If you have `manage_emojis` permissions if you react with the detective, the emoji gets added to the server.~~"""
 
-        embed = utils.embed_message(title=f"Showing for {emoji.name}",
-                                    message=f"ID: {emoji.id}",
-                                    url=str(emoji.url))
+        embed_list = []
 
-        embed.set_image(url=emoji.url)
-        embed.add_field(name="Animated", value=emoji.animated)
+        for emoji in emojis:
+            embed = utils.embed_message(title=f"Showing for {emoji.name}",
+                                        message=f"ID: {emoji.id}",
+                                        url=str(emoji.url))
 
-        msg = await ctx.send(embed=embed)
+            embed.set_image(url=emoji.url)
+            embed.add_field(name="Animated", value=emoji.animated)
 
-        user_permissions: discord.Permissions = ctx.author.permissions_in(ctx.channel)
-        if user_permissions.manage_emojis:
-            await msg.add_reaction("🕵️‍♀️")
+            embed_list.append(embed)
 
-            def check(reaction, user):
-                return user == ctx.author and str(reaction.emoji) == "🕵️‍♀️" and reaction.message == msg
+        emoji_menu = Paginator(embed_list)
+        message = await emoji_menu.paginate(ctx)
+
+        # user_permissions: discord.Permissions = ctx.author.permissions_in(ctx.channel)
+        # if user_permissions.manage_emojis:
+        #     await message.add_reaction("🕵️‍♀️")
+
+        #     def check(reaction, user):
+        #         return user == ctx.author and str(reaction.emoji) == "🕵️‍♀️" and reaction.message == message
             
-            try:
-                reaction, user = await self.bot.wait_for("reaction_add", timeout=30.0, check=check)
-            except asyncio.TimeoutError:
-                await msg.remove_reaction("🕵️‍♀️", ctx.guild.me)
-            else:
-                emoji_bytes = await emoji.url.read()
-                await ctx.guild.create_custom_emoji(name=emoji.name, image=emoji_bytes, reason=f"Responsible user: {ctx.author}")
-                embed.set_footer(text="Successfully stolen that emoji!")
-                await msg.edit(embed=embed)
+        #     try:
+        #         reaction, user = await self.bot.wait_for("reaction_add", timeout=30.0, check=check)
+        #     except asyncio.TimeoutError:
+        #         await message.remove_reaction("🕵️‍♀️", ctx.guild.me)
+        #     else:
+        #         for emoji in emojis:
+        #             emoji_bytes = await emoji.url.read()
+        #             await ctx.guild.create_custom_emoji(name=emoji.name, image=emoji_bytes, reason=f"Responsible user: {ctx.author}")
+        #             await ctx.send("Successfully stole all emojis.")
 
     @emoji.command(name="steal")
     @commands.has_permissions(manage_emojis=True)
@@ -186,6 +193,9 @@ class Meta(commands.Cog, name="🤖 Meta"):
                 new_emoji = await ctx.guild.create_custom_emoji(name=emoji_name, image=emoji_bytes, reason=f"Responsible user: {ctx.author}")
 
                 await ctx.send(f"Successfully stolen {new_emoji} with the name `{new_emoji.name}`")
+
+                await r.close()
+                await cs.close()
 
     @emoji.error
     async def on_emoji_error(self, ctx, error):

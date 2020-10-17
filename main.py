@@ -15,6 +15,7 @@ from utils.CustomBot import MyBot
 
 import aiogoogletrans as translator
 import vacefron
+import asyncdagpi
 
 # logger = logging.getLogger("commands")
 # logger.setLevel(logging.DEBUG)
@@ -59,6 +60,7 @@ bot.owner_ids = {671777334906454026} # Put your ID here, maybe some other people
 bot.kclient = ksoftapi.Client(config("KSOFT_API"))
 bot.translate_api = translator.Translator()
 bot.vac_api = vacefron.Client()
+bot.dagpi = asyncdagpi.Client(config("DAGPI"))
 
 bot.exts = [
     "cogs.Developer",
