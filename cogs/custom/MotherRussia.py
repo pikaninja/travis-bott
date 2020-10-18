@@ -11,9 +11,6 @@ class MotherRussia(Cog, command_attrs=dict(hidden=True)):
         self.message_id = 737753235246284860
         self.remove_role_id = 737751726354071612
         self.lawyer_role_id = 735699385513541735
-        """
-        Mother Russia Cog
-        """
 
     @Cog.listener()
     async def on_raw_reaction_add(self, payload):

@@ -1,4 +1,6 @@
+import asyncio
 from sys import prefix
+import asyncpg
 import discord
 from discord.ext import commands
 
@@ -7,6 +9,9 @@ from datetime import timedelta
 
 from utils import db, utils
 from utils.CustomContext import CustomContext
+
+import initdb
+import config as cfg
 
 async def get_prefix(bot: commands.AutoShardedBot, message: discord.Message):
     if message.guild is None:
@@ -21,8 +26,15 @@ class MyBot(commands.AutoShardedBot):
 
         self.start_time = dt.now()
         self.prefixes = {}
+        self.premium_guilds = {}
+
+        self.loop = asyncio.get_event_loop()
+        self.pool = self.loop.run_until_complete(asyncpg.create_pool(**cfg.POSTGRES_INFO))
+
+        self.loop.run_until_complete(initdb.run_init(self))
 
         self.loop.create_task(self.cache_prefixes())
+        self.loop.create_task(self.cache_premiums())
 
     async def cache_prefixes(self):
         all_prefixes = await db.records("SELECT guild_id, guild_prefix FROM guild_settings")
@@ -30,6 +42,15 @@ class MyBot(commands.AutoShardedBot):
         for entry in all_prefixes:
             prefixes[entry[0]] = entry[1]
         self.prefixes = prefixes
+
+    async def cache_premiums(self):
+        rows = await self.pool.fetch("SELECT * FROM premium")
+        premiums = {}
+        for row in rows:
+            guild_id = row["guild_id"]
+            end_time = row["end_time"]
+            premiums[guild_id] = end_time
+        self.premium_guilds = premiums
 
     async def get_context(self, message, *, cls=CustomContext):
         return await super().get_context(message, cls=cls)

@@ -1,3 +1,4 @@
+import asyncio
 import os
 import logging
 import time
@@ -16,6 +17,9 @@ from utils.CustomBot import MyBot
 import aiogoogletrans as translator
 import vacefron
 import asyncdagpi
+import config as cfg
+import asyncpg
+import initdb
 
 # logger = logging.getLogger("commands")
 # logger.setLevel(logging.DEBUG)

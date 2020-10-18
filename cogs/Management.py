@@ -1,3 +1,4 @@
+from logging import setLogRecordFactory
 from discord.ext import commands
 
 import discord

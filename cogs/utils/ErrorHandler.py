@@ -6,13 +6,13 @@ from utils import utils
 
 import typing
 
+"""Pretty much from here:
+    https://github.com/4Kaylum/DiscordpyBotBase/blob/master/cogs/error_handler.py"""
+
 # noinspection PyRedundantParentheses
 class ErrorHandler(Cog):
     def __init__(self, bot):
-        self.bot = bot
-
-    """Pretty much from here:
-    https://github.com/4Kaylum/DiscordpyBotBase/blob/master/cogs/error_handler.py"""
+        self.bot = bot    
 
     async def send_to_ctx_or_author(self, ctx, text: str = None, *args, **kwargs) -> typing.Optional[discord.Message]:
         """Tries to send the given text to ctx, but failing that, tries to send it to the author

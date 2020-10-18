@@ -14,9 +14,8 @@ PAGINATION_EMOJI = (LAST_PAGE, NEXT_PAGE, END_PAGE)
 class Paginator():
     def __init__(
         self,
-        embeds: typing.List,
-        *args,
-        emojis: typing.List,
+        embeds: list,
+        emojis: list = None,
         delete_after: bool = False,
         timeout: int = 60.0,
         clear_reactions: bool = False
@@ -25,6 +24,7 @@ class Paginator():
         self.emojis = emojis
         self.delete_after = delete_after
         self.timeout = timeout
+        self.clear_reactions = clear_reactions
         self.page = 0
 
         if self.delete_after == True and self.timeout <= 0:
@@ -52,10 +52,11 @@ class Paginator():
             try:
                 reaction, member = await ctx.bot.wait_for("reaction_add", timeout=self.timeout if self.timeout > 0 else None, check=event_check)
             except asyncio.TimeoutError:
-                try:
-                    await message.clear_reactions()
-                except discord.Forbidden:
-                    pass
+                if self.clear_reactions:
+                    try:
+                        await message.clear_reactions()
+                    except discord.Forbidden:
+                        pass
 
                 if self.delete_after:
                     await message.delete()
@@ -73,7 +74,7 @@ class Paginator():
                         try:
                             await message.clear_reactions()
                         except discord.Forbidden:
-                            pass
+                            break
                 
                 if str(reaction.emoji) == NEXT_PAGE:
                     try:

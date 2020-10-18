@@ -3,6 +3,7 @@ from discord.ext import commands
 
 from utils import CustomContext, utils
 from aiohttp import request
+from asyncdagpi import ImageFeatures
 
 import psutil
 import asyncio
@@ -45,6 +46,17 @@ class Fun(commands.Cog, name="🎉 Fun"):
             "pink",
             "red"
         ]
+
+    @commands.command()
+    @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
+    async def wanted(self, ctx, user: discord.Member = None):
+        """Puts a members user avatar on a wanted poster."""
+
+        user = user or ctx.author
+        url = str(user.avatar_url_as(static_format="png"))
+        img = await self.bot.dagpi.image_process(ImageFeatures.wanted(), url)
+        img_file = discord.File(fp=img.image, filename=f"wanted.{img.format}")
+        await ctx.send(content=f"Hands up! **{user.name}!**", file=img_file)
 
     @commands.command()
     @commands.cooldown(1, standard_cooldown, commands.BucketType.member)

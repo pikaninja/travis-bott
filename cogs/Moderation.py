@@ -379,12 +379,15 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
                 columns[0], columns[1] = utils.split_list(in_role)
                 columns.sort(reverse=True)
             
-            embed = utils.embed_message(title=f"Members in {role.name} [{len(role.members)}]")
+            embed = utils.embed_message(title=f"Members in {role.name} [{sum(1 for m in role.members)}]")
             [embed.add_field(name="\u200b", value="\n".join(column) if column else "\u200b") for column in columns]
             embed_list.append(embed)
 
-        p = Paginator(embed_list)
-        await p.paginate(ctx)
+        if len(roles) > 1:
+            p = Paginator(embed_list, clear_reactions=True)
+            await p.paginate(ctx)
+        else:
+            await ctx.send(embed=embed_list[0])
 
     @commands.command()
     @commands.guild_only()
@@ -502,30 +505,40 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     @commands.bot_has_permissions(send_messages=True)
-    async def role_info(self, ctx, *, role: str):
+    async def role_info(self, ctx, *roles: str):
         """Get information on a given role."""
 
-        role = await utils.find_roles(ctx.guild, role)
+        embed_list = []
 
-        if role is None:
-            return await ctx.send("That role does not exist or I could not find it.")
+        for role in roles:
+            role = await utils.find_roles(ctx.guild, role)
 
-        created_at_str = f"{role.created_at.day}/{role.created_at.month}/{role.created_at.year} {role.created_at.hour}:{role.created_at.minute}:{role.created_at.second}"
-        role_colour = (role.colour.r, role.colour.g, role.colour.b)
-        fields = [
-            ["Name", role.name],
-            ["Mention", f"`{role.mention}`"],
-            ["Created At", created_at_str],
-            ["Role Position", role.position],
-            ["Hoisted", role.hoist],
-            ["Mentionable", role.mentionable],
-            ["Colour", utils.rgb_to_hex(role_colour)],
-            ["Members", len(role.members)],
-            ["Permissions", utils.check_role_permissions(ctx, role)]
-        ]
-        embed = utils.embed_message(colour=discord.Color.from_rgb(role_colour[0], role_colour[1], role_colour[2]))
-        [embed.add_field(name=n, value=v) for n, v in fields]
-        await ctx.send(embed=embed)
+            if role is None:
+                return await ctx.send("That role does not exist or I could not find it.")
+
+            created_at_str = f"{role.created_at.day}/{role.created_at.month}/{role.created_at.year} {role.created_at.hour}:{role.created_at.minute}:{role.created_at.second}"
+            role_colour = (role.colour.r, role.colour.g, role.colour.b)
+            fields = [
+                ["Name", role.name],
+                ["Mention", f"`{role.mention}`"],
+                ["Created At", created_at_str],
+                ["Role Position", role.position],
+                ["Hoisted", role.hoist],
+                ["Mentionable", role.mentionable],
+                ["Colour", utils.rgb_to_hex(role_colour)],
+                ["Members", sum(1 for member in role.members)],
+                ["Permissions", utils.check_role_permissions(ctx, role)]
+            ]
+            embed = utils.embed_message(colour=discord.Color.from_rgb(role_colour[0], role_colour[1], role_colour[2]))
+            [embed.add_field(name=n, value=v) for n, v in fields]
+
+            embed_list.append(embed)
+        
+        if len(embed_list) > 1:
+            p = Paginator(embed_list, clear_reactions=True)
+            await p.paginate(ctx)
+        else:
+            await ctx.send(embed=embed_list[0])
 
     @role.command(name="id")
     @commands.guild_only()

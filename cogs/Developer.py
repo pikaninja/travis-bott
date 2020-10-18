@@ -49,13 +49,9 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
     async def check_premium(self):
         await self.bot.wait_until_ready()
         now = int(time.time())
-        rows = await db.records("SELECT * FROM premium")
-        for row in rows:
-            guild_id = row[0]
-            end_time = row[1]
+        for guild_id, end_time in self.bot.premium_guilds:
             if end_time - now <= 0:
-                await db.execute("DELETE FROM premium WHERE guild_id = ?", guild_id)
-                await db.commit()
+                await self.bot.pool.execute("DELETE FROM premium WHERE guild_id = $1", guild_id)
                 utils.log(f"Successfully removed {guild_id} from the premium table.")
             else:
                 continue
@@ -86,10 +82,12 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
         prem_time = int((time.time() + sub_time))
 
-        await db.execute("INSERT INTO premium(guild_id, end_time) VALUES(?, ?)",
-            guild_id, prem_time
-        )
-        await db.commit()
+        async with self.bot.pool.acquire() as con:
+            await con.execute("INSERT INTO premium(guild_id, end_time) VALUES($1, $2)",
+                guild_id, prem_time
+            )
+        
+        self.bot.premium_guilds[guild_id] = prem_time
         await ctx.send(f"Successfully added premium to {guild_id} for {sub_time} seconds.")
 
     @command()
