@@ -17,9 +17,7 @@ from utils.CustomBot import MyBot
 import aiogoogletrans as translator
 import vacefron
 import asyncdagpi
-import config as cfg
-import asyncpg
-import initdb
+import async_cse
 
 # logger = logging.getLogger("commands")
 # logger.setLevel(logging.DEBUG)
@@ -61,10 +59,12 @@ bot.version = "2020.10.16"
 bot.description = "A general purpose discord bot that provides a lot of utilities and such to use."
 bot.owner_id = 671777334906454026
 bot.owner_ids = {671777334906454026} # Put your ID here, maybe some other peoples
+
 bot.kclient = ksoftapi.Client(config("KSOFT_API"))
 bot.translate_api = translator.Translator()
 bot.vac_api = vacefron.Client()
 bot.dagpi = asyncdagpi.Client(config("DAGPI"))
+bot.cse = async_cse.Search(config("GOOGLE_CSE"))
 
 bot.exts = [
     "cogs.Developer",
@@ -121,7 +121,6 @@ for file in os.listdir("./events"):
 @bot.event
 async def on_ready():
     global new_guilds
-    await db.script_exec("./data/db/build.sql") # Execute the build script
     await bot.change_presence(activity=Game(name=config("BOT_STATUS"))) # Set the status
     utils.log(f"Logged in as -> {bot.user.name}") # Basic info on the bot @ startup
     utils.log(f"Client ID -> {bot.user.id}")
@@ -130,11 +129,10 @@ async def on_ready():
     # Makes sure that all the guilds the bot is in are registered in the database
     # This may need to be used IF the bot is offline and gets added to new servers
     for guild in bot.guilds:
-        get_guild = await db.field(f"SELECT guild_id FROM guild_settings WHERE guild_id = ?", guild.id)
+        get_guild = await bot.pool.fetchval("SELECT guild_id FROM guild_settings WHERE guild_id = $1", guild.id)
         if get_guild is None:
             new_guilds = True
-            await db.execute(f"INSERT INTO guild_settings(guild_id) VALUES(?)", guild.id)
-            await db.commit()
+            await bot.pool.execute("INSERT INTO guild_settings(guild_id) VALUES($1)", guild.id)
     
     if new_guilds: # Just tell me if there's any guilds that got added if the bot was down
         utils.log("-> Added new guild(s) to database.")

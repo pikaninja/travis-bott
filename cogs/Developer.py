@@ -49,12 +49,18 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
     async def check_premium(self):
         await self.bot.wait_until_ready()
         now = int(time.time())
-        for guild_id, end_time in self.bot.premium_guilds:
+        to_remove = []
+        for guild_id, end_time in self.bot.cache["premium_guilds"].items():
             if end_time - now <= 0:
                 await self.bot.pool.execute("DELETE FROM premium WHERE guild_id = $1", guild_id)
+                to_remove.append(guild_id)
                 utils.log(f"Successfully removed {guild_id} from the premium table.")
             else:
                 continue
+        if len(to_remove) >= 1:
+            for guild_id in to_remove:
+                del self.bot.cache["premium_guilds"][guild_id]
+        to_remove.clear()
 
     @staticmethod
     def _cleanup_code(content):
@@ -87,7 +93,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
                 guild_id, prem_time
             )
         
-        self.bot.premium_guilds[guild_id] = prem_time
+        self.bot.cache["premium_guilds"][guild_id] = prem_time
         await ctx.send(f"Successfully added premium to {guild_id} for {sub_time} seconds.")
 
     @command()

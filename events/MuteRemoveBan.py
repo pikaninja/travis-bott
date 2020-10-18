@@ -11,16 +11,15 @@ class MuteRemoveBan(Cog):
     @Cog.listener()
     async def on_member_ban(self, guild, member):
         # Check if Muted
-        is_guild_in_db = await db.field(f"SELECT guild_id FROM guild_mutes WHERE guild_id = ?", guild.id)
+        is_guild_in_db = await self.bot.pool.fetchvar(f"SELECT guild_id FROM guild_mutes WHERE guild_id = $1", guild.id)
         if is_guild_in_db is None:
             return
 
-        check_if_user_muted_in_guild = await db.field(f"SELECT member_id FROM guild_mutes WHERE guild_id = ? AND member_id = ?", guild.id, member.id)
+        check_if_user_muted_in_guild = await self.bot.pool.fetchvar(f"SELECT member_id FROM guild_mutes WHERE guild_id = $1 AND member_id = $2", guild.id, member.id)
         if check_if_user_muted_in_guild is None:
             return
 
-        await db.execute(f"DELETE FROM guild_mutes WHERE guild_id = ? AND member_id = ?", guild.id, member.id)
-        await db.commit()
+        await self.bot.pool.execute(f"DELETE FROM guild_mutes WHERE guild_id = $1 AND member_id = $2", guild.id, member.id)
         # Check if Muted End
 
 def setup(bot):

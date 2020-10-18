@@ -23,10 +23,10 @@ class Management(commands.Cog, name="🛡 Management"):
     async def config(self, ctx):
         """Shows you all of the configuration for the current server."""
 
-        current_mute_role_id = await db.field("SELECT mute_role_id FROM guild_settings WHERE guild_id = ?", ctx.guild.id)
-        verification_role_id = await db.field("SELECT role_id FROM guild_verification WHERE guild_id = ?", ctx.guild.id)
-        super_logs_channel_id = await db.field("SELECT log_channel FROM guild_settings WHERE guild_id = ?", ctx.guild.id)
-        prefix = self.bot.prefixes[ctx.guild.id]
+        current_mute_role_id = await db.field("SELECT mute_role_id FROM guild_settings WHERE guild_id = $1", ctx.guild.id)
+        verification_role_id = await db.field("SELECT role_id FROM guild_verification WHERE guild_id = $1", ctx.guild.id)
+        super_logs_channel_id = await db.field("SELECT log_channel FROM guild_settings WHERE guild_id = $1", ctx.guild.id)
+        prefix = self.bot.cache["prefixes"][ctx.guild.id]
 
         fields = [
             ["Mute Role", ctx.guild.get_role(current_mute_role_id).mention if current_mute_role_id else "No role set."],
@@ -49,7 +49,7 @@ class Management(commands.Cog, name="🛡 Management"):
     async def superlogs(self, ctx, channel: discord.TextChannel):
         """Sets the channel that all of Travis' logs go to."""
 
-        await db.execute("UPDATE guild_settings SET log_channel = ? WHERE guild_id = ?", channel.id, ctx.guild.id)
+        await db.execute("UPDATE guild_settings SET log_channel = $1 WHERE guild_id = $2", channel.id, ctx.guild.id)
         await db.commit()
 
         await ctx.send(f"Successfully set {channel.mention} to the super-logs channel.")
@@ -62,7 +62,7 @@ class Management(commands.Cog, name="🛡 Management"):
         """Sets the mute role for the server."""
 
         if role is None:
-            current_mute_role = await db.field("SELECT mute_role_id FROM guild_settings WHERE guild_id = ?", ctx.guild.id)
+            current_mute_role = await db.field("SELECT mute_role_id FROM guild_settings WHERE guild_id = $1", ctx.guild.id)
             if current_mute_role is None:
                 return await ctx.send_help(ctx.command)
             role = ctx.guild.get_role(current_mute_role)
@@ -91,7 +91,7 @@ class Management(commands.Cog, name="🛡 Management"):
             for c in ctx.guild.text_channels:
                 await c.set_permissions(role, send_messages=False)
                 count += 1
-            await db.execute("UPDATE guild_settings SET mute_role_id = ? WHERE guild_id = ?", role.id, ctx.guild.id)
+            await db.execute("UPDATE guild_settings SET mute_role_id = $1 WHERE guild_id = $2", role.id, ctx.guild.id)
             await db.commit()
             await ctx.send(f"Mute role has been set up and permissions have been changed in {count} channels.")
 
@@ -101,7 +101,7 @@ class Management(commands.Cog, name="🛡 Management"):
     async def prefix(self, ctx):
         """Gets the current prefix."""
 
-        prefix = self.bot.prefixes[ctx.guild.id]
+        prefix = self.bot.cache["prefixes"][ctx.guild.id]
         await ctx.send(f"The current prefix for this server is: `{prefix}`")
     
     @prefix.command(name="set")
@@ -117,9 +117,8 @@ class Management(commands.Cog, name="🛡 Management"):
         if len(prefix) > 10:
             return await ctx.send("❌ The prefix can not be above 10 characters.")
 
-        await db.execute("UPDATE guild_settings SET guild_prefix = ? WHERE guild_id = ?", prefix, ctx.guild.id)
-        await db.commit()
-        await self.bot.cache_prefixes()
+        await self.bot.pool.execute("UPDATE guild_settings SET guild_prefix = $1 WHERE guild_id = $2", prefix, ctx.guild.id)
+        self.bot.cache["prefixes"][ctx.guild.id] = prefix
         await ctx.thumbsup()
 
     @commands.group(aliases=["verify"], invoke_without_command=True)
@@ -139,7 +138,7 @@ class Management(commands.Cog, name="🛡 Management"):
     async def verification_setup(self, ctx, channel: discord.TextChannel, *, role: str):
         """Goes through the process to set up verification."""
 
-        check_guild = await db.record("SELECT * FROM guild_verification WHERE guild_id = ?", ctx.guild.id)
+        check_guild = await self.bot.pool.fetchrow("SELECT * FROM guild_verification WHERE guild_id = $1", ctx.guild.id)
 
         if check_guild:
             return await ctx.send("❌ Verification is already set up.")
@@ -152,9 +151,8 @@ class Management(commands.Cog, name="🛡 Management"):
         role = await utils.find_roles(ctx.guild, role)
         msg = await channel.send(embed=embed)
         await msg.add_reaction("✅")
-        await db.execute("INSERT INTO guild_verification(guild_id, message_id, role_id) VALUES(?, ?, ?)",
+        await self.bot.pool.execute("INSERT INTO guild_verification(guild_id, message_id, role_id) VALUES($1, $2, $3)",
                          ctx.guild.id, msg.id, role.id)
-        await db.commit()
         await ctx.thumbsup()
 
     @verification.command(name="interactive")
@@ -163,7 +161,7 @@ class Management(commands.Cog, name="🛡 Management"):
     async def verification_interaction(self, ctx):
         """__**PREMIUM**__ Goes through a more customizable, interactive version of verification."""
 
-        check_guild = await db.record("SELECT * FROM guild_verification WHERE guild_id = ?", ctx.guild.id)
+        check_guild = await self.bot.pool.fetchrow("SELECT * FROM guild_verification WHERE guild_id = $1", ctx.guild.id)
 
         if check_guild:
             return await ctx.send("❌ Verification is already set up.")
@@ -174,13 +172,12 @@ class Management(commands.Cog, name="🛡 Management"):
     async def verification_reset(self, ctx):
         """Resets verification in the server."""
 
-        check_guild = await db.record("SELECT * FROM guild_verification WHERE guild_id = ?", ctx.guild.id)
+        check_guild = await self.bot.pool.fetchrow("SELECT * FROM guild_verification WHERE guild_id = $1", ctx.guild.id)
 
         if not check_guild:
             return await ctx.send("❌ You do not have verification set up.")
 
-        await db.execute("DELETE FROM guild_verification WHERE guild_id = ?", ctx.guild.id)
-        await db.commit()
+        await self.bot.pool.execute("DELETE FROM guild_verification WHERE guild_id = $1", ctx.guild.id)
         await ctx.thumbsup()
 
 def setup(bot):

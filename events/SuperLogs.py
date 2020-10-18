@@ -15,7 +15,7 @@ class SuperLogs(commands.Cog):
         User_affected: The person who was affected within the actions, this will also be discord.Member.
         Reason: The reason provided in the action, if any. This will be a string."""
 
-        mod_log_channel_id = await db.field("SELECT log_channel FROM guild_settings WHERE guild_id = ?", moderator.guild.id)
+        mod_log_channel_id = await self.bot.pool.fetchvar("SELECT log_channel FROM guild_settings WHERE guild_id = $1", moderator.guild.id)
 
         if mod_log_channel_id is None:
             return
@@ -23,8 +23,7 @@ class SuperLogs(commands.Cog):
         log_channel = moderator.guild.get_channel(mod_log_channel_id)
 
         if log_channel is None:
-            await db.execute("UPDATE guild_settings SET log_channel = ? WHERE guild_id = ?", None, moderator.guild.id)
-            await db.commit()
+            await self.bot.pool.execute("UPDATE guild_settings SET log_channel = $1 WHERE guild_id = $2", None, moderator.guild.id)
             return
 
         embed = utils.embed_message(title=f"Super Log",

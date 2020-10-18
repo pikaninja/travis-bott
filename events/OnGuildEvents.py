@@ -9,17 +9,17 @@ class OnGuildEvents(commands.Cog):
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild: discord.Guild):
-        await db.execute(f"INSERT INTO guild_settings(guild_id, guild_prefix) VALUES(?, ?)", guild.id, "tb!")
-        self.bot.prefixes[guild.id] = "tb!"
+        await self.bot.pool.execute("INSERT INTO guild_settings(guild_id, guild_prefix) VALUES($1, $2)", guild.id, "tb!")
+        self.bot.cache["prefixes"][guild.id] = "tb!"
 
         await db.commit()
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild: discord.Guild):
-        await db.execute(f"DELETE FROM guild_settings WHERE guild_id = ?", guild.id)
-        await db.execute(f"DELETE FROM guild_mutes WHERE guild_id = ?", guild.id)
+        await self.bot.pool.execute("DELETE FROM guild_settings WHERE guild_id = $1", guild.id)
+        await self.bot.pool.execute("DELETE FROM guild_mutes WHERE guild_id = $1", guild.id)
 
-        del self.bot.prefixes[guild.id]
+        del self.bot.cache["prefixes"][guild.id]
 
         await db.commit()
 

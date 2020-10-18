@@ -59,17 +59,18 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     @tasks.loop(seconds=30)
     async def check_mutes(self):
         await self.bot.wait_until_ready()
-        mutes = await db.records("SELECT * FROM guild_mutes")
+        mutes = await self.bot.pool.fetch("SELECT * FROM guild_mutes")
         for record in mutes:
-            ends_at = record[2]
+            guild_id = record["guild_id"]
+            member_id = record["member_id"]
+            ends_at = record["end_time"]
             ends_in = int(ends_at - t())
-            guild = self.bot.get_guild(record[0])
-            member = guild.get_member(record[1])
-            mute_role_id = await db.field("SELECT mute_role_id FROM guild_settings WHERE guild_id = ?", guild.id)
+            guild = self.bot.get_guild(guild_id)
+            member = guild.get_member(member_id)
+            mute_role_id = await self.bot.pool.fetchvar("SELECT mute_role_id FROM guild_settings WHERE guild_id = $1", guild.id)
             if ends_in <= 0:
-                await db.execute("DELETE FROM guild_mutes WHERE member_id = ? AND guild_id = ?",
+                await self.bot.pool.execute("DELETE FROM guild_mutes WHERE member_id = $1 AND guild_id = $2",
                                  member.id, guild.id)
-                await db.commit()
                 await member.remove_roles(guild.get_role(mute_role_id))
             else:
                 pass
@@ -95,7 +96,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     async def warn(self, ctx, user: discord.Member, *, reason: str = "No Reason Provided"):
         """Warns a given user for a given reason, 20 warns maximum on each user."""
 
-        user_warns = await db.records("SELECT * FROM warns WHERE user_id = ?", user.id)
+        user_warns = await self.bot.pool.fetch("SELECT * FROM warns WHERE user_id = $1", user.id)
 
         if len(user_warns) > 20:
             return await ctx.send("That user has 20 warns, please delete (at least) one to make more space.")
@@ -109,7 +110,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
             "date_warned": int(t())
         }
 
-        await db.execute("INSERT INTO warns(warn_id, guild_id, user_id, warner_id, warn_reason, date_warned) VALUES(?, ?, ?, ?, ?, ?)",
+        await self.bot.pool.execute("INSERT INTO warns(warn_id, guild_id, user_id, warner_id, warn_reason, date_warned) VALUES($1, $2, $3, $4, $5, $6)",
             warn_info["warn_id"],
             warn_info["guild_id"],
             warn_info["user_id"],
@@ -136,13 +137,12 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     async def delwarn(self, ctx, warn_id: str):
         """Deletes a given warn by its ID."""
 
-        get_warn = await db.record("SELECT * FROM warns WHERE warn_id = ? AND guild_id = ?", warn_id, ctx.guild.id)
+        get_warn = await self.bot.pool.execute("SELECT * FROM warns WHERE warn_id = $1 AND guild_id = $2", warn_id, ctx.guild.id)
 
         if get_warn is None:
             return await ctx.send("That warn doesn't exist here.")
         
-        await db.execute("DELETE FROM warns WHERE warn_id = ?", warn_id)
-        await db.commit()
+        await self.bot.pool.execute("DELETE FROM warns WHERE warn_id = $1", warn_id)
         await ctx.send(f"Successfully removed warning **{warn_id}**")
 
     @commands.command(aliases=["warnings"])
@@ -152,18 +152,18 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     async def warns(self, ctx, user: discord.Member):
         """Gets all of a given users warnings"""
         
-        user_warns = await db.records("SELECT * FROM warns WHERE user_id = ? AND guild_id = ?", user.id, ctx.guild.id)
+        user_warns = await self.bot.pool.fetch("SELECT * FROM warns WHERE user_id = $1 AND guild_id = $2", user.id, ctx.guild.id)
         embed = utils.embed_message(title=f"Warns for {user}")
         fmt = ""
         warns = []
         for row in user_warns:
             info = {
-                "warn_id": row[0],
-                "guild_id": row[1],
-                "user_id": row[2],
-                "warner_id": row[3],
-                "warn_reason": row[4],
-                "date_warned": row[5]
+                "warn_id": row["warn_id"],
+                "guild_id": row["guild_id"],
+                "user_id": row["user_id"],
+                "warner_id": row["warner_id"],
+                "warn_reason": row["warn_reason"],
+                "date_warned": row["date_warned"]
             }
             date_warned = dt.fromtimestamp(info["date_warned"])
             moderator = ctx.guild.get_member(info['warner_id'])
@@ -180,11 +180,11 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         """Gives a list of all of the active mutes."""
 
         moderations = []
-        mutes = await db.records("SELECT * FROM guild_mutes WHERE guild_id = ?", ctx.guild.id)
+        mutes = await self.bot.pool.fetch("SELECT * FROM guild_mutes WHERE guild_id = $1", ctx.guild.id)
         for record in mutes:
-            ends_at = record[2]
+            ends_at = record["end_time"]
             ends_in = int(ends_at - t())
-            member = ctx.guild.get_member(record[1])
+            member = ctx.guild.get_member(record["member_id"])
             if member is None:
                 member.append(f"❌ Invalid User | {ends_in} Seconds")
             else:
@@ -206,8 +206,8 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         Permissions needed: `Manage Messages`
         Example: `mute @kal#1806 5m Way too cool for me`"""
 
-        mute_role_id = await db.field("SELECT mute_role_id FROM guild_settings WHERE guild_id = ?", ctx.guild.id)
-        check_if_muted = await db.field("SELECT member_id FROM guild_mutes WHERE guild_id = ? AND member_id = ?",
+        mute_role_id = await self.bot.pool.var("SELECT mute_role_id FROM guild_settings WHERE guild_id = $1", ctx.guild.id)
+        check_if_muted = await self.bot.pool.var("SELECT member_id FROM guild_mutes WHERE guild_id = $1 AND member_id = $2",
                                         ctx.guild.id, user.id)
 
         role = ctx.guild.get_role(mute_role_id)
@@ -231,14 +231,14 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
 
         raw_time = int(time[:-1])
         if time.endswith("s"):
-            await db.execute("INSERT INTO guild_mutes(guild_id, member_id, end_time) VALUES(?, ?, ?)",
-                             ctx.guild.id, user.id, int(t() + raw_time))
+            await self.bot.pool.execute("INSERT INTO guild_mutes(guild_id, member_id, end_time) VALUES($1, $2, $3)",
+                                        ctx.guild.id, user.id, int(t() + raw_time))
         elif time.endswith("m"):
-            await db.execute("INSERT INTO guild_mutes(guild_id, member_id, end_time) VALUES(?, ?, ?)",
-                             ctx.guild.id, user.id, int(t() + (raw_time * 60)))
+            await self.bot.pool.execute("INSERT INTO guild_mutes(guild_id, member_id, end_time) VALUES($1, $2, $3)",
+                                        ctx.guild.id, user.id, int(t() + (raw_time * 60)))
         elif time.endswith("h"):
-            await db.execute("INSERT INTO guild_mutes(guild_id, member_id, end_time) VALUES(?, ?, ?)",
-                             ctx.guild.id, user.id, int(t() + ((raw_time * 60) * 60)))
+            await self.bot.pool.execute("INSERT INTO guild_mutes(guild_id, member_id, end_time) VALUES($1, $2, $3)",
+                                        ctx.guild.id, user.id, int(t() + ((raw_time * 60) * 60)))
         else:
             return await ctx.send("Time must be done in the format of [Amount of Unit][Unit (s, m, h)]")
         
@@ -255,7 +255,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     async def unmute(self, ctx, user: discord.Member):
         """Unmutes a given user who has the servers muted role"""
 
-        mute_role_id = await db.field("SELECT mute_role_id FROM guild_settings WHERE guild_id = ?", ctx.guild.id)
+        mute_role_id = await self.bot.pool.fetchvar("SELECT mute_role_id FROM guild_settings WHERE guild_id = $1", ctx.guild.id)
 
         if mute_role_id is None:
             return await ctx.send(f"There is no mute role set for this server, please run `{ctx.prefix}muterole [Role]` to set one up.")

@@ -32,6 +32,28 @@ class Meta(commands.Cog, name="🤖 Meta"):
         self.weather_api_key = config("WEATHER_API_KEY")
         self.ksoft_api_key = config("KSOFT_API")
 
+    @commands.command()
+    async def google(self, ctx, *, query: str):
+        """Searches google for a given query."""
+
+        results = await self.bot.cse.search(query, safesearch=True)
+
+        how_many = 10 if len(results) > 10 else len(results)
+
+        embed_list = []
+
+        for i in range(how_many):
+            embed = utils.embed_message()
+            embed.title = results[i].title
+            embed.description = results[i].description
+            embed.url = results[i].url
+            embed.set_image(url=results[i].image_url)
+
+            embed_list.append(embed)
+
+        p = Paginator(embed_list, delete_after=True)
+        await p.paginate(ctx)        
+
     @commands.command(aliases=["randomcolor", "rcolour", "rcolor"])
     async def randomcolour(self, ctx):
         """Gives a random colour."""

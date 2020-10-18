@@ -14,15 +14,15 @@ class VerificationReaction(commands.Cog):
         if payload.member.bot:
             return
         
-        guild_settings = await db.record("SELECT * FROM guild_verification WHERE guild_id = ?", payload.guild_id)
+        guild_settings = await self.bot.pool.fetchrow("SELECT * FROM guild_verification WHERE guild_id = $1", payload.guild_id)
 
         if not guild_settings:
             return
 
-        guild = await self.bot.fetch_guild(guild_settings[0])
-        role = guild.get_role(guild_settings[2])
+        guild = await self.bot.fetch_guild(guild_settings["guild_id"])
+        role = guild.get_role(guild_settings["role_id"])
         
-        if payload.message_id != guild_settings[1]:
+        if payload.message_id != guild_settings["message_id"]:
             return
         
         if payload.emoji.name != "✅":
