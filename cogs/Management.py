@@ -23,9 +23,9 @@ class Management(commands.Cog, name="🛡 Management"):
     async def config(self, ctx):
         """Shows you all of the configuration for the current server."""
 
-        current_mute_role_id = await db.field("SELECT mute_role_id FROM guild_settings WHERE guild_id = $1", ctx.guild.id)
-        verification_role_id = await db.field("SELECT role_id FROM guild_verification WHERE guild_id = $1", ctx.guild.id)
-        super_logs_channel_id = await db.field("SELECT log_channel FROM guild_settings WHERE guild_id = $1", ctx.guild.id)
+        current_mute_role_id = await self.bot.pool.fetchval("SELECT mute_role_id FROM guild_settings WHERE guild_id = $1", ctx.guild.id)
+        verification_role_id = await self.bot.pool.fetchval("SELECT role_id FROM guild_verification WHERE guild_id = $1", ctx.guild.id)
+        super_logs_channel_id = await self.bot.pool.fetchval("SELECT log_channel FROM guild_settings WHERE guild_id = $1", ctx.guild.id)
         prefix = self.bot.cache["prefixes"][ctx.guild.id]
 
         fields = [

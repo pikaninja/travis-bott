@@ -67,7 +67,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
             ends_in = int(ends_at - t())
             guild = self.bot.get_guild(guild_id)
             member = guild.get_member(member_id)
-            mute_role_id = await self.bot.pool.fetchvar("SELECT mute_role_id FROM guild_settings WHERE guild_id = $1", guild.id)
+            mute_role_id = await self.bot.pool.fetchval("SELECT mute_role_id FROM guild_settings WHERE guild_id = $1", guild.id)
             if ends_in <= 0:
                 await self.bot.pool.execute("DELETE FROM guild_mutes WHERE member_id = $1 AND guild_id = $2",
                                  member.id, guild.id)
@@ -206,8 +206,8 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         Permissions needed: `Manage Messages`
         Example: `mute @kal#1806 5m Way too cool for me`"""
 
-        mute_role_id = await self.bot.pool.var("SELECT mute_role_id FROM guild_settings WHERE guild_id = $1", ctx.guild.id)
-        check_if_muted = await self.bot.pool.var("SELECT member_id FROM guild_mutes WHERE guild_id = $1 AND member_id = $2",
+        mute_role_id = await self.bot.pool.fetchval("SELECT mute_role_id FROM guild_settings WHERE guild_id = $1", ctx.guild.id)
+        check_if_muted = await self.bot.pool.fetchval("SELECT member_id FROM guild_mutes WHERE guild_id = $1 AND member_id = $2",
                                         ctx.guild.id, user.id)
 
         role = ctx.guild.get_role(mute_role_id)
@@ -255,7 +255,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     async def unmute(self, ctx, user: discord.Member):
         """Unmutes a given user who has the servers muted role"""
 
-        mute_role_id = await self.bot.pool.fetchvar("SELECT mute_role_id FROM guild_settings WHERE guild_id = $1", ctx.guild.id)
+        mute_role_id = await self.bot.pool.fetchval("SELECT mute_role_id FROM guild_settings WHERE guild_id = $1", ctx.guild.id)
 
         if mute_role_id is None:
             return await ctx.send(f"There is no mute role set for this server, please run `{ctx.prefix}muterole [Role]` to set one up.")

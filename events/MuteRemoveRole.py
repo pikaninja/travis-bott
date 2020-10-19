@@ -11,8 +11,8 @@ class MuteRemove(Cog):
     @Cog.listener()
     async def on_member_update(self, before, after):
         # Muted People
-        check_guild_in_db = await self.bot.pool.fetchvar(f"SELECT guild_id FROM guild_mutes WHERE guild_id = $1", before.guild.id)
-        is_user_muted = await self.bot.pool.fetchvar(f"SELECT member_id FROM guild_mutes WHERE guild_id = $1 AND member_id = $2", before.guild.id, before.id)
+        check_guild_in_db = await self.bot.pool.fetchval(f"SELECT guild_id FROM guild_mutes WHERE guild_id = $1", before.guild.id)
+        is_user_muted = await self.bot.pool.fetchval(f"SELECT member_id FROM guild_mutes WHERE guild_id = $1 AND member_id = $2", before.guild.id, before.id)
 
         if check_guild_in_db is None:
             return
@@ -20,7 +20,7 @@ class MuteRemove(Cog):
         if is_user_muted is None:
             return
 
-        role_id = await self.bot.pool.fetchvar(f"SELECT mute_role_id FROM guild_settings WHERE guild_id = $1", before.guild.id)
+        role_id = await self.bot.pool.fetchval(f"SELECT mute_role_id FROM guild_settings WHERE guild_id = $1", before.guild.id)
         role = before.guild.get_role(role_id)
 
         if role in before.roles and role not in after.roles:

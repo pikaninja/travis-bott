@@ -1,6 +1,7 @@
 import asyncio
 import contextlib
 import io
+import os
 import json
 import textwrap
 import traceback
@@ -76,10 +77,10 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         return content.strip('` \n')
 
     @command()
-    async def testing(self, ctx):
-        embeds = [discord.Embed(colour=0xff0000), discord.Embed(colour=0x00ff00), discord.Embed(colour=0x0000ff)]
-        p = Paginator(embeds, ["\N{SLEUTH OR SPY}"], False, 10.0, True)
-        await p.paginate(ctx)
+    @is_owner()
+    async def restart(self, ctx):
+        await ctx.send("⚠ Restarting now...")
+        os.system("pm2 restart Platform")
 
     @command()
     @is_owner()

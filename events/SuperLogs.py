@@ -15,7 +15,7 @@ class SuperLogs(commands.Cog):
         User_affected: The person who was affected within the actions, this will also be discord.Member.
         Reason: The reason provided in the action, if any. This will be a string."""
 
-        mod_log_channel_id = await self.bot.pool.fetchvar("SELECT log_channel FROM guild_settings WHERE guild_id = $1", moderator.guild.id)
+        mod_log_channel_id = await self.bot.pool.fetchval("SELECT log_channel FROM guild_settings WHERE guild_id = $1", moderator.guild.id)
 
         if mod_log_channel_id is None:
             return

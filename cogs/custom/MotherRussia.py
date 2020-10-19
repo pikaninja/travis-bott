@@ -49,17 +49,6 @@ class MotherRussia(Cog, command_attrs=dict(hidden=True)):
             # Nuke bot Protection End
 
     @Cog.listener()
-    async def on_member_update(self, before, after):
-        if before.guild.id != self.id or after.guild.id != self.id: return
-        level_5 = get(after.guild.roles, id=735699352391122954)
-        denied = get(after.guild.roles, id=735699406594113548)
-        if level_5 in after.roles:
-            await after.remove_roles(denied, reason="Reached Level 5")
-        if after.id == self.gregg_id:
-            if "iris_5_1" in after.display_name:
-                await after.edit(nick=None)
-
-    @Cog.listener()
     async def on_guild_role_delete(self, role):
         if role.guild.id != self.id: return
         guild = role.guild

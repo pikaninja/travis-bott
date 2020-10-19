@@ -12,6 +12,7 @@ from discord.ext.commands import when_mentioned_or
 from discord.ext import commands
 
 from . import db
+from .CustomBot import MyBot
 
 UserObject = typing.Union[discord.Member, discord.User]
 UserSnowflake = typing.Union[UserObject, discord.Object]
@@ -19,9 +20,11 @@ UserSnowflake = typing.Union[UserObject, discord.Object]
 def log(*args):
     print(f"{time.strftime('%I:%M:%S')} | {' '.join(map(str, args))}")
 
-async def get_guild_prefix(guild_id):
-    prefix = await db.field("SELECT guild_prefix FROM guild_settings WHERE guild_id = ?", guild_id)
-    return prefix
+async def get_prefix(bot: MyBot, message: discord.Message):
+    if message.guild is None:
+        return "tb!"
+    else:
+        return bot.cache["prefixes"][message.guild.id]
 
 async def is_target_staff(ctx, user) -> str:
     ch = ctx.message.channel

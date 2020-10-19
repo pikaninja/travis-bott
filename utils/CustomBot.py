@@ -1,17 +1,25 @@
 import asyncio
 from sys import prefix
+import async_cse
+import asyncdagpi
 import asyncpg
+import aiogoogletrans as translator
 import discord
 from discord.ext import commands
 
 from datetime import datetime as dt
 from datetime import timedelta
 
+import ksoftapi
+import vacefron
+
 from utils import db, utils
 from utils.CustomContext import CustomContext
 
 import initdb
 import config as cfg
+
+from decouple import config
 
 async def get_prefix(bot: commands.AutoShardedBot, message: discord.Message):
     if message.guild is None:
@@ -35,9 +43,19 @@ class MyBot(commands.AutoShardedBot):
         self.loop.create_task(self.cache_prefixes())
         self.loop.create_task(self.cache_premiums())
 
+        self.kclient = ksoftapi.Client(config("KSOFT_API"))
+        self.translate_api = translator.Translator()
+        self.vac_api = vacefron.Client()
+        self.dagpi = asyncdagpi.Client(config("DAGPI"))
+        self.cse = async_cse.Search(config("GOOGLE_CSE"))
+
     async def close(self):
-        self.loop.close()
-        await super().close()            
+        await self.pool.close()
+        await self.kclient.close()
+        await self.vac_api.close()
+        await self.dagpi.close()
+        await self.cse.close()
+        await super().close()
 
     async def cache_prefixes(self):
         all_prefixes = await self.pool.fetch("SELECT guild_id, guild_prefix FROM guild_settings")

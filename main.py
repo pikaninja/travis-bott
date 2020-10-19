@@ -2,6 +2,7 @@ import asyncio
 import os
 import logging
 import time
+import dbl
 from discord.flags import MemberCacheFlags
 import ksoftapi
 
@@ -60,11 +61,11 @@ bot.description = "A general purpose discord bot that provides a lot of utilitie
 bot.owner_id = 671777334906454026
 bot.owner_ids = {671777334906454026} # Put your ID here, maybe some other peoples
 
-bot.kclient = ksoftapi.Client(config("KSOFT_API"))
-bot.translate_api = translator.Translator()
-bot.vac_api = vacefron.Client()
-bot.dagpi = asyncdagpi.Client(config("DAGPI"))
-bot.cse = async_cse.Search(config("GOOGLE_CSE"))
+# bot.kclient = ksoftapi.Client(config("KSOFT_API"))
+# bot.translate_api = translator.Translator()
+# bot.vac_api = vacefron.Client()
+# bot.dagpi = asyncdagpi.Client(config("DAGPI"))
+# bot.cse = async_cse.Search(config("GOOGLE_CSE"))
 
 bot.exts = [
     "cogs.Developer",
@@ -72,8 +73,7 @@ bot.exts = [
     "cogs.Management",
     "cogs.Moderation",
     "cogs.Fun",
-    "cogs.Misc",
-    "cogs.XP"
+    "cogs.Misc"
 ]
 
 os.environ["JISHAKU_HIDE"] = "True"
