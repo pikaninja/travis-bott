@@ -9,6 +9,8 @@ from aiohttp import request
 from datetime import datetime as dt
 from io import StringIO
 
+from currency_converter import CurrencyConverter
+
 import aiohttp
 import psutil
 import discord
@@ -31,6 +33,21 @@ class Meta(commands.Cog, name="🤖 Meta"):
         self.bot = bot
         self.weather_api_key = config("WEATHER_API_KEY")
         self.ksoft_api_key = config("KSOFT_API")
+        self.currency_converter = CurrencyConverter()
+
+    @commands.command()
+    async def convert(self, ctx, amount: int, cur_from: str, cur_to: str):
+        """Converts a given amunt of money from one currency (3 letter e.g. GBP) to another currency."""
+
+        cur_from = cur_from.upper()
+        cur_to = cur_to.upper()
+
+        try:
+            conversion = self.currency_converter.convert(amount, cur_from, cur_to)
+        except ValueError:
+            return await ctx.send("That is an unsupported currency.")
+
+        await ctx.send(f"{amount} {cur_from} -> {cur_to} = {conversion:,.2f}")
 
     @commands.command()
     async def google(self, ctx, *, query: str):

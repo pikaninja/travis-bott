@@ -94,5 +94,5 @@ class MyBot(commands.AutoShardedBot):
     async def config(self, guild_id: int, table: str) -> str:
         """Get all records of a specific guild at a specific table"""
 
-        records = await db.records(f"SELECT * FROM {table} WHERE guild_id = ?", guild_id)
+        records = await self.pool.fetch(f"SELECT * FROM {table} WHERE guild_id = $1", guild_id)
         return records[0]
