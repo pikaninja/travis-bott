@@ -1,3 +1,5 @@
+import logging
+
 from decouple import config
 from discord.ext import commands
 from discord.ext import menus
@@ -409,6 +411,8 @@ class Meta(commands.Cog, name="🤖 Meta"):
         #     return "Should be clear."
 
         async def check_if_bot(m: discord.Member):
+            if m.bot:
+                return "This is literally a bot user."
             is_banned = await self.bot.kclient.bans.check(m.id)
             if dt.now().month == m.created_at.month and dt.now().year == m.created_at.year or \
                 dt.now().month - 1 == m.created_at.month and dt.now().year == m.created_at.year:

@@ -48,7 +48,7 @@ class CustomHelp(commands.HelpCommand):
             if filtered:
                 all_cmds = " ".join(f"`{c.name}`" for c in commands)
                 if cog and cog.description:
-                    embed.add_field(name=name, value=f"> {all_cmds}\n", inline=False)
+                    embed.add_field(name=name, value=f">>> {all_cmds}\n", inline=False)
                 # value = " ".join("`" + c.name + "`" for c in commands)
                 # if cog and cog.description:
                 #     value = f"{cog.description}\n{value}"

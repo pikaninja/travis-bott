@@ -1,3 +1,6 @@
+import logging
+logging.basicConfig(level=logging.INFO)
+
 import asyncio
 import os
 import logging
@@ -10,15 +13,8 @@ from decouple import config
 from discord import Game, Status, AllowedMentions, Intents
 from discord.ext import commands
 
-from utils.CustomHelp import CustomHelp
-
-from utils import db, utils
+from utils import utils
 from utils.CustomBot import MyBot
-
-import aiogoogletrans as translator
-import vacefron
-import asyncdagpi
-import async_cse
 
 # logger = logging.getLogger("commands")
 # logger.setLevel(logging.DEBUG)
