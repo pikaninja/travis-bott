@@ -56,13 +56,15 @@ class Fun(commands.Cog, name="🎉 Fun"):
         url = str(user.avatar_url_as(static_format="png"))
         img = await self.bot.dagpi.image_process(ImageFeatures.wanted(), url)
         img_file = discord.File(fp=img.image, filename=f"wanted.{img.format}")
-        await ctx.send(content=f"Hands up! **{user.name}!**", file=img_file)
+        await ctx.send(content=f"Hands up **{user.name}!**", file=img_file)
 
     @commands.command()
     @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
-    async def eject(self, ctx, user: discord.Member, colour: str, confirm: bool = True):
+    async def eject(self, ctx, text: typing.Union[discord.Member, str], colour: str, confirm: bool = True):
         """Ejects someone from the game.
         Usage: `{prefix}eject @kal#1806 red True`"""
+
+        text = text.name if type(text) == discord.Member else text
 
         if colour.lower() not in self.all_colours:
             return await ctx.send(f"List of available colours: {', '.join(self.all_colours)}")
@@ -70,7 +72,7 @@ class Fun(commands.Cog, name="🎉 Fun"):
         if confirm is not True and confirm is not False:
             return await ctx.send("Confirm must be `true` or `false`")
 
-        image = await self.bot.vac_api.ejected(user.name, colour, confirm, confirm)
+        image = await self.bot.vac_api.ejected(text, colour, confirm, confirm)
         image = await image.read(bytesio=True)
 
         await ctx.send(file=discord.File(image, filename="ejected.png"))

@@ -8,7 +8,7 @@ class Help(commands.Cog, command_attrs=dict(hidden=True)):
         self.bot = bot
         self._original_help_command = bot.help_command
         bot.help_command.cog = self
-        bot.help_command = HelpCommand(command_attrs={"hidden": True, "aliases": ["h"]})
+        bot.help_command = CustomHelp(command_attrs={"hidden": True, "aliases": ["h"]})
 
     def cog_unload(self):
         self.bot.help_command = self._original_help_command

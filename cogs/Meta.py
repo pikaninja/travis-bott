@@ -317,36 +317,6 @@ class Meta(commands.Cog, name="🤖 Meta"):
         [embed.add_field(name=n, value=v) for n, v in fields]
         await ctx.send(embed=embed)
 
-    @commands.command(enabled=False)
-    async def tester(self, ctx):
-        """test"""
-
-        default_pfps = [
-            "https://cdn.discordapp.com/embed/avatars/0.png",
-            # "https://cdn.discordapp.com/embed/avatars/1.png",
-            # "https://cdn.discordapp.com/embed/avatars/2.png",
-            # "https://cdn.discordapp.com/embed/avatars/3.png",
-            # "https://cdn.discordapp.com/embed/avatars/4.png"
-        ]
-
-        default_av_bytes = []
-
-        for av in default_pfps:
-            async with request("GET", url=av, headers={}) as r:
-                content = await r.content.read()
-                pfp_bytes = StringIO(str(content)).read()
-                default_av_bytes.append(pfp_bytes)
-
-        avatar_bytes = await ctx.author.avatar_url.read()
-        print(avatar_bytes in default_av_bytes)
-
-        print(avatar_bytes)
-
-        if avatar_bytes in default_av_bytes:
-            await ctx.send("Hey")
-        else:
-            await ctx.send("Sup")
-
     @commands.command(aliases=["urban", "ud"])
     async def urbandictionary(self, ctx, *, definition: str):
         """Get a urban dictionary definition of almost any word!"""
