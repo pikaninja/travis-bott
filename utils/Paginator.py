@@ -11,6 +11,56 @@ NEXT_PAGE = "\N{BLACK RIGHTWARDS ARROW}"
 
 PAGINATION_EMOJI = (LAST_PAGE, NEXT_PAGE, END_PAGE)
 
+class AutoReactMenu:
+    async def paginate(self, ctx) -> discord.Message:
+        def event_check(reaction: discord.Reaction, member: discord.Member):
+            return all((
+                    member == ctx.author,
+                    reaction.message.id == msg.id,
+                    member.id != ctx.bot.user.id
+                ))
+        
+        embed = utils.embed_message(title="Auto-React Setup",
+                                    message="Welcome to the setup for auto-reactions.\n" \
+                                        "Please confirm whether you'd like to continue or not.")
+        
+        msg = await ctx.send(embed=embed)
+        await msg.add_reaction("\N{WHITE HEAVY CHECK MARK}")
+        await msg.add_reaction("\N{CROSS MARK}")
+
+        try:
+            reaction, member = await ctx.bot.wait_for("reaction_add", timeout=10.0, check=event_check)            
+        except asyncio.TimeoutError:
+            await msg.delete()
+            return
+        else:
+            if str(reaction.emoji) == "\N{WHITE HEAVY CHECK MARK}":
+                await msg.remove_reaction(reaction.emoji, ctx.author)
+                embed.title = "Are you adding or removing an Auto-Reaction?"
+                embed.description = "\N{WHITE HEAVY CHECK MARK} Add\n" \
+                                    "\N{CROSS MARK} Remove"
+                
+                await msg.edit(embed=embed)
+
+                try:
+                    reaction, member = await ctx.bot.wait_for("reaction_add", timeout=10.0, check=event_check)            
+                except asyncio.TimeoutError:
+                    return
+                else:
+                    if str(reaction.emoji) == "\N{WHITE HEAVY CHECK MARK}":
+                        # TODO: Query user to provide a channel and what emoji to add.
+                        # Then add that to the DB
+                        return
+
+                    if str(reaction.emoji) == "\N{CROSS MARK}":
+                        # TODO: Query user to provide a channel and what emoji to remove
+                        # Then query DB to see if that exists and remove it if so else tell user if not.
+                        return
+
+            if str(reaction.emoji) == "\N{CROSS MARK}":
+                await msg.delete()
+                return
+
 class Paginator():
     def __init__(
         self,

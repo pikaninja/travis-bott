@@ -7,3 +7,9 @@ python-decouple==3.3
 ksoftapi==0.2.4a0
 aiogoogletrans==3.3.2
 git+https://github.com/Rapptz/discord-ext-menus@master
+dblpy
+async_cse
+asyncdagpi
+asyncpg
+vacefron.py
+CurrencyConverter

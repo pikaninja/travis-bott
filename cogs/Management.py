@@ -1,4 +1,3 @@
-from logging import setLogRecordFactory
 from discord.ext import commands
 
 import discord
@@ -6,16 +5,22 @@ import discord
 from utils import utils
 import asyncio
 
+from utils.Paginator import AutoReactMenu
+
 class Management(commands.Cog, name="🛡 Management"):
     """Management Commands"""
     def __init__(self, bot):
         self.bot = bot
 
-    # @commands.command()
-    # @commands.guild_only()
-    # @commands.has_permissions(manage_guild=True)
-    # @commands.bot_has_permissions(manage_roles=True)
-    # async def
+    @commands.group(invoke_without_command=True)
+    @commands.guild_only()
+    @commands.has_permissions(manage_guild=True)
+    @commands.bot_has_permissions(manage_roles=True)
+    async def autoreact(self, ctx):
+        """Activates the user-interactive menu to set up an auto-react event."""
+
+        instance = AutoReactMenu()
+        await instance.paginate(ctx)
 
     @commands.command()
     @commands.guild_only()

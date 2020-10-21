@@ -17,9 +17,11 @@ import discord
 from discord.ext import tasks
 from discord.ext.commands import (
     Cog, command, is_owner, Converter,
-    BadArgument
+    BadArgument, group
 )
 from discord.ext.commands.core import check
+
+from PIL import Image, ImageDraw, ImageFont
 
 from utils import utils, db
 from utils.Paginator import Paginator
@@ -78,13 +80,18 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         # remove `foo`
         return content.strip('` \n')
 
-    @command()
+    @group(invoke_without_command=True)
+    @is_owner()
+    async def dev(self, ctx):
+        await ctx.send_help(ctx.command)
+
+    @dev.command()
     @is_owner()
     async def restart(self, ctx):
         await ctx.send("⚠ Restarting now...")
         os.system("pm2 restart Platform")
 
-    @command()
+    @dev.command()
     @is_owner()
     async def add_premium(self, ctx, guild_id: int, sub_time: TimeConverter):
         """Adds premium to a guild for a given amount of time."""
@@ -99,7 +106,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         self.bot.cache["premium_guilds"][guild_id] = prem_time
         await ctx.send(f"Successfully added premium to {guild_id} for {sub_time} seconds.")
 
-    @command()
+    @dev.command()
     @is_owner()
     async def say(self, ctx, channel: discord.TextChannel, *, msg: str = None):
         """You can force the bot to say stuff, cool."""
@@ -107,7 +114,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         channel = channel or ctx.channel
         await channel.send(msg)
 
-    @command()
+    @dev.command()
     @is_owner()
     async def kill(self, ctx):
         try:
@@ -117,7 +124,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             await ctx.send("Couldn't kill the bot for some reason, maybe this will help:\n" +
                            f"{type(e).__name__} - {e}")
 
-    @command()
+    @dev.command()
     @is_owner()
     async def shard_recon(self, ctx, shard_id: int):
         try:
@@ -127,7 +134,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         else:
             await ctx.send("**`SUCCESS`**")
     
-    @command()
+    @dev.command()
     @is_owner()
     async def shard_discon(self, ctx, shard_id: int):
         try:
@@ -137,7 +144,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         else:
             await ctx.send("**`SUCCESS`**")
     
-    @command()
+    @dev.command()
     @is_owner()
     async def shard_con(self, ctx, shard_id: int):
         try:
@@ -147,7 +154,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         else:
             await ctx.send("**`SUCCESS`**")
 
-    @command()
+    @dev.command()
     @is_owner()
     async def reload(self, ctx, cog: str = None):
         # Reloads a given Cog
@@ -168,7 +175,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             else:
                 await ctx.send('**`SUCCESS`**')
 
-    @command()
+    @dev.command()
     @is_owner()
     async def load(self, ctx, cog: str):
         # Loads a given Cog
@@ -179,7 +186,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         else:
             await ctx.send('**`SUCCESS`**')
 
-    @command()
+    @dev.command()
     @is_owner()
     async def unload(self, ctx, cog: str):
         # Unloads a given Cog
@@ -190,7 +197,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         else:
             await ctx.send('**`SUCCESS`**')
 
-    @command()
+    @dev.command()
     @is_owner()
     async def ev(self, ctx, *, content: str):
         """Evaluates Python code
