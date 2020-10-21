@@ -35,7 +35,6 @@ my_intents = Intents(
     guilds=True,
     members=True,
     bans=True,
-    presences=True,
     messages=True,
     reactions=True
 )
@@ -49,7 +48,8 @@ bot = MyBot(
     max_messages=100, # Minimum we can cache, just drops resource usage.
     allowed_mentions=my_mentions,
     intents=my_intents,
-    member_cache_flags=stuff_to_cache
+    member_cache_flags=stuff_to_cache,
+    chunk_guilds_at_startup=False
 )
 
 bot.version = "2020.10.16"

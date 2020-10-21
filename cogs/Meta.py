@@ -1,8 +1,10 @@
 import logging
+import async_cse
 
 from decouple import config
 from discord.ext import commands
 from discord.ext import menus
+import ksoftapi
 
 from utils import utils
 from utils.Paginator import Paginator
@@ -12,6 +14,7 @@ from datetime import datetime as dt
 from io import StringIO
 
 from currency_converter import CurrencyConverter
+import aiogoogletrans as translator
 
 import aiohttp
 import psutil
@@ -34,18 +37,17 @@ class Meta(commands.Cog, name="🤖 Meta"):
     def __init__(self, bot):
         self.bot = bot
         self.weather_api_key = config("WEATHER_API_KEY")
-        self.ksoft_api_key = config("KSOFT_API")
-        self.currency_converter = CurrencyConverter()
 
     @commands.command()
     async def convert(self, ctx, amount: int, cur_from: str, cur_to: str):
-        """Converts a given amunt of money from one currency (3 letter e.g. GBP) to another currency."""
-
+        """Converts a given amount of money from one currency (3 letter e.g. GBP) to another currency."""
+        
+        currency_converter = CurrencyConverter()
         cur_from = cur_from.upper()
         cur_to = cur_to.upper()
 
         try:
-            conversion = self.currency_converter.convert(amount, cur_from, cur_to)
+            conversion = currency_converter.convert(amount, cur_from, cur_to)
         except ValueError:
             return await ctx.send("That is an unsupported currency.")
 
@@ -55,7 +57,8 @@ class Meta(commands.Cog, name="🤖 Meta"):
     async def google(self, ctx, *, query: str):
         """Searches google for a given query."""
 
-        results = await self.bot.cse.search(query, safesearch=True)
+        cse = async_cse.Search(config("GOOGLE_CSE"))
+        results = await cse.search(query, safesearch=True)
 
         how_many = 10 if len(results) > 10 else len(results)
 
@@ -71,7 +74,8 @@ class Meta(commands.Cog, name="🤖 Meta"):
             embed_list.append(embed)
 
         p = Paginator(embed_list, delete_after=True)
-        await p.paginate(ctx)        
+        await p.paginate(ctx)
+        await cse.close()
 
     @commands.command(aliases=["randomcolor", "rcolour", "rcolor"])
     async def randomcolour(self, ctx):
@@ -146,7 +150,7 @@ class Meta(commands.Cog, name="🤖 Meta"):
         embed.add_field(name="Memory", value=f"{round(mem_used)} MB / {round(total_mem)} MB")
         embed.add_field(name="CPU", value=f"{cpu_percentage}%")
         embed.add_field(name="Creator", value=f"{config('DEVELOPER')}")
-        embed.add_field(name="Currently in", value=f"{len(self.bot.guilds)} servers")
+        embed.add_field(name="Currently in", value=f"{sum(1 for g in self.bot.guilds)} servers")
         embed.add_field(name="Current prefix", value=f"`{ctx.prefix}`")
 
         await ctx.send(embed=embed)
@@ -155,7 +159,8 @@ class Meta(commands.Cog, name="🤖 Meta"):
     async def translate(self, ctx, *, text: str):
         """Automatically translates a given text to English"""
 
-        translation = await self.bot.translate_api.translate(str(text), dest="en")
+        translate_api = translator.Translator()
+        translation = await translate_api.translate(str(text), dest="en")
         embed = utils.embed_message(title="Translation",
                                     message=str(translation.text),
                                     footer_text=f"Translated to English from {translation.src} - Confidence: {translation.confidence}")
@@ -282,11 +287,11 @@ class Meta(commands.Cog, name="🤖 Meta"):
         info = [
             ["Emoji Count", sum(e.available for e in ctx.guild.emojis), True],
             ["Member Count", f"{ctx.guild.member_count}\nHumans: {human_count} Bots: {bot_count}", True],
-            ["Boosters", str(len(ctx.guild.premium_subscribers)), True],
-            ["Role Count", str(len(ctx.guild.roles)), True],
+            ["Boosters", sum(1 for m in ctx.guild.premium_subscribers), True],
+            ["Role Count", sum(1 for role in ctx.guild.roles), True],
             ["Voice Region", str(ctx.guild.region), True],
             ["AFK Channel", str(ctx.guild.afk_channel), True],
-            ["<:text_channel:762721785502236716> / <:voice_channel:762721785984188436>", f"{len(ctx.guild.text_channels)} / {len(ctx.guild.voice_channels)}", True],
+            ["<:text_channel:762721785502236716> / <:voice_channel:762721785984188436>", f"{sum(1 for tc in ctx.guild.text_channels)} / {sum(1 for vc in ctx.guild.voice_channels)}", True],
             ["Features", "\n".join(guild_features), False]
         ]
 
@@ -310,7 +315,7 @@ class Meta(commands.Cog, name="🤖 Meta"):
         fields = [
             ["Channel Topic:", f"{channel.topic or 'No Topic'}"],
             ["Channel Type:", f"{channel.type}"],
-            ["How many can see this:", f"{len(channel.members)}"],
+            ["How many can see this:", f"{sum(1 for member in channel.members)}"],
             #["Last Message:", f"{channel.last_message.content or 'Not Available'}"],
             ["Channel Category:", f"{channel.category.name}"],
             ["Created At:", f"{channel.created_at}"]
@@ -411,21 +416,25 @@ class Meta(commands.Cog, name="🤖 Meta"):
         #     return "Should be clear."
 
         async def check_if_bot(m: discord.Member):
+            kclient = ksoftapi.Client(config("KSOFT_API"))
             if m.bot:
                 return "This is literally a bot user."
-            is_banned = await self.bot.kclient.bans.check(m.id)
+            is_banned = await kclient.bans.check(m.id)
             if dt.now().month == m.created_at.month and dt.now().year == m.created_at.year or \
                 dt.now().month - 1 == m.created_at.month and dt.now().year == m.created_at.year:
                 if is_banned:
                     prefix = "Pretty certain a "
                 else:
                     prefix = "Potentially a "
+                await kclient.close()
                 return prefix + "bot"
             if is_banned:
                 prefix = " You may want to keep an eye out though."
             else:
                 prefix = " Pretty sure they're safe"
+            await kclient.close()
             return "Should be clear." + prefix
+            
 
         roles = user.roles[1:]
         roles.reverse()
@@ -435,13 +444,11 @@ class Meta(commands.Cog, name="🤖 Meta"):
         fields = [
             ["Username", f"{user}", True],
             ["Bot / User Bot", f"{user.bot} / {await check_if_bot(user)}", True],
-            ["Status", f"{status_icons[str(user.status)]}  {str(user.status).capitalize()}", True],
             ["Created at", created_at_str, True],
             ["Joined at", joined_at_str, True],
             ["Boosting", check_boosted(user), True],
             [f"Roles [{len(user_roles) if len(user_roles) < 30 else '30*'}]", readable_roles, False],
-            ["Permissions", utils.check_permissions(ctx, user), False],
-            [f"Activity - {user.activity.type.name.capitalize() if user.activity else 'No Activity'}:", "\n".join(get_activity(user)), False]
+            ["Permissions", utils.check_permissions(ctx, user), False]
         ]
 
         embed = utils.embed_message(thumbnail=user.avatar_url,

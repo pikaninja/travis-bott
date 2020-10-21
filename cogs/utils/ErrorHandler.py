@@ -5,6 +5,8 @@ from discord.ext.commands import Cog
 from utils import utils
 
 import typing
+import aiohttp
+import config as cfg
 
 """Pretty much from here:
     https://github.com/4Kaylum/DiscordpyBotBase/blob/master/cogs/error_handler.py"""
@@ -29,12 +31,41 @@ class ErrorHandler(Cog):
             pass
         return None
 
+    # async def send_webhook(self, ctx, error):
+    #     url = cfg.error_log_webhook
+    #     data = {}
+    #     data["username"] = "Error Logged."
+    #     data["embeds"] = [{
+    #         "title": "New Error Logged.",
+    #         "description": "\n".join([
+    #             "**This may be an error you want to look into:**",
+    #             "```py",
+    #             f"{error}```",
+    #             f"Guild ID: {ctx.guild.id}",
+    #             f"Author ID: {ctx.author.id}",
+    #             f"Message ID: {ctx.message.id}"
+    #         ]),
+    #         "color": 3092790
+    #     }]
+
+    #     async with aiohttp.ClientSession() as session:
+    #         try:
+    #             await session.post(url, data=data)
+    #         except Exception as e:
+    #             print(type(e).__name__)
+    #             print(e)
+    #         await session.close()
+
     @Cog.listener()
     async def on_command_error(self, ctx, error):
         ignored_errors = (commands.CommandNotFound, commands.PartialEmojiConversionFailure,)
+        
+        error = getattr(error, 'original', error)
 
         if isinstance(error, ignored_errors):
             return
+
+        # await self.send_webhook(ctx, error)
 
         setattr(ctx, "original_author_id", getattr(ctx, "original_author_id", ctx.author.id))
         owner_reinvoke_errors = (

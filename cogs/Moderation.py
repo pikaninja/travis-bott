@@ -293,7 +293,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
                 for ban in bans:
                     user = ban.user
                     await ctx.guild.unban(user, reason=f"Mass Unban | Responsible User: {ctx.author}")
-                await ctx.send(f"Successfully unbanned {len(bans)} people")
+                await ctx.send(f"Successfully unbanned {sum(1 for ban in bans)} people")
         
         ctx.bot.dispatch("mod_cmd", "mass unban", ctx.author, "N/A", None)
     

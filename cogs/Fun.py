@@ -1,3 +1,4 @@
+import asyncdagpi
 from decouple import config
 from discord.ext import commands
 
@@ -52,11 +53,13 @@ class Fun(commands.Cog, name="🎉 Fun"):
     async def wanted(self, ctx, user: discord.Member = None):
         """Puts a members user avatar on a wanted poster."""
 
+        dagpi = asyncdagpi.Client(config("DAGPI"))
         user = user or ctx.author
         url = str(user.avatar_url_as(static_format="png"))
-        img = await self.bot.dagpi.image_process(ImageFeatures.wanted(), url)
+        img = await dagpi.image_process(ImageFeatures.wanted(), url)
         img_file = discord.File(fp=img.image, filename=f"wanted.{img.format}")
         await ctx.send(content=f"Hands up **{user.name}!**", file=img_file)
+        await dagpi.close()
 
     @commands.command()
     @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
@@ -64,6 +67,7 @@ class Fun(commands.Cog, name="🎉 Fun"):
         """Ejects someone from the game.
         Usage: `{prefix}eject @kal#1806 red True`"""
 
+        vac_api = vacefron.Client()
         text = text.name if type(text) == discord.Member else text
 
         if colour.lower() not in self.all_colours:
@@ -72,10 +76,11 @@ class Fun(commands.Cog, name="🎉 Fun"):
         if confirm is not True and confirm is not False:
             return await ctx.send("Confirm must be `true` or `false`")
 
-        image = await self.bot.vac_api.ejected(text, colour, confirm, confirm)
+        image = await vac_api.ejected(text, colour, confirm, confirm)
         image = await image.read(bytesio=True)
 
         await ctx.send(file=discord.File(image, filename="ejected.png"))
+        await vac_api.close()
 
     @eject.error
     async def on_eject_error(self, ctx, error):

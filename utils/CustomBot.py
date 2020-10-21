@@ -38,23 +38,11 @@ class MyBot(commands.AutoShardedBot):
         self.loop = asyncio.get_event_loop()
         self.pool = self.loop.run_until_complete(asyncpg.create_pool(**cfg.POSTGRES_INFO))
 
-        self.loop.run_until_complete(initdb.run_init(self))
-
         self.loop.create_task(self.cache_prefixes())
         self.loop.create_task(self.cache_premiums())
 
-        self.kclient = ksoftapi.Client(config("KSOFT_API"))
-        self.translate_api = translator.Translator()
-        self.vac_api = vacefron.Client()
-        self.dagpi = asyncdagpi.Client(config("DAGPI"))
-        self.cse = async_cse.Search(config("GOOGLE_CSE"))
-
     async def close(self):
         await self.pool.close()
-        await self.kclient.close()
-        await self.vac_api.close()
-        await self.dagpi.close()
-        await self.cse.close()
         await super().close()
 
     async def cache_prefixes(self):
