@@ -1,6 +1,6 @@
 from discord.ext import commands, tasks, menus
 
-from utils import utils, db
+from utils import utils
 from utils.Paginator import Paginator
 
 from time import time as t
@@ -117,7 +117,6 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
             warn_info["warner_id"],
             warn_info["warn_reason"],
             warn_info["date_warned"])
-        await db.commit()
 
         user_fmt = f"You were warned in **{ctx.guild.name}** by **{ctx.author}** for:\n{reason}"
         chat_fmt = f"{user.mention} was warned by {ctx.author.mention} for {reason}"
@@ -242,7 +241,6 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         else:
             return await ctx.send("Time must be done in the format of [Amount of Unit][Unit (s, m, h)]")
         
-        await db.commit()
         await user.add_roles(role, reason=f"Muted by: {ctx.author}")
         await ctx.send(f"⚔ Successfully muted {user} for {time} with the reason: {reason}")
 

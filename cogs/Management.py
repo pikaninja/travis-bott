@@ -3,7 +3,7 @@ from discord.ext import commands
 
 import discord
 
-from utils import db, utils
+from utils import utils
 import asyncio
 
 class Management(commands.Cog, name="🛡 Management"):
@@ -49,8 +49,7 @@ class Management(commands.Cog, name="🛡 Management"):
     async def superlogs(self, ctx, channel: discord.TextChannel):
         """Sets the channel that all of Travis' logs go to."""
 
-        await db.execute("UPDATE guild_settings SET log_channel = $1 WHERE guild_id = $2", channel.id, ctx.guild.id)
-        await db.commit()
+        await self.bot.pool.execute("UPDATE guild_settings SET log_channel = $1 WHERE guild_id = $2", channel.id, ctx.guild.id)
 
         await ctx.send(f"Successfully set {channel.mention} to the super-logs channel.")
 
@@ -62,7 +61,7 @@ class Management(commands.Cog, name="🛡 Management"):
         """Sets the mute role for the server."""
 
         if role is None:
-            current_mute_role = await db.field("SELECT mute_role_id FROM guild_settings WHERE guild_id = $1", ctx.guild.id)
+            current_mute_role = await self.bot.pool.fetchval("SELECT mute_role_id FROM guild_settings WHERE guild_id = $1", ctx.guild.id)
             if current_mute_role is None:
                 return await ctx.send_help(ctx.command)
             role = ctx.guild.get_role(current_mute_role)
@@ -91,8 +90,7 @@ class Management(commands.Cog, name="🛡 Management"):
             for c in ctx.guild.text_channels:
                 await c.set_permissions(role, send_messages=False)
                 count += 1
-            await db.execute("UPDATE guild_settings SET mute_role_id = $1 WHERE guild_id = $2", role.id, ctx.guild.id)
-            await db.commit()
+            await self.bot.pool.execute("UPDATE guild_settings SET mute_role_id = $1 WHERE guild_id = $2", role.id, ctx.guild.id)
             await ctx.send(f"Mute role has been set up and permissions have been changed in {count} channels.")
 
     @commands.group(invoke_without_command=True)

@@ -7,6 +7,8 @@ import textwrap
 import traceback
 import re
 import time
+import aiohttp
+import config as cfg
 
 from discord import colour
 from utils.utils import check_role_permissions
