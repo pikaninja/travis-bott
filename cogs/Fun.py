@@ -3,6 +3,7 @@ from decouple import config
 from discord.ext import commands
 
 from utils import CustomContext, utils
+from utils.CustomCog import BaseCog
 from aiohttp import request
 from asyncdagpi import ImageFeatures
 
@@ -15,22 +16,88 @@ import vacefron
 
 standard_cooldown = 3.0
 
-class Fun(commands.Cog, name="🎉 Fun"):
+
+class Fun(BaseCog, name="fun"):
     """Fun Commands"""
-    def __init__(self, bot):
+
+    def __init__(self, bot, show_name):
         self.bot = bot
-        self._8ballResponse = ['It is certain', 'It is decidedly so', 'Without a doubt', 'Yes, definitely',
-                               'You may rely on it', 'As I see it, yes', 'Most likely', 'Outlook good',
-                               'Signs point to yes', 'Yes', 'Reply hazy, try again', 'Ask again later',
-                               'Better not tell you now', 'Cannot predict now', 'Concentrate and ask again',
-                               "Don't bet on it", 'My reply is no', 'My sources say no', 'Outlook not so good',
-                               'Very doubtful']
-        self.pp_sizes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-                         1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-                         1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-                         1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-                         1, 2, 3, 4, 5, 6, 7, 8, 9, 10,
-                         100]
+        self.show_name = show_name
+        self._8ballResponse = [
+            "It is certain",
+            "It is decidedly so",
+            "Without a doubt",
+            "Yes, definitely",
+            "You may rely on it",
+            "As I see it, yes",
+            "Most likely",
+            "Outlook good",
+            "Signs point to yes",
+            "Yes",
+            "Reply hazy, try again",
+            "Ask again later",
+            "Better not tell you now",
+            "Cannot predict now",
+            "Concentrate and ask again",
+            "Don't bet on it",
+            "My reply is no",
+            "My sources say no",
+            "Outlook not so good",
+            "Very doubtful",
+        ]
+        self.pp_sizes = [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            100,
+        ]
 
         self.all_colours = [
             "darkgreen",
@@ -45,7 +112,7 @@ class Fun(commands.Cog, name="🎉 Fun"):
             "cyan",
             "lime",
             "pink",
-            "red"
+            "red",
         ]
 
     @commands.command()
@@ -63,7 +130,13 @@ class Fun(commands.Cog, name="🎉 Fun"):
 
     @commands.command()
     @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
-    async def eject(self, ctx, text: typing.Union[discord.Member, str], colour: str, confirm: bool = True):
+    async def eject(
+        self,
+        ctx,
+        text: typing.Union[discord.Member, str],
+        colour: str,
+        confirm: bool = True,
+    ):
         """Ejects someone from the game.
         Usage: `{prefix}eject @kal#1806 red True`"""
 
@@ -71,7 +144,9 @@ class Fun(commands.Cog, name="🎉 Fun"):
         text = text.name if type(text) == discord.Member else text
 
         if colour.lower() not in self.all_colours:
-            return await ctx.send(f"List of available colours: {', '.join(self.all_colours)}")
+            return await ctx.send(
+                f"List of available colours: {', '.join(self.all_colours)}"
+            )
 
         if confirm is not True and confirm is not False:
             return await ctx.send("Confirm must be `true` or `false`")
@@ -85,7 +160,9 @@ class Fun(commands.Cog, name="🎉 Fun"):
     @eject.error
     async def on_eject_error(self, ctx, error):
         if isinstance(error, vacefron.BadRequest):
-            return await ctx.send(f"List of available colours: {', '.join(self.all_colours)}")
+            return await ctx.send(
+                f"List of available colours: {', '.join(self.all_colours)}"
+            )
 
     @commands.command(aliases=["rps"])
     @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
@@ -97,9 +174,7 @@ class Fun(commands.Cog, name="🎉 Fun"):
 
         msg = await ctx.send(embed=embed)
 
-        emojis = ["\U0001faa8", # Rock
-                  "\U0001f4f0", # Paper
-                  "\U00002702"] # Scissors
+        emojis = ["\U0001faa8", "\U0001f4f0", "\U00002702"]  # Rock  # Paper  # Scissors
 
         bots_choice = random.choice(emojis)
 
@@ -107,10 +182,16 @@ class Fun(commands.Cog, name="🎉 Fun"):
             await msg.add_reaction(_)
 
         def check(reaction, user):
-                return user == ctx.author and str(reaction.emoji) in emojis and reaction.message == msg
-            
+            return (
+                user == ctx.author
+                and str(reaction.emoji) in emojis
+                and reaction.message == msg
+            )
+
         try:
-            reaction, user = await self.bot.wait_for("reaction_add", timeout=30.0, check=check)
+            reaction, user = await self.bot.wait_for(
+                "reaction_add", timeout=30.0, check=check
+            )
         except asyncio.TimeoutError:
             await msg.clear_reactions()
             embed.description = "You ran out of time!"
@@ -118,29 +199,29 @@ class Fun(commands.Cog, name="🎉 Fun"):
         else:
             if str(reaction) == bots_choice:
                 embed.description = f"You drew!"
-                embed.colour = 0x0000ff
+                embed.colour = 0x0000FF
 
             elif str(reaction) == emojis[0] and bots_choice == emojis[2]:
                 embed.description = f"You win! the bot chose {bots_choice}"
-                embed.colour = 0x00ff00
+                embed.colour = 0x00FF00
 
-            elif str(reaction) == emojis[1] and bots_choice == emojis [0]:
+            elif str(reaction) == emojis[1] and bots_choice == emojis[0]:
                 embed.description = f"You win! the bot chose {bots_choice}"
-                embed.colour = 0x00ff00
-                
-            elif str(reaction) == emojis[2] and bots_choice == emojis [1]:
+                embed.colour = 0x00FF00
+
+            elif str(reaction) == emojis[2] and bots_choice == emojis[1]:
                 embed.description = f"You win! the bot chose {bots_choice}"
-                embed.colour = 0x00ff00
+                embed.colour = 0x00FF00
 
             else:
                 embed.description = f"You lost :( the bot chose {bots_choice}"
-                embed.colour = 0xff0000
-            
+                embed.colour = 0xFF0000
+
             try:
                 await msg.clear_reactions()
             except discord.Forbidden:
                 pass
-            
+
             await msg.edit(embed=embed)
 
     @commands.command(aliases=["pp"])
@@ -148,7 +229,9 @@ class Fun(commands.Cog, name="🎉 Fun"):
     async def penis(self, ctx):
         """Gives you your penis size."""
 
-        size = 100 if ctx.author.id == self.bot.owner_id else random.choice(self.pp_sizes)
+        size = (
+            100 if ctx.author.id == self.bot.owner_id else random.choice(self.pp_sizes)
+        )
         pp = f"8{'=' * size}D"
         await ctx.send(f"ur pp size is {pp} 😎")
 
@@ -157,7 +240,9 @@ class Fun(commands.Cog, name="🎉 Fun"):
     async def floof(self, ctx):
         """Get a random image of a cat or dog."""
 
-        url = random.choice(["https://some-random-api.ml/img/dog", "https://some-random-api.ml/img/cat"])
+        url = random.choice(
+            ["https://some-random-api.ml/img/dog", "https://some-random-api.ml/img/cat"]
+        )
         async with request("GET", url, headers={}) as r:
             if r.status != 200:
                 return await ctx.send(f"The API returned a {r.status} status.")
@@ -167,7 +252,7 @@ class Fun(commands.Cog, name="🎉 Fun"):
             embed = utils.embed_message()
             embed.set_image(url=image)
             await ctx.send(embed=embed)
-        
+
     @commands.command(aliases=["ye"])
     @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
     async def kanye(self, ctx):
@@ -180,7 +265,7 @@ class Fun(commands.Cog, name="🎉 Fun"):
             data = await r.json()
             quote = data["quote"]
 
-            embed = utils.embed_message(title=f"\"{quote}\" - Kanye West")
+            embed = utils.embed_message(title=f'"{quote}" - Kanye West')
             await ctx.send(embed=embed)
 
     @commands.command()
@@ -199,7 +284,9 @@ class Fun(commands.Cog, name="🎉 Fun"):
                 await ctx.author.edit(nick=name)
                 await ctx.send(f"oo lala, {name} is such a beautiful name for you ❤")
             except discord.Forbidden:
-                await ctx.send(f"Uhh I couldn't change your name but I chose {name} for you anyways 😢")
+                await ctx.send(
+                    f"Uhh I couldn't change your name but I chose {name} for you anyways 😢"
+                )
 
     @commands.command("8ball", aliases=["8b"])
     @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
@@ -207,13 +294,15 @@ class Fun(commands.Cog, name="🎉 Fun"):
         """Ask the oh so magic 8ball a question."""
 
         sadness = ["kms", "kill myself", "i want to die", "depressed"]
-        
+
         for word in sadness:
             if word in query.lower():
-                return await ctx.send("If you're in a position where you're ever depressed or want to kill yourself, please talk to someone about it. You can contact the developer (kal#1806) if you'd like to :)")
-        
+                return await ctx.send(
+                    "If you're in a position where you're ever depressed or want to kill yourself, please talk to someone about it. You can contact the developer (kal#1806) if you'd like to :)"
+                )
+
         await ctx.send(f"🎱 {ctx.author.mention}, {random.choice(self._8ballResponse)}")
-    
+
     @commands.command()
     @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
     async def fact(self, ctx):
@@ -228,6 +317,7 @@ class Fun(commands.Cog, name="🎉 Fun"):
 
             embed = utils.embed_message(message=fact)
             await ctx.send(embed=embed)
-            
+
+
 def setup(bot):
-    bot.add_cog(Fun(bot))
+    bot.add_cog(Fun(bot, "🎉 Fun"))

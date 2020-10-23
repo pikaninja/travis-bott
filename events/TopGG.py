@@ -3,6 +3,7 @@ from decouple import config
 import dbl
 import time
 
+
 class TopGG(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -22,9 +23,12 @@ class TopGG(commands.Cog):
     async def on_dbl_vote(self, data):
         print(data)
         user = data["user"]
-        await self.bot.pool.execute("INSERT INTO bot_votes(user_id, time_voted) VALUES($1, $2)",
-            user, int(time.time())
+        await self.bot.pool.execute(
+            "INSERT INTO bot_votes(user_id, time_voted) VALUES($1, $2)",
+            user,
+            int(time.time()),
         )
+
 
 def setup(bot):
     bot.add_cog(TopGG(bot))

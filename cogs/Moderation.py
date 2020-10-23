@@ -2,6 +2,7 @@ from discord.ext import commands, tasks, menus
 
 from utils import utils
 from utils.Paginator import Paginator
+from utils.CustomCog import BaseCog
 
 from time import time as t
 
@@ -13,13 +14,18 @@ import typing
 import uuid
 import re
 
+
 def can_execute_action(ctx, user, target):
-    return user.id == ctx.bot.owner_id or \
-           user == ctx.guild.owner or \
-           user.top_role > target.top_role
+    return (
+        user.id == ctx.bot.owner_id
+        or user == ctx.guild.owner
+        or user.top_role > target.top_role
+    )
+
 
 class MemberNotFound(Exception):
     pass
+
 
 async def resolve_member(guild, member_id):
     member = guild.get_member(member_id)
@@ -32,6 +38,7 @@ async def resolve_member(guild, member_id):
             raise MemberNotFound() from None
     return member
 
+
 class MemberID(commands.Converter):
     async def convert(self, ctx, argument):
         try:
@@ -41,21 +48,32 @@ class MemberID(commands.Converter):
                 member_id = int(argument, base=10)
                 m = await resolve_member(ctx.guild, member_id)
             except ValueError:
-                raise commands.BadArgument(f"{argument} is not a valid member or member ID.") from None
+                raise commands.BadArgument(
+                    f"{argument} is not a valid member or member ID."
+                ) from None
             except MemberNotFound:
                 # hackban case
-                return type('_Hackban', (), {'id': member_id, '__str__': lambda s: f'Member ID {s.id}'})()
+                return type(
+                    "_Hackban",
+                    (),
+                    {"id": member_id, "__str__": lambda s: f"Member ID {s.id}"},
+                )()
 
         if not can_execute_action(ctx, ctx.author, m):
-            raise commands.BadArgument('You cannot do this action on this user due to role hierarchy.')
+            raise commands.BadArgument(
+                "You cannot do this action on this user due to role hierarchy."
+            )
         return m
 
-class Moderation(commands.Cog, name="⚔ Moderation"):
+
+class Moderation(BaseCog, name="moderation"):
     """Moderation Commands"""
-    def __init__(self, bot):
+
+    def __init__(self, bot, show_name):
         self.bot = bot
+        self.show_name = show_name
         self.check_mutes.start()
-    
+
     @tasks.loop(seconds=30)
     async def check_mutes(self):
         await self.bot.wait_until_ready()
@@ -67,10 +85,15 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
             ends_in = int(ends_at - t())
             guild = self.bot.get_guild(guild_id)
             member = guild.get_member(member_id)
-            mute_role_id = await self.bot.pool.fetchval("SELECT mute_role_id FROM guild_settings WHERE guild_id = $1", guild.id)
+            mute_role_id = await self.bot.pool.fetchval(
+                "SELECT mute_role_id FROM guild_settings WHERE guild_id = $1", guild.id
+            )
             if ends_in <= 0:
-                await self.bot.pool.execute("DELETE FROM guild_mutes WHERE member_id = $1 AND guild_id = $2",
-                                 member.id, guild.id)
+                await self.bot.pool.execute(
+                    "DELETE FROM guild_mutes WHERE member_id = $1 AND guild_id = $2",
+                    member.id,
+                    guild.id,
+                )
                 await member.remove_roles(guild.get_role(mute_role_id))
             else:
                 pass
@@ -93,30 +116,40 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(send_messages=True)
-    async def warn(self, ctx, user: discord.Member, *, reason: str = "No Reason Provided"):
+    async def warn(
+        self, ctx, user: discord.Member, *, reason: str = "No Reason Provided"
+    ):
         """Warns a given user for a given reason, 20 warns maximum on each user."""
 
-        user_warns = await self.bot.pool.fetch("SELECT * FROM warns WHERE user_id = $1", user.id)
+        user_warns = await self.bot.pool.fetch(
+            "SELECT * FROM warns WHERE user_id = $1", user.id
+        )
 
         if len(user_warns) > 20:
-            return await ctx.send("That user has 20 warns, please delete (at least) one to make more space.")
+            return await ctx.send(
+                "That user has 20 warns, please delete (at least) one to make more space."
+            )
 
         warn_info = {
             "warn_id": str(uuid.uuid1()),
             "guild_id": ctx.guild.id,
             "warner_id": ctx.author.id,
             "user_id": user.id,
-            "warn_reason": reason if "@" not in reason else reason.replace("@", "@\u200b"),
-            "date_warned": int(t())
+            "warn_reason": reason
+            if "@" not in reason
+            else reason.replace("@", "@\u200b"),
+            "date_warned": int(t()),
         }
 
-        await self.bot.pool.execute("INSERT INTO warns(warn_id, guild_id, user_id, warner_id, warn_reason, date_warned) VALUES($1, $2, $3, $4, $5, $6)",
+        await self.bot.pool.execute(
+            "INSERT INTO warns(warn_id, guild_id, user_id, warner_id, warn_reason, date_warned) VALUES($1, $2, $3, $4, $5, $6)",
             warn_info["warn_id"],
             warn_info["guild_id"],
             warn_info["user_id"],
             warn_info["warner_id"],
             warn_info["warn_reason"],
-            warn_info["date_warned"])
+            warn_info["date_warned"],
+        )
 
         user_fmt = f"You were warned in **{ctx.guild.name}** by **{ctx.author}** for:\n{reason}"
         chat_fmt = f"{user.mention} was warned by {ctx.author.mention} for {reason}"
@@ -125,7 +158,9 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         try:
             await user.send(user_fmt)
         except discord.HTTPException:
-            await ctx.send(f"I couldn't DM {user.mention} but they were warned anyways.")
+            await ctx.send(
+                f"I couldn't DM {user.mention} but they were warned anyways."
+            )
 
         ctx.bot.dispatch("mod_cmd", "warn", ctx.author, user, reason)
 
@@ -136,11 +171,15 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     async def delwarn(self, ctx, warn_id: str):
         """Deletes a given warn by its ID."""
 
-        get_warn = await self.bot.pool.execute("SELECT * FROM warns WHERE warn_id = $1 AND guild_id = $2", warn_id, ctx.guild.id)
+        get_warn = await self.bot.pool.execute(
+            "SELECT * FROM warns WHERE warn_id = $1 AND guild_id = $2",
+            warn_id,
+            ctx.guild.id,
+        )
 
         if get_warn is None:
             return await ctx.send("That warn doesn't exist here.")
-        
+
         await self.bot.pool.execute("DELETE FROM warns WHERE warn_id = $1", warn_id)
         await ctx.send(f"Successfully removed warning **{warn_id}**")
 
@@ -150,8 +189,12 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     @commands.bot_has_permissions(send_messages=True)
     async def warns(self, ctx, user: discord.Member):
         """Gets all of a given users warnings"""
-        
-        user_warns = await self.bot.pool.fetch("SELECT * FROM warns WHERE user_id = $1 AND guild_id = $2", user.id, ctx.guild.id)
+
+        user_warns = await self.bot.pool.fetch(
+            "SELECT * FROM warns WHERE user_id = $1 AND guild_id = $2",
+            user.id,
+            ctx.guild.id,
+        )
         embed = utils.embed_message(title=f"Warns for {user}")
         fmt = ""
         warns = []
@@ -162,11 +205,13 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
                 "user_id": row["user_id"],
                 "warner_id": row["warner_id"],
                 "warn_reason": row["warn_reason"],
-                "date_warned": row["date_warned"]
+                "date_warned": row["date_warned"],
             }
             date_warned = dt.fromtimestamp(info["date_warned"])
-            moderator = ctx.guild.get_member(info['warner_id'])
-            warns.append(f"ID: **{info['warn_id']}** - Moderator: **{moderator}**\nWarned At: **{date_warned}** - Reason:\n{info['warn_reason']}")
+            moderator = ctx.guild.get_member(info["warner_id"])
+            warns.append(
+                f"ID: **{info['warn_id']}** - Moderator: **{moderator}**\nWarned At: **{date_warned}** - Reason:\n{info['warn_reason']}"
+            )
         fmt = "No warnings for this user." if len(warns) == 0 else "\n".join(warns)
         embed.description = fmt
         await ctx.send(embed=embed)
@@ -179,7 +224,9 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         """Gives a list of all of the active mutes."""
 
         moderations = []
-        mutes = await self.bot.pool.fetch("SELECT * FROM guild_mutes WHERE guild_id = $1", ctx.guild.id)
+        mutes = await self.bot.pool.fetch(
+            "SELECT * FROM guild_mutes WHERE guild_id = $1", ctx.guild.id
+        )
         for record in mutes:
             ends_at = record["end_time"]
             ends_in = int(ends_at - t())
@@ -188,26 +235,39 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
                 member.append(f"❌ Invalid User | {ends_in} Seconds")
             else:
                 moderations.append(f"❌ {member} | {ends_in} Seconds")
-            
+
         if not moderations:
             moderations.append("There are no active moderations.")
-        
-        embed = utils.embed_message(title="Active Moderations.",
-                                    message="\n".join(moderations))
+
+        embed = utils.embed_message(
+            title="Active Moderations.", message="\n".join(moderations)
+        )
         await ctx.send(embed=embed)
 
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_roles=True)
-    async def mute(self, ctx, user: discord.Member, time: str, *, reason: str = "No reason provided."):
+    async def mute(
+        self,
+        ctx,
+        user: discord.Member,
+        time: str,
+        *,
+        reason: str = "No reason provided.",
+    ):
         """Mutes someone for a given amount of time.
         Permissions needed: `Manage Messages`
         Example: `mute @kal#1806 5m Way too cool for me`"""
 
-        mute_role_id = await self.bot.pool.fetchval("SELECT mute_role_id FROM guild_settings WHERE guild_id = $1", ctx.guild.id)
-        check_if_muted = await self.bot.pool.fetchval("SELECT member_id FROM guild_mutes WHERE guild_id = $1 AND member_id = $2",
-                                        ctx.guild.id, user.id)
+        mute_role_id = await self.bot.pool.fetchval(
+            "SELECT mute_role_id FROM guild_settings WHERE guild_id = $1", ctx.guild.id
+        )
+        check_if_muted = await self.bot.pool.fetchval(
+            "SELECT member_id FROM guild_mutes WHERE guild_id = $1 AND member_id = $2",
+            ctx.guild.id,
+            user.id,
+        )
 
         role = ctx.guild.get_role(mute_role_id)
 
@@ -224,25 +284,44 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
             if not role:
                 return await ctx.send("I was unable to find any role to mute with.")
 
-        if not time.startswith(("1", "2", "3", "4", "5", "6", "7", "8", "9")) and \
-            not time.endswith(("s", "m", "h")):
-            return await ctx.send("Time must be done in the format of [Amount of Unit][Unit (s, m, h)]")
+        if not time.startswith(
+            ("1", "2", "3", "4", "5", "6", "7", "8", "9")
+        ) and not time.endswith(("s", "m", "h")):
+            return await ctx.send(
+                "Time must be done in the format of [Amount of Unit][Unit (s, m, h)]"
+            )
 
         raw_time = int(time[:-1])
         if time.endswith("s"):
-            await self.bot.pool.execute("INSERT INTO guild_mutes(guild_id, member_id, end_time) VALUES($1, $2, $3)",
-                                        ctx.guild.id, user.id, int(t() + raw_time))
+            await self.bot.pool.execute(
+                "INSERT INTO guild_mutes(guild_id, member_id, end_time) VALUES($1, $2, $3)",
+                ctx.guild.id,
+                user.id,
+                int(t() + raw_time),
+            )
         elif time.endswith("m"):
-            await self.bot.pool.execute("INSERT INTO guild_mutes(guild_id, member_id, end_time) VALUES($1, $2, $3)",
-                                        ctx.guild.id, user.id, int(t() + (raw_time * 60)))
+            await self.bot.pool.execute(
+                "INSERT INTO guild_mutes(guild_id, member_id, end_time) VALUES($1, $2, $3)",
+                ctx.guild.id,
+                user.id,
+                int(t() + (raw_time * 60)),
+            )
         elif time.endswith("h"):
-            await self.bot.pool.execute("INSERT INTO guild_mutes(guild_id, member_id, end_time) VALUES($1, $2, $3)",
-                                        ctx.guild.id, user.id, int(t() + ((raw_time * 60) * 60)))
+            await self.bot.pool.execute(
+                "INSERT INTO guild_mutes(guild_id, member_id, end_time) VALUES($1, $2, $3)",
+                ctx.guild.id,
+                user.id,
+                int(t() + ((raw_time * 60) * 60)),
+            )
         else:
-            return await ctx.send("Time must be done in the format of [Amount of Unit][Unit (s, m, h)]")
-        
+            return await ctx.send(
+                "Time must be done in the format of [Amount of Unit][Unit (s, m, h)]"
+            )
+
         await user.add_roles(role, reason=f"Muted by: {ctx.author}")
-        await ctx.send(f"⚔ Successfully muted {user} for {time} with the reason: {reason}")
+        await ctx.send(
+            f"⚔ Successfully muted {user} for {time} with the reason: {reason}"
+        )
 
         ctx.bot.dispatch("mod_cmd", "mute", ctx.author, user, reason)
 
@@ -253,10 +332,14 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     async def unmute(self, ctx, user: discord.Member):
         """Unmutes a given user who has the servers muted role"""
 
-        mute_role_id = await self.bot.pool.fetchval("SELECT mute_role_id FROM guild_settings WHERE guild_id = $1", ctx.guild.id)
+        mute_role_id = await self.bot.pool.fetchval(
+            "SELECT mute_role_id FROM guild_settings WHERE guild_id = $1", ctx.guild.id
+        )
 
         if mute_role_id is None:
-            return await ctx.send(f"There is no mute role set for this server, please run `{ctx.prefix}muterole [Role]` to set one up.")
+            return await ctx.send(
+                f"There is no mute role set for this server, please run `{ctx.prefix}muterole [Role]` to set one up."
+            )
 
         role = ctx.guild.get_role(mute_role_id)
 
@@ -278,6 +361,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
 
         def check(m):
             return m.author == ctx.author and m.channel == ctx.channel
+
         await ctx.send("Are you sure you would like to unban everyone? (10 Seconds)")
         try:
             user_input = await self.bot.wait_for("message", timeout=10.0, check=check)
@@ -292,11 +376,13 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
                 bans = await ctx.guild.bans()
                 for ban in bans:
                     user = ban.user
-                    await ctx.guild.unban(user, reason=f"Mass Unban | Responsible User: {ctx.author}")
+                    await ctx.guild.unban(
+                        user, reason=f"Mass Unban | Responsible User: {ctx.author}"
+                    )
                 await ctx.send(f"Successfully unbanned {sum(1 for ban in bans)} people")
-        
+
         ctx.bot.dispatch("mod_cmd", "mass unban", ctx.author, "N/A", None)
-    
+
     @commands.command(aliases=["barn", "banish"])
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
@@ -308,7 +394,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         # if not re.fullmatch('[0-9]{17,18}', user.id):
         #     if await utils.is_target_staff(ctx, user):
         #         return await ctx.send("😬 That person is staff...")
-        
+
         await ctx.guild.ban(user, reason=f"{reason} | Responsible User: {ctx.author}")
         await ctx.thumbsup()
         ctx.bot.dispatch("mod_cmd", "ban", ctx.author, user, reason)
@@ -320,8 +406,10 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         """Unbans a given user.
         Permissions needed: `Ban Members`"""
 
-        await ctx.guild.unban(await utils.get_user_banned(ctx.guild, user),
-                              reason=f"Responsible User: {ctx.author}")
+        await ctx.guild.unban(
+            await utils.get_user_banned(ctx.guild, user),
+            reason=f"Responsible User: {ctx.author}",
+        )
         await ctx.thumbsup()
         ctx.bot.dispatch("mod_cmd", "unban", ctx.author, user, None)
 
@@ -329,13 +417,15 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     @commands.guild_only()
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(kick_members=True)
-    async def kick(self, ctx, user: discord.Member, *, reason: str = "No reason provided."):
+    async def kick(
+        self, ctx, user: discord.Member, *, reason: str = "No reason provided."
+    ):
         """Kicks a user for a given reason.
         Permissions needed: `Kick Members`"""
 
         if await utils.is_target_staff(ctx, user):
             return await ctx.send("😕 That user is a staff member...")
-        
+
         await user.kick(reason=f"{reason} | Responsible User: {ctx.author}")
         await ctx.thumbsup()
         ctx.bot.dispatch("mod_cmd", "kick", ctx.author, user, reason)
@@ -350,11 +440,11 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
 
         try:
             if len(new_name) > 32:
-                new_name = new_name[:len(new_name) - (len(new_name) - 32)]
+                new_name = new_name[: len(new_name) - (len(new_name) - 32)]
             await user.edit(nick=new_name, reason=f"Responsible User: {ctx.author}")
         except discord.Forbidden:
             return await ctx.send("I was unable to change the nickname for that user.")
-        
+
         await ctx.thumbsup()
         ctx.bot.dispatch("mod_cmd", "setnick", ctx.author, user, None)
 
@@ -376,9 +466,16 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
             if len(in_role) > 1:
                 columns[0], columns[1] = utils.split_list(in_role)
                 columns.sort(reverse=True)
-            
-            embed = utils.embed_message(title=f"Members in {role.name} [{sum(1 for m in role.members)}]")
-            [embed.add_field(name="\u200b", value="\n".join(column) if column else "\u200b") for column in columns]
+
+            embed = utils.embed_message(
+                title=f"Members in {role.name} [{sum(1 for m in role.members)}]"
+            )
+            [
+                embed.add_field(
+                    name="\u200b", value="\n".join(column) if column else "\u200b"
+                )
+                for column in columns
+            ]
             embed_list.append(embed)
 
         if len(roles) > 1:
@@ -396,8 +493,10 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         Permissions needed: `Manage Messages`"""
 
         await ctx.message.delete()
+
         def check(m):
             return m.author.bot
+
         await ctx.channel.purge(limit=100, check=check, bulk=True)
 
     @commands.command()
@@ -424,11 +523,13 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         `{prefix}role @kal#1806 "role one" role2 role`
         """
 
-        mr_ids = [622258457785008150,
-                  668232158862639134,
-                  622267750232096808,
-                  703780954602471445,
-                  735699294174183454]
+        mr_ids = [
+            622258457785008150,
+            668232158862639134,
+            622267750232096808,
+            703780954602471445,
+            735699294174183454,
+        ]
 
         modifiers = []
 
@@ -444,12 +545,14 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
             else:
                 modifiers.append(f"+{role.mention}")
                 current_roles.append(role)
-        
+
         await user.edit(roles=current_roles)
         await ctx.thumbsup()
-        
-        embed = utils.embed_message(title="Updated Member Roles",
-                                    message=f"{user.mention} | {' '.join(modifiers)}")
+
+        embed = utils.embed_message(
+            title="Updated Member Roles",
+            message=f"{user.mention} | {' '.join(modifiers)}",
+        )
         await ctx.send(embed=embed)
 
     @role.command(name="add")
@@ -470,7 +573,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         """Deletes a given role."""
 
         role = await utils.find_roles(ctx.guild, role)
-        
+
         if role is None:
             return await ctx.send("That role does not exist or I could not find it.")
 
@@ -492,7 +595,9 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         hex_regex = r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
 
         if not re.match(hex_regex, colour):
-            return await ctx.send("The colour must be a properly formed **hex** colour.")
+            return await ctx.send(
+                "The colour must be a properly formed **hex** colour."
+            )
 
         hex_to_rgb = utils.hex_to_rgb(colour[1:])
         colour = discord.Colour.from_rgb(hex_to_rgb[0], hex_to_rgb[1], hex_to_rgb[2])
@@ -512,7 +617,9 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
             role = await utils.find_roles(ctx.guild, role)
 
             if role is None:
-                return await ctx.send("That role does not exist or I could not find it.")
+                return await ctx.send(
+                    "That role does not exist or I could not find it."
+                )
 
             created_at_str = f"{role.created_at.day}/{role.created_at.month}/{role.created_at.year} {role.created_at.hour}:{role.created_at.minute}:{role.created_at.second}"
             role_colour = (role.colour.r, role.colour.g, role.colour.b)
@@ -525,13 +632,17 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
                 ["Mentionable", role.mentionable],
                 ["Colour", utils.rgb_to_hex(role_colour)],
                 ["Members", sum(1 for member in role.members)],
-                ["Permissions", utils.check_role_permissions(ctx, role)]
+                ["Permissions", utils.check_role_permissions(ctx, role)],
             ]
-            embed = utils.embed_message(colour=discord.Color.from_rgb(role_colour[0], role_colour[1], role_colour[2]))
+            embed = utils.embed_message(
+                colour=discord.Color.from_rgb(
+                    role_colour[0], role_colour[1], role_colour[2]
+                )
+            )
             [embed.add_field(name=n, value=v) for n, v in fields]
 
             embed_list.append(embed)
-        
+
         if len(embed_list) > 1:
             p = Paginator(embed_list, clear_reactions=True)
             await p.paginate(ctx)
@@ -544,7 +655,7 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
     @commands.bot_has_permissions(send_messages=True)
     async def role_id(self, ctx, *role: str):
         """Gets the ID of one or multiple role(s).
-        e.g. {prefix}role id Developer support \"Hello World\""""
+        e.g. {prefix}role id Developer support \"Hello World\" """
 
         role_names = []
         role_ids = []
@@ -561,5 +672,6 @@ class Moderation(commands.Cog, name="⚔ Moderation"):
         embed.add_field(name="IDs", value="\n".join(role_ids))
         await ctx.send(embed=embed)
 
+
 def setup(bot):
-    bot.add_cog(Moderation(bot))
+    bot.add_cog(Moderation(bot, show_name="⚔ Moderation"))

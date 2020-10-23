@@ -15,10 +15,7 @@ from utils.utils import check_role_permissions
 
 import discord
 from discord.ext import tasks
-from discord.ext.commands import (
-    Cog, command, is_owner, Converter,
-    BadArgument, group
-)
+from discord.ext.commands import Cog, command, is_owner, Converter, BadArgument, group
 from discord.ext.commands.core import check
 
 from PIL import Image, ImageDraw, ImageFont
@@ -27,7 +24,8 @@ from utils import utils, db
 from utils.Paginator import Paginator
 
 time_regex = re.compile("(?:(\d{1,5})(h|s|m|d))+?")
-time_dict = {"h":3600, "s":1, "m":60, "d":86400}
+time_dict = {"h": 3600, "s": 1, "m": 60, "d": 86400}
+
 
 class TimeConverter(Converter):
     async def convert(self, ctx, argument):
@@ -36,12 +34,15 @@ class TimeConverter(Converter):
         time = 0
         for v, k in matches:
             try:
-                time += time_dict[k]*float(v)
+                time += time_dict[k] * float(v)
             except KeyError:
-                raise BadArgument("{} is an invalid time-key! h/m/s/d are valid!".format(k))
+                raise BadArgument(
+                    "{} is an invalid time-key! h/m/s/d are valid!".format(k)
+                )
             except ValueError:
                 raise BadArgument("{} is not a number!".format(v))
         return time
+
 
 # noinspection PyBroadException
 class Developer(Cog, command_attrs=dict(hidden=True)):
@@ -57,7 +58,9 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         to_remove = []
         for guild_id, end_time in self.bot.cache["premium_guilds"].items():
             if end_time - now <= 0:
-                await self.bot.pool.execute("DELETE FROM premium WHERE guild_id = $1", guild_id)
+                await self.bot.pool.execute(
+                    "DELETE FROM premium WHERE guild_id = $1", guild_id
+                )
                 to_remove.append(guild_id)
                 utils.log(f"Successfully removed {guild_id} from the premium table.")
             else:
@@ -72,13 +75,13 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         """Automatically removes code blocks from the code."""
 
         # remove ```py\n```
-        if content.startswith('```') and content.endswith('```'):
-            if content[-4] == '\n':
-                return '\n'.join(content.split('\n')[1:-1])
-            return '\n'.join(content.split('\n')[1:]).rstrip('`')
+        if content.startswith("```") and content.endswith("```"):
+            if content[-4] == "\n":
+                return "\n".join(content.split("\n")[1:-1])
+            return "\n".join(content.split("\n")[1:]).rstrip("`")
 
         # remove `foo`
-        return content.strip('` \n')
+        return content.strip("` \n")
 
     @group(invoke_without_command=True)
     @is_owner()
@@ -87,9 +90,17 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
     @dev.command()
     @is_owner()
+    async def sql(self, ctx, *, query):
+        """Executes an SQL statement for the bot."""
+
+        result = await self.bot.pool.execute(query)
+        await ctx.send(f"Result of query: {result}")
+
+    @dev.command()
+    @is_owner()
     async def restart(self, ctx):
         await ctx.send("⚠ Restarting now...")
-        os.system("pm2 restart Platform")
+        os.system("systemctl restart travis")
 
     @dev.command()
     @is_owner()
@@ -99,12 +110,16 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         prem_time = int((time.time() + sub_time))
 
         async with self.bot.pool.acquire() as con:
-            await con.execute("INSERT INTO premium(guild_id, end_time) VALUES($1, $2)",
-                guild_id, prem_time
+            await con.execute(
+                "INSERT INTO premium(guild_id, end_time) VALUES($1, $2)",
+                guild_id,
+                prem_time,
             )
-        
+
         self.bot.cache["premium_guilds"][guild_id] = prem_time
-        await ctx.send(f"Successfully added premium to {guild_id} for {sub_time} seconds.")
+        await ctx.send(
+            f"Successfully added premium to {guild_id} for {sub_time} seconds."
+        )
 
     @dev.command()
     @is_owner()
@@ -121,8 +136,10 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             self.bot.clear()
             await self.bot.close()
         except Exception as e:
-            await ctx.send("Couldn't kill the bot for some reason, maybe this will help:\n" +
-                           f"{type(e).__name__} - {e}")
+            await ctx.send(
+                "Couldn't kill the bot for some reason, maybe this will help:\n"
+                + f"{type(e).__name__} - {e}"
+            )
 
     @dev.command()
     @is_owner()
@@ -133,7 +150,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             await ctx.send(f"**`ERROR:`** {type(e).__name__} - {e}")
         else:
             await ctx.send("**`SUCCESS`**")
-    
+
     @dev.command()
     @is_owner()
     async def shard_discon(self, ctx, shard_id: int):
@@ -143,7 +160,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             await ctx.send(f"**`ERROR:`** {type(e).__name__} - {e}")
         else:
             await ctx.send("**`SUCCESS`**")
-    
+
     @dev.command()
     @is_owner()
     async def shard_con(self, ctx, shard_id: int):
@@ -164,16 +181,18 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
                 try:
                     self.bot.reload_extension(ext)
                 except Exception as e:
-                    await ctx.send(f'**`ERROR:`** {type(e).__name__} - {e}')
-            embed = utils.embed_message(message=f"Successfully reloaded:\n{', '.join([f'`{ext[5:]}`' for ext in self.bot.exts])}")
+                    await ctx.send(f"**`ERROR:`** {type(e).__name__} - {e}")
+            embed = utils.embed_message(
+                message=f"Successfully reloaded:\n{', '.join([f'`{ext[5:]}`' for ext in self.bot.exts])}"
+            )
             await ctx.send(embed=embed)
         else:
             try:
                 self.bot.reload_extension(cog)
             except Exception as e:
-                await ctx.send(f'**`ERROR:`** {type(e).__name__} - {e}')
+                await ctx.send(f"**`ERROR:`** {type(e).__name__} - {e}")
             else:
-                await ctx.send('**`SUCCESS`**')
+                await ctx.send("**`SUCCESS`**")
 
     @dev.command()
     @is_owner()
@@ -182,9 +201,9 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         try:
             self.bot.load_extension(cog)
         except Exception as e:
-            await ctx.send(f'**`ERROR:`** {type(e).__name__} - {e}')
+            await ctx.send(f"**`ERROR:`** {type(e).__name__} - {e}")
         else:
-            await ctx.send('**`SUCCESS`**')
+            await ctx.send("**`SUCCESS`**")
 
     @dev.command()
     @is_owner()
@@ -193,9 +212,9 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         try:
             self.bot.unload_extension(cog)
         except Exception as e:
-            await ctx.send(f'**`ERROR:`** {type(e).__name__} - {e}')
+            await ctx.send(f"**`ERROR:`** {type(e).__name__} - {e}")
         else:
-            await ctx.send('**`SUCCESS`**')
+            await ctx.send("**`SUCCESS`**")
 
     @dev.command()
     @is_owner()
@@ -206,13 +225,13 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
         # Make the environment
         env = {
-            'bot': self.bot,
-            'ctx': ctx,
-            'channel': ctx.channel,
-            'author': ctx.author,
-            'guild': ctx.guild,
-            'message': ctx.message,
-            'self': self,
+            "bot": self.bot,
+            "ctx": ctx,
+            "channel": ctx.channel,
+            "author": ctx.author,
+            "guild": ctx.guild,
+            "message": ctx.message,
+            "self": self,
         }
         env.update(globals())
 
@@ -225,10 +244,10 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         try:
             exec(code, env)
         except Exception as e:
-            return await ctx.send(f'```py\n{e.__class__.__name__}: {e}\n```')
+            return await ctx.send(f"```py\n{e.__class__.__name__}: {e}\n```")
 
         # Grab the function we just made and run it
-        func = env['func']
+        func = env["func"]
         try:
             # Shove stdout into StringIO
             with contextlib.redirect_stdout(stdout):
@@ -236,8 +255,10 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         except Exception:
             # Oh no it caused an error
             stdout_value = stdout.getvalue() or None
-            message = utils.embed_message(message=f'```py\n{stdout_value}\n{traceback.format_exc()}\n```',
-                                          footer_icon=self.bot.user.avatar_url)
+            message = utils.embed_message(
+                message=f"```py\n{stdout_value}\n{traceback.format_exc()}\n```",
+                footer_icon=self.bot.user.avatar_url,
+            )
             await ctx.send(embed=message)
         else:
             # Oh no it didn't cause an error
@@ -250,8 +271,10 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             if ret is None:
                 # It might have printed something
                 if stdout_value is not None:
-                    message = utils.embed_message(message=f'```py\n{stdout_value}\n```',
-                                                  footer_icon=self.bot.user.avatar_url)
+                    message = utils.embed_message(
+                        message=f"```py\n{stdout_value}\n```",
+                        footer_icon=self.bot.user.avatar_url,
+                    )
                     await ctx.send(embed=message)
                 return
 
@@ -260,19 +283,22 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             result = str(result_raw)  # The result as a string
             if result_raw is None:
                 return
-            text = f'```py\n{result}\n```'
+            text = f"```py\n{result}\n```"
             if type(result_raw) == dict:
                 try:
                     result = json.dumps(result_raw, indent=4)
                 except Exception:
                     pass
                 else:
-                    text = f'```json\n{result}\n```'
+                    text = f"```json\n{result}\n```"
             if len(text) > 2000:
-                await ctx.send(file=discord.File(io.StringIO(result), filename='ev.txt'))
+                await ctx.send(
+                    file=discord.File(io.StringIO(result), filename="ev.txt")
+                )
             else:
-                message = utils.embed_message(message=text,
-                                              footer_icon=self.bot.user.avatar_url)
+                message = utils.embed_message(
+                    message=text, footer_icon=self.bot.user.avatar_url
+                )
                 await ctx.send(embed=message)
 
 

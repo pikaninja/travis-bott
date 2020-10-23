@@ -2,11 +2,15 @@ from decouple import config
 from discord.ext import commands
 
 from utils import utils
+from utils.CustomCog import BaseCog
 
-class Misc(commands.Cog, name="💫 Misc"):
+
+class Misc(BaseCog, name="misc"):
     """Miscellaneous Commands"""
-    def __init__(self, bot):
+
+    def __init__(self, bot, show_name):
         self.bot = bot
+        self.show_name = show_name
 
     @commands.command()
     async def privacy(self, ctx):
@@ -42,16 +46,19 @@ How to remove your data.
 
         bot_invite = f"https://discord.com/api/oauth2/authorize?client_id={self.bot.user.id}&permissions=8&scope=bot"
 
-        embed = utils.embed_message(title="Invite the bot to your server here!",
-                                    url=bot_invite)
+        embed = utils.embed_message(
+            title="Invite the bot to your server here!", url=bot_invite
+        )
         await ctx.send(embed=embed)
 
     @commands.command()
     async def support(self, ctx):
         """Gives a link to the support server."""
 
-        await ctx.send("If you need help with the bot please join the support server:\n" + \
-                       f"{config('SUPPORT_LINK')}")
+        await ctx.send(
+            "If you need help with the bot please join the support server:\n"
+            + f"{config('SUPPORT_LINK')}"
+        )
 
     @commands.command()
     async def uptime(self, ctx):
@@ -66,5 +73,6 @@ How to remove your data.
         await ctx.author.send(f"{config('GITHUB_LINK')}")
         await ctx.thumbsup()
 
+
 def setup(bot):
-    bot.add_cog(Misc(bot))
+    bot.add_cog(Misc(bot, "💫 Misc"))

@@ -1,7 +1,7 @@
 from discord.ext import commands
 from utils.CustomHelp import CustomHelp
-from utils.PaginatedHelp import HelpCommand
 from utils.CustomContext import CustomContext
+
 
 class Help(commands.Cog, command_attrs=dict(hidden=True)):
     def __init__(self, bot):
@@ -12,6 +12,7 @@ class Help(commands.Cog, command_attrs=dict(hidden=True)):
 
     def cog_unload(self):
         self.bot.help_command = self._original_help_command
+
 
 def setup(bot):
     bot.add_cog(Help(bot))

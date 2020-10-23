@@ -15,7 +15,8 @@ class MotherRussia(Cog, command_attrs=dict(hidden=True)):
     @Cog.listener()
     async def on_raw_reaction_add(self, payload):
         # Human Verification
-        if payload.guild_id != self.id: return
+        if payload.guild_id != self.id:
+            return
 
         if payload.member.bot:
             return
@@ -44,35 +45,43 @@ class MotherRussia(Cog, command_attrs=dict(hidden=True)):
 
             name = f"spooky {member.name}"
             if len(name) > 32:
-                name = name[:len(name) - (len(name) - 32)]
+                name = name[: len(name) - (len(name) - 32)]
             await member.edit(nick=name)
             # Nuke bot Protection End
 
     @Cog.listener()
     async def on_guild_role_delete(self, role):
-        if role.guild.id != self.id: return
+        if role.guild.id != self.id:
+            return
         guild = role.guild
-        async for entry in guild.audit_logs(limit=1, action=discord.AuditLogAction.role_delete):
+        async for entry in guild.audit_logs(
+            limit=1, action=discord.AuditLogAction.role_delete
+        ):
             if role.id == 735699385513541735:
                 await guild.kick(entry.user, reason="Prune Protection")
 
     @command(name="petrat")
     async def mr_petrat(self, ctx):
-        if ctx.guild.id != self.id: return
+        if ctx.guild.id != self.id:
+            return
         role = get(ctx.guild.roles, id=735753567914426418)
         if role in ctx.author.roles:
             await ctx.author.edit(nick="El " + ctx.author.display_name + " 🐀")
 
     @command(name="nuke")
     async def mr_nuke(self, ctx):
-        if ctx.guild.id != self.id: return
-        await ctx.send("'Platform is a nuke bot guys!' or something along those lines - Arooster 2k20")
+        if ctx.guild.id != self.id:
+            return
+        await ctx.send(
+            "'Platform is a nuke bot guys!' or something along those lines - Arooster 2k20"
+        )
 
-    @command(name="kal")
-    @cooldown(1, 3600, BucketType.member)
-    async def mr_kal(self, ctx):
-        if ctx.guild.id != self.id: return
-        await ctx.send(f"<@671777334906454026>")
+    # @command(name="kal")
+    # @cooldown(1, 3600, BucketType.member)
+    # async def mr_kal(self, ctx):
+    #     if ctx.guild.id != self.id: return
+    #     await ctx.send(f"<@671777334906454026>")
+
 
 def setup(bot):
     bot.add_cog(MotherRussia(bot))

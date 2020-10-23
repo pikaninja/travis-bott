@@ -11,25 +11,32 @@ NEXT_PAGE = "\N{BLACK RIGHTWARDS ARROW}"
 
 PAGINATION_EMOJI = (LAST_PAGE, NEXT_PAGE, END_PAGE)
 
+
 class AutoReactMenu:
     async def paginate(self, ctx) -> discord.Message:
         def event_check(reaction: discord.Reaction, member: discord.Member):
-            return all((
+            return all(
+                (
                     member == ctx.author,
                     reaction.message.id == msg.id,
-                    member.id != ctx.bot.user.id
-                ))
-        
-        embed = utils.embed_message(title="Auto-React Setup",
-                                    message="Welcome to the setup for auto-reactions.\n" \
-                                        "Please confirm whether you'd like to continue or not.")
-        
+                    member.id != ctx.bot.user.id,
+                )
+            )
+
+        embed = utils.embed_message(
+            title="Auto-React Setup",
+            message="Welcome to the setup for auto-reactions.\n"
+            "Please confirm whether you'd like to continue or not.",
+        )
+
         msg = await ctx.send(embed=embed)
         await msg.add_reaction("\N{WHITE HEAVY CHECK MARK}")
         await msg.add_reaction("\N{CROSS MARK}")
 
         try:
-            reaction, member = await ctx.bot.wait_for("reaction_add", timeout=10.0, check=event_check)            
+            reaction, member = await ctx.bot.wait_for(
+                "reaction_add", timeout=10.0, check=event_check
+            )
         except asyncio.TimeoutError:
             await msg.delete()
             return
@@ -37,13 +44,16 @@ class AutoReactMenu:
             if str(reaction.emoji) == "\N{WHITE HEAVY CHECK MARK}":
                 await msg.remove_reaction(reaction.emoji, ctx.author)
                 embed.title = "Are you adding or removing an Auto-Reaction?"
-                embed.description = "\N{WHITE HEAVY CHECK MARK} Add\n" \
-                                    "\N{CROSS MARK} Remove"
-                
+                embed.description = (
+                    "\N{WHITE HEAVY CHECK MARK} Add\n" "\N{CROSS MARK} Remove"
+                )
+
                 await msg.edit(embed=embed)
 
                 try:
-                    reaction, member = await ctx.bot.wait_for("reaction_add", timeout=10.0, check=event_check)            
+                    reaction, member = await ctx.bot.wait_for(
+                        "reaction_add", timeout=10.0, check=event_check
+                    )
                 except asyncio.TimeoutError:
                     return
                 else:
@@ -61,14 +71,15 @@ class AutoReactMenu:
                 await msg.delete()
                 return
 
-class Paginator():
+
+class Paginator:
     def __init__(
         self,
         embeds: list,
         emojis: list = None,
         delete_after: bool = False,
         timeout: int = 60.0,
-        clear_reactions: bool = False
+        clear_reactions: bool = False,
     ) -> None:
         self.embeds = embeds
         self.emojis = emojis
@@ -78,16 +89,20 @@ class Paginator():
         self.page = 0
 
         if self.delete_after == True and self.timeout <= 0:
-            raise Exception("You told me to delete the message after but provided no timeout.")
+            raise Exception(
+                "You told me to delete the message after but provided no timeout."
+            )
 
     async def paginate(self, ctx) -> discord.Message:
         def event_check(reaction: discord.Reaction, member: discord.Member):
-            return all((
+            return all(
+                (
                     member == ctx.author,
                     reaction.message.id == message.id,
                     str(reaction.emoji) in PAGINATION_EMOJI,
-                    member.id != ctx.bot.user.id
-                ))
+                    member.id != ctx.bot.user.id,
+                )
+            )
 
         message = await ctx.send(embed=self.embeds[self.page])
 
@@ -97,10 +112,14 @@ class Paginator():
         if self.emojis is not None:
             for emoji in self.emojis:
                 await message.add_reaction(emoji)
-        
+
         while True:
             try:
-                reaction, member = await ctx.bot.wait_for("reaction_add", timeout=self.timeout if self.timeout > 0 else None, check=event_check)
+                reaction, member = await ctx.bot.wait_for(
+                    "reaction_add",
+                    timeout=self.timeout if self.timeout > 0 else None,
+                    check=event_check,
+                )
             except asyncio.TimeoutError:
                 if self.clear_reactions:
                     try:
@@ -114,10 +133,10 @@ class Paginator():
                 break
 
             else:
-                
+
                 if str(reaction.emoji) == END_PAGE:
                     self.page = 0
-                    
+
                     if self.delete_after:
                         return await message.delete()
                     else:
@@ -125,7 +144,7 @@ class Paginator():
                             await message.clear_reactions()
                         except discord.Forbidden:
                             break
-                
+
                 if str(reaction.emoji) == NEXT_PAGE:
                     try:
                         await message.remove_reaction(reaction.emoji, member)
@@ -138,7 +157,7 @@ class Paginator():
                     self.page += 1
 
                     await message.edit(embed=self.embeds[self.page])
-                
+
                 if str(reaction.emoji) == LAST_PAGE:
                     try:
                         await message.remove_reaction(reaction.emoji, member)
