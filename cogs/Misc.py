@@ -12,6 +12,14 @@ class Misc(BaseCog, name="misc"):
         self.bot = bot
         self.show_name = show_name
 
+    @commands.command(hidden=True, aliases=["hello"])
+    async def hey(self, ctx):
+        """Displays the bots introduction."""
+
+        await ctx.send(
+            f"Hello {ctx.author.mention} I am a bot created by kal#1806 made for general purpose, utilities and moderation."
+        )
+
     @commands.command()
     async def privacy(self, ctx):
         """Sends the bots privacy policy via dms."""

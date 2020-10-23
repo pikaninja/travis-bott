@@ -43,14 +43,6 @@ class Meta(BaseCog, name="meta"):
         self.show_name = show_name
         self.weather_api_key = config("WEATHER_API_KEY")
 
-    @commands.command(hidden=True, aliases=["hello"])
-    async def hey(self, ctx):
-        """Displays the bots introduction."""
-
-        await ctx.send(
-            f"Hello {ctx.author.mention} I am a bot created by kal#1806 made for general purpose, utilities and moderation."
-        )
-
     @commands.command()
     async def convert(self, ctx, amount: int, cur_from: str, cur_to: str):
         """Converts a given amount of money from one currency (3 letter e.g. GBP) to another currency."""
