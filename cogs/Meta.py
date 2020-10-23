@@ -97,7 +97,8 @@ class Meta(BaseCog, name="meta"):
         )
         embed = utils.embed_message(
             title="Generated Colour",
-            colour=discord.Colour.from_rgb(r_colour[0], r_colour[1], r_colour[2]),
+            colour=discord.Colour.from_rgb(
+                r_colour[0], r_colour[1], r_colour[2]),
         )
         embed.set_thumbnail(url=colour_representation)
         embed.add_field(name="Hex", value=f"{rgb_to_hex}", inline=False)
@@ -120,7 +121,8 @@ class Meta(BaseCog, name="meta"):
         )
         hex_to_rgb = utils.hex_to_rgb(colour[1:])
         embed = utils.embed_message(
-            colour=discord.Colour.from_rgb(hex_to_rgb[0], hex_to_rgb[1], hex_to_rgb[2])
+            colour=discord.Colour.from_rgb(
+                hex_to_rgb[0], hex_to_rgb[1], hex_to_rgb[2])
         )
         embed.set_thumbnail(url=colour_representation)
         embed.add_field(name="Hex", value=f"{colour}", inline=False)
@@ -136,14 +138,16 @@ class Meta(BaseCog, name="meta"):
 
         embed = utils.embed_message()
         embed.set_author(name=member, icon_url=member.avatar_url)
-        embed.set_image(url=member.avatar_url_as(static_format="png", size=1024))
+        embed.set_image(url=member.avatar_url_as(
+            static_format="png", size=1024))
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["latency"])
     async def ping(self, ctx):
         """Get the bots ping."""
 
-        embed = utils.embed_message(message=f"**{int(ctx.bot.latency * 1000)} ms**")
+        embed = utils.embed_message(
+            message=f"**{int(ctx.bot.latency * 1000)} ms**")
         embed.set_author(
             name="Travis Bott's Latency:", icon_url=self.bot.user.avatar_url
         )
@@ -169,11 +173,13 @@ class Meta(BaseCog, name="meta"):
             footer_text=f"Bot Version: {self.bot.version} | D.py Version: {discord.__version__}",
         )
         embed.add_field(name="Invite the bot", value=f"[Here]({invite_link})")
-        embed.add_field(name="GitHub", value=f"[Here]({config('GITHUB_LINK')})")
+        embed.add_field(
+            name="GitHub", value=f"[Here]({config('GITHUB_LINK')})")
         embed.add_field(
             name="Support server", value=f"[Here]({config('SUPPORT_LINK')})"
         )
-        embed.add_field(name="Ping", value=f"{round(self.bot.latency * 1000)} ms")
+        embed.add_field(
+            name="Ping", value=f"{round(self.bot.latency * 1000)} ms")
         embed.add_field(
             name="Memory", value=f"{round(mem_used)} MB / {round(total_mem)} MB"
         )
@@ -349,7 +355,8 @@ class Meta(BaseCog, name="meta"):
         fields = [
             ["Channel Topic:", f"{channel.topic or 'No Topic'}"],
             ["Channel Type:", f"{channel.type}"],
-            ["How many can see this:", f"{sum(1 for member in channel.members)}"],
+            ["How many can see this:",
+                f"{sum(1 for member in channel.members)}"],
             # ["Last Message:", f"{channel.last_message.content or 'Not Available'}"],
             ["Channel Category:", f"{channel.category.name}"],
             ["Created At:", f"{channel.created_at}"],
@@ -396,9 +403,11 @@ class Meta(BaseCog, name="meta"):
                     name=f"Requested by: {ctx.author.name}",
                     icon_url=ctx.author.avatar_url,
                 )
-                embed.add_field(name="Definition:", value=definition, inline=False)
+                embed.add_field(name="Definition:",
+                                value=definition, inline=False)
                 embed.add_field(name="Example:", value=example, inline=False)
-                embed.add_field(name="\N{THUMBS UP SIGN}", value=thumbs_up, inline=True)
+                embed.add_field(name="\N{THUMBS UP SIGN}",
+                                value=thumbs_up, inline=True)
                 embed.add_field(
                     name="\N{THUMBS DOWN SIGN}", value=thumbs_down, inline=True
                 )
@@ -414,7 +423,8 @@ class Meta(BaseCog, name="meta"):
         if "x" in equation:
             equation = equation.replace("x", "*")
         result = numexpr.evaluate(str(equation)).item()
-        embed = utils.embed_message(title=f"Result of {equation}:", message=result)
+        embed = utils.embed_message(
+            title=f"Result of {equation}:", message=result)
         await ctx.send(embed=embed)
 
     @commands.command()
@@ -490,7 +500,8 @@ class Meta(BaseCog, name="meta"):
 
         roles = user.roles[1:]
         roles.reverse()
-        [user_roles.append(role.mention) for role in roles if len(user_roles) < 30]
+        [user_roles.append(role.mention)
+         for role in roles if len(user_roles) < 30]
         readable_roles = " ".join(user_roles)
 
         fields = [
@@ -623,7 +634,8 @@ class Meta(BaseCog, name="meta"):
         To have multiple options (for 1) seperate them with |"""
 
         if mode == 0:
-            embed = utils.embed_message(message=str("".join(query)), footer_text="")
+            embed = utils.embed_message(
+                message=str("".join(query)), footer_text="")
             embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
             msg = await ctx.send(embed=embed)
 

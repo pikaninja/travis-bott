@@ -83,10 +83,11 @@ class HelpCommand(commands.HelpCommand):
         """Custom version of filter commands due to me not liking the way it filters out cmds that are permission based."""
 
         if sort and key is None:
-            key = lambda c: c.name
+            def key(c): return c.name
 
         iterator = (
-            commands if self.show_hidden else filter(lambda c: not c.hidden, commands)
+            commands if self.show_hidden else filter(
+                lambda c: not c.hidden, commands)
         )
 
         if not self.verify_checks:

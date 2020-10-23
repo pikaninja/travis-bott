@@ -79,10 +79,14 @@ class CreateServer(
         informationCategory = discord.utils.get(
             guild.categories, name="[ Information ]"
         )
-        staffCategory = discord.utils.get(guild.categories, name="[ Staff Channels ]")
-        mainCategory = discord.utils.get(guild.categories, name="[ Main Channels ]")
-        comCategory = discord.utils.get(guild.categories, name="[ Community Channels ]")
-        voiceCategory = discord.utils.get(guild.categories, name="[ Voice Channels ]")
+        staffCategory = discord.utils.get(
+            guild.categories, name="[ Staff Channels ]")
+        mainCategory = discord.utils.get(
+            guild.categories, name="[ Main Channels ]")
+        comCategory = discord.utils.get(
+            guild.categories, name="[ Community Channels ]")
+        voiceCategory = discord.utils.get(
+            guild.categories, name="[ Voice Channels ]")
         logsCategory = discord.utils.get(guild.categories, name="[ Logs ]")
 
         # Information Category

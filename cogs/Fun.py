@@ -174,7 +174,8 @@ class Fun(BaseCog, name="fun"):
 
         msg = await ctx.send(embed=embed)
 
-        emojis = ["\U0001faa8", "\U0001f4f0", "\U00002702"]  # Rock  # Paper  # Scissors
+        # Rock  # Paper  # Scissors
+        emojis = ["\U0001faa8", "\U0001f4f0", "\U00002702"]
 
         bots_choice = random.choice(emojis)
 
@@ -230,7 +231,8 @@ class Fun(BaseCog, name="fun"):
         """Gives you your penis size."""
 
         size = (
-            100 if ctx.author.id == self.bot.owner_id else random.choice(self.pp_sizes)
+            100 if ctx.author.id == self.bot.owner_id else random.choice(
+                self.pp_sizes)
         )
         pp = f"8{'=' * size}D"
         await ctx.send(f"ur pp size is {pp} 😎")
@@ -241,7 +243,8 @@ class Fun(BaseCog, name="fun"):
         """Get a random image of a cat or dog."""
 
         url = random.choice(
-            ["https://some-random-api.ml/img/dog", "https://some-random-api.ml/img/cat"]
+            ["https://some-random-api.ml/img/dog",
+                "https://some-random-api.ml/img/cat"]
         )
         async with request("GET", url, headers={}) as r:
             if r.status != 200:

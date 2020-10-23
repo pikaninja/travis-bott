@@ -1,5 +1,5 @@
 # 💫 Travis Bott
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+Formatted with pep8.
 
 Don't run your own instance. There's nothing stopping you, just don't as this wasn't made to be easy to setup.
 

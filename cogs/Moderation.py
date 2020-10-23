@@ -212,7 +212,8 @@ class Moderation(BaseCog, name="moderation"):
             warns.append(
                 f"ID: **{info['warn_id']}** - Moderator: **{moderator}**\nWarned At: **{date_warned}** - Reason:\n{info['warn_reason']}"
             )
-        fmt = "No warnings for this user." if len(warns) == 0 else "\n".join(warns)
+        fmt = "No warnings for this user." if len(
+            warns) == 0 else "\n".join(warns)
         embed.description = fmt
         await ctx.send(embed=embed)
 
@@ -461,7 +462,8 @@ class Moderation(BaseCog, name="moderation"):
         for role in roles:
             in_role = []
             role = await utils.find_roles(ctx.guild, role)
-            [in_role.append(f"{member.mention} ({member})") for member in role.members]
+            [in_role.append(f"{member.mention} ({member})")
+             for member in role.members]
             columns = [in_role, ["\u200b"]]
             if len(in_role) > 1:
                 columns[0], columns[1] = utils.split_list(in_role)
@@ -600,7 +602,8 @@ class Moderation(BaseCog, name="moderation"):
             )
 
         hex_to_rgb = utils.hex_to_rgb(colour[1:])
-        colour = discord.Colour.from_rgb(hex_to_rgb[0], hex_to_rgb[1], hex_to_rgb[2])
+        colour = discord.Colour.from_rgb(
+            hex_to_rgb[0], hex_to_rgb[1], hex_to_rgb[2])
         await role.edit(colour=colour)
         await ctx.thumbsup()
 

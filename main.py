@@ -1,21 +1,18 @@
+from utils.CustomBot import MyBot
+from utils import utils
+from discord.ext import commands
+from discord import Game, Status, AllowedMentions, Intents
+from decouple import config
+import ksoftapi
+from discord.flags import MemberCacheFlags
+import dbl
+import time
+import os
+import asyncio
 import logging
 
 logging.basicConfig(level=logging.INFO)
 
-import asyncio
-import os
-import logging
-import time
-import dbl
-from discord.flags import MemberCacheFlags
-import ksoftapi
-
-from decouple import config
-from discord import Game, Status, AllowedMentions, Intents
-from discord.ext import commands
-
-from utils import utils
-from utils.CustomBot import MyBot
 
 # logger = logging.getLogger("commands")
 # logger.setLevel(logging.DEBUG)
@@ -51,7 +48,8 @@ bot.description = (
     "A general purpose discord bot that provides a lot of utilities and such to use."
 )
 bot.owner_id = 671777334906454026
-bot.owner_ids = {671777334906454026}  # Put your ID here, maybe some other peoples
+# Put your ID here, maybe some other peoples
+bot.owner_ids = {671777334906454026}
 
 # bot.kclient = ksoftapi.Client(config("KSOFT_API"))
 # bot.translate_api = translator.Translator()
@@ -117,7 +115,8 @@ async def on_ready():
     await bot.change_presence(
         activity=Game(name=config("BOT_STATUS"))
     )  # Set the status
-    logging.info(f"Logged in as -> {bot.user.name}")  # Basic info on the bot @ startup
+    # Basic info on the bot @ startup
+    logging.info(f"Logged in as -> {bot.user.name}")
     logging.info(f"Client ID -> {bot.user.id}")
     logging.info(f"Guild Count -> {len(bot.guilds)}")
 

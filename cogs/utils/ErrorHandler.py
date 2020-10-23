@@ -12,6 +12,8 @@ import config as cfg
     https://github.com/4Kaylum/DiscordpyBotBase/blob/master/cogs/error_handler.py"""
 
 # noinspection PyRedundantParentheses
+
+
 class ErrorHandler(Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -78,7 +80,8 @@ class ErrorHandler(Cog):
         # await self.send_webhook(ctx, error)
 
         setattr(
-            ctx, "original_author_id", getattr(ctx, "original_author_id", ctx.author.id)
+            ctx, "original_author_id", getattr(
+                ctx, "original_author_id", ctx.author.id)
         )
         owner_reinvoke_errors = (
             commands.MissingAnyRole,

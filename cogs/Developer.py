@@ -62,7 +62,8 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
                     "DELETE FROM premium WHERE guild_id = $1", guild_id
                 )
                 to_remove.append(guild_id)
-                utils.log(f"Successfully removed {guild_id} from the premium table.")
+                utils.log(
+                    f"Successfully removed {guild_id} from the premium table.")
             else:
                 continue
         if len(to_remove) >= 1:

@@ -16,15 +16,15 @@ class Management(BaseCog, name="management"):
         self.bot = bot
         self.show_name = show_name
 
-    # @commands.group(invoke_without_command=True)
-    # @commands.guild_only()
-    # @commands.has_permissions(manage_guild=True)
-    # @commands.bot_has_permissions(manage_roles=True)
-    # async def autoreact(self, ctx):
-    #     """Activates the user-interactive menu to set up an auto-react event."""
+    @commands.group(invoke_without_command=True)
+    @commands.guild_only()
+    @commands.has_permissions(manage_guild=True)
+    @commands.bot_has_permissions(manage_roles=True)
+    async def autoreact(self, ctx):
+        """Activates the user-interactive menu to set up an auto-react event."""
 
-    #     instance = AutoReactMenu()
-    #     await instance.paginate(ctx)
+        instance = AutoReactMenu()
+        await instance.paginate(ctx)
 
     @commands.command()
     @commands.guild_only()
@@ -68,7 +68,8 @@ class Management(BaseCog, name="management"):
         embed = utils.embed_message(title=f"Configuration for {ctx.guild}")
 
         for k, v in fields:
-            embed.add_field(name=k, value=v if v else "None set.", inline=False)
+            embed.add_field(
+                name=k, value=v if v else "None set.", inline=False)
 
         await ctx.send(embed=embed)
 

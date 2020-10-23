@@ -14,7 +14,7 @@ class CustomHelp(commands.HelpCommand):
         """Custom version of filter commands due to me not liking the way it filters out cmds that are permission based."""
 
         if sort and key is None:
-            key = lambda c: c.name
+            def key(c): return c.name
 
         iterator = filter(lambda c: not c.hidden, commands)
 
@@ -54,7 +54,8 @@ class CustomHelp(commands.HelpCommand):
             if filtered:
                 all_cmds = " ".join(f"`{c.name}`" for c in commands)
                 if cog and cog.description:
-                    embed.add_field(name=name, value=f">>> {all_cmds}\n", inline=False)
+                    embed.add_field(
+                        name=name, value=f">>> {all_cmds}\n", inline=False)
                 # value = " ".join("`" + c.name + "`" for c in commands)
                 # if cog and cog.description:
                 #     value = f"{cog.description}\n{value}"

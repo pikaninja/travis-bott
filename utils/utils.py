@@ -58,7 +58,7 @@ async def find_roles(guild, role_arg) -> discord.Role:
 
 
 def hex_to_rgb(h) -> tuple:
-    return tuple(int(h[i : i + 2], 16) for i in (0, 2, 4))
+    return tuple(int(h[i: i + 2], 16) for i in (0, 2, 4))
 
 
 def rgb_to_hex(rgb) -> str:

@@ -275,7 +275,8 @@ class XP(commands.Cog, name="⚗ XP"):
             ["XP", f"{user_record[1]} / {user_record[3]}"],
         ]
 
-        embed = utils.embed_message(title=f"{user}'s rank", thumbnail=user.avatar_url)
+        embed = utils.embed_message(
+            title=f"{user}'s rank", thumbnail=user.avatar_url)
 
         [embed.add_field(name=n, value=v, inline=False) for n, v in fields]
         await ctx.send(embed=embed)
