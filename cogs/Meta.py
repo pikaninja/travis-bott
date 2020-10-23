@@ -261,24 +261,20 @@ class Meta(BaseCog, name="meta"):
 
         url = f"https://cdn.discordapp.com/emojis/{emoji_id}.{gif_or_png}"
 
-        async with aiohttp.ClientSession() as cs:
-            async with cs.get(url) as r:
-                if r.status != 200:
-                    return await ctx.send("You probably didn't use the right ID.")
-                emoji_bytes = await r.read()
+        async with self.bot.session.get(url) as r:
+            if r.status != 200:
+                return await ctx.send("You probably didn't use the right ID.")
+            emoji_bytes = await r.read()
 
-                new_emoji = await ctx.guild.create_custom_emoji(
-                    name=emoji_name,
-                    image=emoji_bytes,
-                    reason=f"Responsible user: {ctx.author}",
-                )
+            new_emoji = await ctx.guild.create_custom_emoji(
+                name=emoji_name,
+                image=emoji_bytes,
+                reason=f"Responsible user: {ctx.author}",
+            )
 
-                await ctx.send(
-                    f"Successfully stolen {new_emoji} with the name `{new_emoji.name}`"
-                )
-
-                await r.close()
-                await cs.close()
+            await ctx.send(
+                f"Successfully stolen {new_emoji} with the name `{new_emoji.name}`"
+            )
 
     @emoji.error
     async def on_emoji_error(self, ctx, error):

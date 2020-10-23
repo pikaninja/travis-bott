@@ -12,6 +12,7 @@ from datetime import timedelta
 
 import ksoftapi
 import vacefron
+import aiohttp
 
 from utils import db, utils
 from utils.CustomContext import CustomContext
@@ -42,10 +43,12 @@ class MyBot(commands.AutoShardedBot):
             asyncpg.create_pool(**cfg.POSTGRES_INFO)
         )
 
+        self.session = aiohttp.ClientSession(loop=self.loop)
         self.loop.create_task(self.cache_prefixes())
         self.loop.create_task(self.cache_premiums())
 
     async def close(self):
+        await self.session.close()
         await self.pool.close()
         await super().close()
 
