@@ -6,7 +6,7 @@ from utils import utils
 from utils.CustomCog import BaseCog
 import asyncio
 
-# from utils.Paginator import AutoReactMenu
+from utils.Paginator import AutoReactMenu
 
 
 class Management(BaseCog, name="management"):

@@ -1,9 +1,7 @@
-import logging
 import async_cse
 
 from decouple import config
 from discord.ext import commands
-from discord.ext import menus
 import ksoftapi
 
 from utils import utils
@@ -12,18 +10,15 @@ from utils.CustomCog import BaseCog
 from aiohttp import request
 
 from datetime import datetime as dt
-from io import StringIO
 
 from currency_converter import CurrencyConverter
 import aiogoogletrans as translator
 
-import aiohttp
 import psutil
 import discord
 import typing
 import random
 import numexpr
-import asyncio
 import re
 import humanize
 

@@ -1,4 +1,3 @@
-import asyncio
 import contextlib
 import io
 import os
@@ -7,21 +6,12 @@ import textwrap
 import traceback
 import re
 import time
-import aiohttp
-import config as cfg
-
-from discord import colour
-from utils.utils import check_role_permissions
 
 import discord
 from discord.ext import tasks
-from discord.ext.commands import Cog, command, is_owner, Converter, BadArgument, group
-from discord.ext.commands.core import check
+from discord.ext.commands import Cog, is_owner, Converter, BadArgument, group
 
-from PIL import Image, ImageDraw, ImageFont
-
-from utils import utils, db
-from utils.Paginator import Paginator
+from utils import utils
 
 time_regex = re.compile("(?:(\d{1,5})(h|s|m|d))+?")
 time_dict = {"h": 3600, "s": 1, "m": 60, "d": 86400}

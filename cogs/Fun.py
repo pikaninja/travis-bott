@@ -2,12 +2,11 @@ import asyncdagpi
 from decouple import config
 from discord.ext import commands
 
-from utils import CustomContext, utils
+from utils import utils
 from utils.CustomCog import BaseCog
 from aiohttp import request
 from asyncdagpi import ImageFeatures
 
-import psutil
 import asyncio
 import discord
 import typing

@@ -1,26 +1,11 @@
 from utils.CustomBot import MyBot
-from utils import utils
-from discord.ext import commands
 from discord import Game, Status, AllowedMentions, Intents
 from decouple import config
-import ksoftapi
 from discord.flags import MemberCacheFlags
-import dbl
-import time
 import os
-import asyncio
 import logging
 
 logging.basicConfig(level=logging.INFO)
-
-
-# logger = logging.getLogger("commands")
-# logger.setLevel(logging.DEBUG)
-# filename = "logs/bot_commands_" + time.ctime()[4:16].replace(":", ".") + ".log"
-# filename = filename.replace(" ", "_")
-# handler = logging.FileHandler(filename="debug_discord.log", encoding="utf-8", mode="w")
-# handler.setFormatter(logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s"))
-# logger.addHandler(handler)
 
 new_guilds = False
 

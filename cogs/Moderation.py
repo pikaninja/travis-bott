@@ -1,4 +1,4 @@
-from discord.ext import commands, tasks, menus
+from discord.ext import commands, tasks
 
 from utils import utils
 from utils.Paginator import Paginator
@@ -6,11 +6,10 @@ from utils.CustomCog import BaseCog
 
 from time import time as t
 
-from datetime import datetime as dt, timedelta
+from datetime import datetime as dt
 
 import asyncio
 import discord
-import typing
 import uuid
 import re
 
