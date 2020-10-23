@@ -1,23 +1,15 @@
 import asyncio
-from sys import prefix
-import async_cse
-import asyncdagpi
 import asyncpg
-import aiogoogletrans as translator
 import discord
 from discord.ext import commands
 
 from datetime import datetime as dt
 from datetime import timedelta
 
-import ksoftapi
-import vacefron
 import aiohttp
 
-from utils import db, utils
 from utils.CustomContext import CustomContext
 
-import initdb
 import config as cfg
 
 from decouple import config
@@ -83,7 +75,8 @@ class MyBot(commands.AutoShardedBot):
         ):
             prefix = self.cache["prefixes"][message.guild.id]
             await message.channel.send(
-                f"Hey I saw you mentioned me, incase you didn't know my prefix here is `{prefix}`."
+                "Hey I saw you mentioned me, incase you didn't know my prefix" +
+                f"here is `{prefix}`."
             )
 
         await self.process_commands(message)
