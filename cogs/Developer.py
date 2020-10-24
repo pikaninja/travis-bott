@@ -9,7 +9,9 @@ import time
 
 import discord
 from discord.ext import tasks
-from discord.ext.commands import Cog, is_owner, Converter, BadArgument, group
+from discord.ext.commands import (
+    Cog, is_owner, BadArgument, group, Converter
+)
 
 from utils import utils
 
@@ -34,7 +36,13 @@ class TimeConverter(Converter):
         return time
 
 
+class CommandConverter(Converter):
+    async def convert(self, ctx, argument):
+        return ctx.bot.get_command(argument)
+
 # noinspection PyBroadException
+
+
 class Developer(Cog, command_attrs=dict(hidden=True)):
     def __init__(self, bot):
         self._last_result = None
@@ -81,12 +89,13 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
     @dev.command()
     @is_owner()
-    async def disable(self, ctx, cmd, *, reason):
+    async def disable(self, ctx, cmd: CommandConverter, *, reason):
         """Disables a command globaly for a given reason."""
 
-        command = self.bot.get_command(cmd)
-        self.bot.disabled_commands[command] = reason
-        await ctx.send(f"Successfully disabled {command.qualified_name} " +
+        if cmd is None:
+            return await ctx.send("Invalid command entered.")
+        self.bot.disabled_commands[cmd] = reason
+        await ctx.send(f"Successfully disabled {cmd.qualified_name} "
                        f"for the reason: {reason}")
 
     @dev.command()
