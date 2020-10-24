@@ -6,6 +6,7 @@ import textwrap
 import traceback
 import re
 import time
+import logging
 
 import discord
 from discord.ext import tasks
@@ -60,7 +61,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
                     "DELETE FROM premium WHERE guild_id = $1", guild_id
                 )
                 to_remove.append(guild_id)
-                utils.log(
+                logging.info(
                     f"Successfully removed {guild_id} from the premium table.")
             else:
                 continue
