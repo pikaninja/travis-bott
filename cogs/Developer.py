@@ -41,8 +41,6 @@ class CommandConverter(Converter):
     async def convert(self, ctx, argument):
         return ctx.bot.get_command(argument)
 
-# noinspection PyBroadException
-
 
 class Developer(Cog, command_attrs=dict(hidden=True)):
     def __init__(self, bot):
