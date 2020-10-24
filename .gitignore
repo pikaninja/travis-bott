@@ -3,3 +3,9 @@
 .env
 /data/db/database.db
 config.py
+__pycache__/
+/cogs/__pycache__/
+/cogs/utils/__pycache__/
+/cogs/custom/__pycache__/
+/events/__pycache__/
+/utils/__pycache__/
