@@ -100,6 +100,29 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
     @dev.command()
     @is_owner()
+    async def enable(self, ctx, cmd: CommandConverter):
+        """Enables a command again."""
+
+        if cmd is None:
+            return await ctx.send("Invalid command entered.")
+        del self.bot.disabled_commands[cmd]
+        await ctx.send(f"Successfully enabled {cmd.qualified_name}")
+
+    @dev.command()
+    @is_owner()
+    async def disabled(self, ctx):
+        """Gives a list of all current disabled commands."""
+
+        await ctx.send(
+            "Current disabled commands:\n" +
+            "\n".join(
+                [f"• {k.qualified_name} - `{v}`" for k, v
+                    in self.bot.disabled_commands.items()]
+            )
+        )
+
+    @dev.command()
+    @is_owner()
     async def sql(self, ctx, *, query):
         """Executes an SQL statement for the bot."""
 
@@ -133,7 +156,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
     @dev.command()
     @is_owner()
-    async def say(self, ctx, channel: discord.TextChannel, *, msg: str = None):
+    async def say(self, ctx, channel: discord.TextChannel = None, *, msg: str = None):
         """You can force the bot to say stuff, cool."""
 
         channel = channel or ctx.channel
