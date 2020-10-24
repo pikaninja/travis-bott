@@ -59,7 +59,7 @@ class CustomHelp(commands.HelpCommand):
             name = "No Category" if cog is None else cog.show_name
             filtered = await self.filter_commands(commands, sort=True)
             if filtered:
-                all_cmds = " ".join(f"`{c.name}`" for c in commands)
+                all_cmds = " • ".join(f"`{c.name}`" for c in commands)
                 if cog and cog.description:
                     embed.add_field(
                         name=name, value=f">>> {all_cmds}\n", inline=False)
