@@ -55,7 +55,8 @@ class ErrorHandler(Cog):
                 name="Key Information:",
                 value=f"Channel: {ctx.channel.id}\n"
                 f"Guild: {ctx.guild.id}\n"
-                f"Command: {cmd}",
+                f"Command: {cmd}\n"
+                f"Message Content: {ctx.message.content}",
             )
 
         await error_log_channel.send(embed=embed)
