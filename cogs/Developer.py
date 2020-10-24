@@ -81,6 +81,16 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
     @dev.command()
     @is_owner()
+    async def disable(self, ctx, cmd, *, reason):
+        """Disables a command globaly for a given reason."""
+
+        command = self.bot.get_command(cmd)
+        self.bot.disabled_commands[command] = reason
+        await ctx.send(f"Successfully disabled {command.qualified_name} " +
+                       f"for the reason: {reason}")
+
+    @dev.command()
+    @is_owner()
     async def sql(self, ctx, *, query):
         """Executes an SQL statement for the bot."""
 

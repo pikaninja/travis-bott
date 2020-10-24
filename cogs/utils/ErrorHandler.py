@@ -35,35 +35,30 @@ class ErrorHandler(Cog):
             pass
         return None
 
-    async def send_webhook(self, ctx, error):
-        url = cfg.error_log_webhook
-
-        async with aiohttp.ClientSession() as session:
-            embed = utils.embed_message(
-                title="Something went wrong...",
-                message=f"```py\nAn Error Occured:\n{error}\n```",
+    async def send_error(self, ctx, error):
+        error_log_channel = self.bot.get_channel(768497134751186954)
+        embed = utils.embed_message(
+            title="Something went wrong...",
+            message=f"```py\nAn Error Occured:\n{error}\n```",
+        )
+        embed.set_author(
+            name=f"{ctx.author} | {ctx.author.id}", icon_url=ctx.author.avatar_url
+        )
+        if ctx.guild:
+            cmd = (
+                "None"
+                if isinstance(ctx.command, type(None))
+                else ctx.command.qualified_name
             )
-            embed.set_author(
-                name=f"{ctx.author} | {ctx.author.id}", icon_url=ctx.author.avatar_url
+            embed.set_thumbnail(url=ctx.guild.icon_url_as(size=512))
+            embed.add_field(
+                name="Key Information:",
+                value=f"Channel: {ctx.channel.id}\n"
+                f"Guild: {ctx.guild.id}\n"
+                f"Command: {cmd}",
             )
-            if ctx.guild:
-                cmd = (
-                    "None"
-                    if isinstance(ctx.command, type(None))
-                    else ctx.command.qualified_name
-                )
-                embed.set_thumbnail(url=ctx.guild.icon_url_as(size=512))
-                embed.add_field(
-                    name="Key Information:",
-                    value=f"Channel: {ctx.channel.id}\n"
-                    f"Guild: {ctx.guild.id}\n"
-                    f"Command: {cmd}",
-                )
 
-            print(embed.to_dict())
-            data = {"username": "Error Logged.", "embeds": [embed.to_dict()]}
-            await session.post(url, data=data)
-            await session.close()
+        await error_log_channel.send(embed=embed)
 
     @Cog.listener()
     async def on_command_error(self, ctx, error):
@@ -76,8 +71,6 @@ class ErrorHandler(Cog):
 
         if isinstance(error, ignored_errors):
             return
-
-        # await self.send_webhook(ctx, error)
 
         setattr(
             ctx, "original_author_id", getattr(
@@ -95,6 +88,14 @@ class ErrorHandler(Cog):
             error, owner_reinvoke_errors
         ):
             return await ctx.reinvoke()
+
+        # Command failed global check
+        elif isinstance(error, commands.CheckFailure):
+            return await self.send_to_ctx_or_author(
+                ctx,
+                "That command is disabled for the reason of: "
+                f"`{self.bot.disabled_commands[ctx.command]}`"
+            )
 
         # Command is on Cooldown
         elif isinstance(error, commands.CommandOnCooldown):
@@ -131,6 +132,7 @@ class ErrorHandler(Cog):
                 ctx, f"You must be the owner of the bot to run this."
             )
 
+        await self.send_error(ctx, error)
         raise error
 
 
