@@ -36,6 +36,14 @@ class CustomHelp(commands.HelpCommand):
     def get_command_signature(self, command: commands.Command):
         return f"{self.clean_prefix}{command.qualified_name} {command.signature}"
 
+    async def command_not_found(self, string):
+        """My own impl of the command not found error."""
+
+        if len(string) >= 50:
+            return f"Could not find the command `{string[:20]}...`."
+        else:
+            return f"Could not find the command `{string}`."
+
     async def send_bot_help(self, mapping):
         embed = utils.embed_message(title="Bot Commands")
         embed.description = (
@@ -70,6 +78,13 @@ class CustomHelp(commands.HelpCommand):
         embed = utils.embed_message(title=f"{cog.show_name} Commands")
 
         filtered = await self.filter_commands(cog.get_commands(), sort=True)
+
+        for command in filtered:
+            embed.add_field(
+                name=f"{command.qualified_name}",
+                value=f"{command.help.format(prefix=self.clean_prefix)}",
+                inline=False
+            )
 
         embed.set_footer(text=self.get_ending_note())
         await self.get_destination().send(embed=embed)
