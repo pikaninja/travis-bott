@@ -129,7 +129,7 @@ class ErrorHandler(Cog):
         # User who invoked command is not owner
         elif isinstance(error, commands.NotOwner):
             return await self.send_to_ctx_or_author(
-                ctx, f"You must be the owner of the bot to run this."
+                ctx, "You must be the owner of the bot to run this."
             )
 
         await self.send_error(ctx, error)
