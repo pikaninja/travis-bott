@@ -57,7 +57,7 @@ class Meta(BaseCog, name="meta"):
     async def google(self, ctx, *, query: str):
         """Searches google for a given query."""
 
-        cse = async_cse.Search(config("GOOGLE_CSE"))
+        cse = async_cse.Search([config("GOOGLE_CSE"), config("SECOND_GOOGLE_CSE")])
         results = await cse.search(query, safesearch=True)
 
         how_many = 10 if len(results) > 10 else len(results)
