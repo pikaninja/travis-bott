@@ -65,17 +65,24 @@ class Meta(BaseCog, name="meta"):
         embed_list = []
 
         for i in range(how_many):
+            print(results[i].image_url)
             embed = utils.embed_message()
             embed.title = results[i].title
             embed.description = results[i].description
             embed.url = results[i].url
-            embed.set_image(url=results[i].image_url)
+            embed.set_image(
+                url=results[i].image_url
+                    if results[i].image_url.startswith(("https://", "http://"))
+                    else discord.Embed.Empty
+            )
+
+            print(embed.image)
 
             embed_list.append(embed)
 
-        p = Paginator(embed_list, delete_after=True)
-        await p.paginate(ctx)
         await cse.close()
+        p = Paginator(embed_list)
+        await p.paginate(ctx)
 
     @commands.command(aliases=["randomcolor", "rcolour", "rcolor"])
     async def randomcolour(self, ctx):

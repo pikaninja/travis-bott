@@ -86,9 +86,14 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
     async def dev(self, ctx):
         await ctx.send_help(ctx.command)
 
-    @dev.command()
+    @dev.command(name="leave")
     @is_owner()
-    async def disable(self, ctx, cmd: CommandConverter, *, reason):
+    async def dev_leave(self, ctx):
+        """Forces the bot to leave the current server"""
+
+    @dev.command(name="disable")
+    @is_owner()
+    async def dev_disable(self, ctx, cmd: CommandConverter, *, reason):
         """Disables a command globaly for a given reason."""
 
         if cmd is None:
@@ -97,9 +102,9 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         await ctx.send(f"Successfully disabled {cmd.qualified_name} "
                        f"for the reason: {reason}")
 
-    @dev.command()
+    @dev.command(name="enable")
     @is_owner()
-    async def enable(self, ctx, cmd: CommandConverter):
+    async def dev_enable(self, ctx, cmd: CommandConverter):
         """Enables a command again."""
 
         if cmd is None:
@@ -107,9 +112,9 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         del self.bot.disabled_commands[cmd]
         await ctx.send(f"Successfully enabled {cmd.qualified_name}")
 
-    @dev.command()
+    @dev.command(name="disabled")
     @is_owner()
-    async def disabled(self, ctx):
+    async def dev_disabled(self, ctx):
         """Gives a list of all current disabled commands."""
 
         await ctx.send(
@@ -120,17 +125,17 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             )
         )
 
-    @dev.command()
+    @dev.command(name="sql")
     @is_owner()
-    async def sql(self, ctx, *, query):
+    async def dev_sql(self, ctx, *, query):
         """Executes an SQL statement for the bot."""
 
         result = await self.bot.pool.execute(query)
         await ctx.send(f"Result of query: {result}")
 
-    @dev.command()
+    @dev.command(name="restart")
     @is_owner()
-    async def restart(self, ctx):
+    async def dev_restart(self, ctx):
         await ctx.send("⚠ Restarting now...")
         os.system("systemctl restart travis")
 
@@ -153,17 +158,17 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             f"Successfully added premium to {guild_id} for {sub_time} seconds."
         )
 
-    @dev.command()
+    @dev.command(name="say")
     @is_owner()
-    async def say(self, ctx, channel: discord.TextChannel = None, *, msg: str = None):
+    async def dev_say(self, ctx, channel: discord.TextChannel = None, *, msg: str = None):
         """You can force the bot to say stuff, cool."""
 
         channel = channel or ctx.channel
         await channel.send(msg)
 
-    @dev.command()
+    @dev.command(name="kill")
     @is_owner()
-    async def kill(self, ctx):
+    async def dev_kill(self, ctx):
         try:
             self.bot.clear()
             await self.bot.close()
@@ -203,9 +208,9 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         else:
             await ctx.send("**`SUCCESS`**")
 
-    @dev.command()
+    @dev.command(name="reload")
     @is_owner()
-    async def reload(self, ctx, cog: str = None):
+    async def dev_reload(self, ctx, cog: str = None):
         # Reloads a given Cog
 
         if cog is None:
@@ -226,9 +231,9 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             else:
                 await ctx.send("**`SUCCESS`**")
 
-    @dev.command()
+    @dev.command(name="load")
     @is_owner()
-    async def load(self, ctx, cog: str):
+    async def dev_load(self, ctx, cog: str):
         # Loads a given Cog
         try:
             self.bot.load_extension(cog)
@@ -237,9 +242,9 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         else:
             await ctx.send("**`SUCCESS`**")
 
-    @dev.command()
+    @dev.command(name="unload")
     @is_owner()
-    async def unload(self, ctx, cog: str):
+    async def dev_unload(self, ctx, cog: str):
         # Unloads a given Cog
         try:
             self.bot.unload_extension(cog)
@@ -248,9 +253,9 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         else:
             await ctx.send("**`SUCCESS`**")
 
-    @dev.command()
+    @dev.command(name="ev")
     @is_owner()
-    async def ev(self, ctx, *, content: str):
+    async def dev_ev(self, ctx, *, content: str):
         """Evaluates Python code
         Gracefully stolen from Rapptz ->
         https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/admin.py#L72-L117"""

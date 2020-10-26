@@ -452,38 +452,30 @@ class Moderation(BaseCog, name="moderation"):
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(send_messages=True)
-    async def members(self, ctx, *roles: str):
+    async def members(self, ctx, *, role: str):
         """Check the list of members in a certain role.
         Permissions needed: `Manage Messages`"""
 
-        embed_list = []
+        in_role = []
+        role = await utils.find_roles(ctx.guild, role)
+        [in_role.append(f"{member.mention} ({member})")
+         for member in role.members]
+        columns = [in_role, ["\u200b"]]
+        if len(in_role) > 1:
+            columns[0], columns[1] = utils.split_list(in_role)
+            columns.sort(reverse=True)
 
-        for role in roles:
-            in_role = []
-            role = await utils.find_roles(ctx.guild, role)
-            [in_role.append(f"{member.mention} ({member})")
-             for member in role.members]
-            columns = [in_role, ["\u200b"]]
-            if len(in_role) > 1:
-                columns[0], columns[1] = utils.split_list(in_role)
-                columns.sort(reverse=True)
-
-            embed = utils.embed_message(
-                title=f"Members in {role.name} [{sum(1 for m in role.members)}]"
+        embed = utils.embed_message(
+            title=f"Members in {role.name} [{sum(1 for m in role.members)}]"
+        )
+        [
+            embed.add_field(
+                name="\u200b", value="\n".join(column) if column else "\u200b"
             )
-            [
-                embed.add_field(
-                    name="\u200b", value="\n".join(column) if column else "\u200b"
-                )
-                for column in columns
-            ]
-            embed_list.append(embed)
+            for column in columns
+        ]
 
-        if len(roles) > 1:
-            p = Paginator(embed_list, clear_reactions=True)
-            await p.paginate(ctx)
-        else:
-            await ctx.send(embed=embed_list[0])
+        await ctx.send(embed=embed)
 
     @commands.command()
     @commands.guild_only()
