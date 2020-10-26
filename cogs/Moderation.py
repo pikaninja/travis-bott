@@ -48,7 +48,7 @@ class Role(commands.Converter):
                 found = role
             else:
                 continue
-        
+
         if found is None:
             raise commands.BadArgument("Could not find that role.")
         return found
