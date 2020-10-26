@@ -121,6 +121,13 @@ class ErrorHandler(Cog):
                 f"You're missing the required permission: `{error.missing_perms[0]}`",
             )
 
+        # Bad Argument passed
+        elif isinstance(error, commands.BadArgument):
+            return await self.send_to_ctx_or_author(
+                ctx,
+                f"{error}",
+            )
+
         # Missing Permissions
         elif isinstance(error, commands.BotMissingPermissions):
             return await self.send_to_ctx_or_author(

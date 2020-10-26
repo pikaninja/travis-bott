@@ -38,6 +38,22 @@ async def resolve_member(guild, member_id):
     return member
 
 
+class Role(commands.Converter):
+    async def convert(self, ctx, argument):
+        found = None
+        for role in ctx.guild.roles:
+            if found is not None:
+                break
+            if role.name.lower().startswith(argument.lower()):
+                found = role
+            else:
+                continue
+        
+        if found is None:
+            raise commands.BadArgument("Could not find that role.")
+        return found
+
+
 class MemberID(commands.Converter):
     async def convert(self, ctx, argument):
         try:
@@ -665,6 +681,17 @@ class Moderation(BaseCog, name="moderation"):
         embed.add_field(name="Names", value="\n".join(role_names))
         embed.add_field(name="IDs", value="\n".join(role_ids))
         await ctx.send(embed=embed)
+
+    @role.command(name="name")
+    @commands.guild_only()
+    @commands.has_permissions(manage_roles=True)
+    @commands.bot_has_permissions(manage_roles=True)
+    async def role_name(self, ctx, role: Role, *, name: str):
+        """Changes the name of a given role.
+        E.g. {prefix}role name \"Role Name\" New Role Name Here"""
+
+        await role.edit(name=name)
+        await ctx.thumbsup()
 
 
 def setup(bot):
