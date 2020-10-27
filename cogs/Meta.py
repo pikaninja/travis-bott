@@ -100,8 +100,7 @@ class Meta(BaseCog, name="meta"):
         )
         embed = utils.embed_message(
             title="Generated Colour",
-            colour=discord.Colour.from_rgb(
-                r_colour[0], r_colour[1], r_colour[2]),
+            colour=discord.Colour.from_rgb(*r_colour),
         )
         embed.set_thumbnail(url=colour_representation)
         embed.add_field(name="Hex", value=f"{rgb_to_hex}", inline=False)
@@ -124,8 +123,7 @@ class Meta(BaseCog, name="meta"):
         )
         hex_to_rgb = utils.hex_to_rgb(colour[1:])
         embed = utils.embed_message(
-            colour=discord.Colour.from_rgb(
-                hex_to_rgb[0], hex_to_rgb[1], hex_to_rgb[2])
+            colour=discord.Colour.from_rgb(*hex_to_rgb)
         )
         embed.set_thumbnail(url=colour_representation)
         embed.add_field(name="Hex", value=f"{colour}", inline=False)
