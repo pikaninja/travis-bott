@@ -390,7 +390,7 @@ class Meta(BaseCog, name="meta"):
                 thumbs_down = data["list"][0]["thumbs_down"]
                 perma_link = data["list"][0]["permalink"]
 
-                if len(definition) > 2000 or len(example) > 2000:
+                if len(definition) > 1024 or len(example) > 1024:
                     return await ctx.send(
                         "The lookup for this word is way too big to show."
                     )
