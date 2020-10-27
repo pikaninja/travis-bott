@@ -189,7 +189,7 @@ class Meta(BaseCog, name="meta"):
         embed.add_field(
             name="Currently in", value=f"{sum(1 for g in self.bot.guilds)} servers"
         )
-        embed.add_field(name="Current prefix", value=f"`{ctx.prefix}`")
+        embed.add_field(name="Current prefix", value=f"`{self.bot.cache['prefixes'][ctx.guild.id]}`")
 
         await ctx.send(embed=embed)
 
