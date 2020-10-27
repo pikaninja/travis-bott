@@ -639,25 +639,51 @@ class Moderation(BaseCog, name="moderation"):
                     "That role does not exist or I could not find it."
                 )
 
+            role_perms = []
+
+            permissions_dict = {
+                "kick_members": "Kick Members",
+                "ban_members": "Ban Members",
+                "administrator": "Administrator",
+                "manage_channels": "Manage Channels",
+                "manage_guild": "Manage Server",
+                "manage_messages": "Manage Messages",
+                "mention_everyone": "Mention Everyone",
+                "mute_members": "Mute Members (VC)",
+                "deafen_members": "Deafen Members (VC)",
+                "move_members": "Move Members (VC)",
+                "manage_nicknames": "Manage Nicknames",
+                "manage_roles": "Manage Roles"
+            }
+
+            permissions = dict(role.permissions)
+
+            for permission, true_false in permissions.items():
+                if true_false is True:
+                    if (perm := permissions_dict.get(str(permission))) is not None:
+                        role_perms.append(
+                            f"✅: {perm}"
+                        )
+
+            repr_permissions = '\n'.join(role_perms)
+
             created_at_str = f"{role.created_at.day}/{role.created_at.month}/{role.created_at.year} {role.created_at.hour}:{role.created_at.minute}:{role.created_at.second}"
             role_colour = (role.colour.r, role.colour.g, role.colour.b)
             fields = [
-                ["Name", role.name],
-                ["Mention", f"`{role.mention}`"],
-                ["Created At", created_at_str],
-                ["Role Position", role.position],
-                ["Hoisted", role.hoist],
-                ["Mentionable", role.mentionable],
-                ["Colour", utils.rgb_to_hex(role_colour)],
-                ["Members", sum(1 for member in role.members)],
-                ["Permissions", utils.check_role_permissions(ctx, role)],
+                ["Name", role.name, True],
+                ["Mention", f"`{role.mention}`", True],
+                ["Created At", created_at_str, True],
+                ["Role Position", role.position, True],
+                ["Hoisted", role.hoist, True],
+                ["Mentionable", role.mentionable, True],
+                ["Colour", utils.rgb_to_hex(role_colour), True],
+                ["Members", sum(1 for member in role.members), True],
+                ["Permissions", f"```\n{repr_permissions or 'Nothing special.'}```", False],
             ]
             embed = utils.embed_message(
-                colour=discord.Color.from_rgb(
-                    role_colour[0], role_colour[1], role_colour[2]
-                )
+                colour=discord.Color.from_rgb(*role_colour)
             )
-            [embed.add_field(name=n, value=v) for n, v in fields]
+            [embed.add_field(name=n, value=v, inline=i) for n, v, i in fields]
 
             embed_list.append(embed)
 
