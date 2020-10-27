@@ -41,6 +41,14 @@ async def resolve_member(guild, member_id):
 class Role(commands.Converter):
     async def convert(self, ctx, argument):
         found = None
+
+        if re.fullmatch("<@&[0-9]{15,}>", argument) is not None:
+            found = ctx.guild.get_role(int(argument[3:-1]))
+
+        if argument.isnumeric():
+            if re.fullmatch("[0-9]{15,}", argument) is not None:
+                return ctx.guild.get_role(int(argument))
+
         for role in ctx.guild.roles:
             if found is not None:
                 break
