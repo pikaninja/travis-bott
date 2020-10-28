@@ -245,6 +245,13 @@ class Meta(BaseCog, name="meta"):
         emoji_name = name or emoji.name
 
         emoji_bytes = await emoji.url.read()
+
+        if len(ctx.guilds.emojis) == ctx.guild.emoji_limit:
+            return await ctx.send(
+                "I can't add that as the server has reached its emoji limit, "
+                "try getting it increased somehow."
+            )
+
         new_emoji = await ctx.guild.create_custom_emoji(
             name=emoji_name, image=emoji_bytes, reason=f"Responsible user: {ctx.author}"
         )
