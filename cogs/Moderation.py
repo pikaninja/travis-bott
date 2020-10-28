@@ -22,10 +22,6 @@ def can_execute_action(ctx, user, target):
     )
 
 
-class MemberNotFound(Exception):
-    pass
-
-
 async def resolve_member(guild, member_id):
     member = guild.get_member(member_id)
     if member is None:
@@ -74,7 +70,7 @@ class MemberID(commands.Converter):
                 raise commands.BadArgument(
                     f"{argument} is not a valid member or member ID."
                 ) from None
-            except MemberNotFound:
+            except commands.MemberNotFound:
                 # hackban case
                 return type(
                     "_Hackban",
@@ -419,7 +415,10 @@ class Moderation(BaseCog, name="moderation"):
         #     if await utils.is_target_staff(ctx, user):
         #         return await ctx.send("😬 That person is staff...")
 
-        await ctx.guild.ban(user, reason=f"{reason} | Responsible User: {ctx.author}")
+        try:
+            await ctx.guild.ban(user, reason=f"{reason} | Responsible User: {ctx.author}")
+        except discord.NotFound:
+            raise commands.BadArgument("Couldn't find that user.")
         await ctx.thumbsup()
         ctx.bot.dispatch("mod_cmd", "ban", ctx.author, user, reason)
 
