@@ -26,11 +26,11 @@ async def resolve_member(guild, member_id):
     member = guild.get_member(member_id)
     if member is None:
         if guild.chunked:
-            raise MemberNotFound()
+            raise commands.MemberNotFound()
         try:
             member = await guild.fetch_member(member_id)
         except discord.NotFound:
-            raise MemberNotFound() from None
+            raise commands.MemberNotFound() from None
     return member
 
 
