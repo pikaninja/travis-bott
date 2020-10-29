@@ -2,6 +2,7 @@ import async_cse
 
 from decouple import config
 from discord.ext import commands
+from discord.ext.commands.errors import BadArgument
 import ksoftapi
 
 from utils import utils
@@ -213,6 +214,9 @@ class Meta(BaseCog, name="meta"):
         ~~If you have `manage_emojis` permissions if you react with the detective, the emoji gets added to the server.~~"""
 
         embed_list = []
+
+        if len(emojis) == 0:
+            raise BadArgument("You didn't give me any emojis to show you!")
 
         for _ in range(len(emojis)):
             emoji = emojis[_]
