@@ -15,23 +15,46 @@ import re
 
 
 def can_execute_action(ctx, user, target):
-    return (
-        user.id == ctx.bot.owner_id
-        or user == ctx.guild.owner
-        or user.top_role > target.top_role
-    )
+    return user.id == ctx.bot.owner_id or \
+        user == ctx.guild.owner or \
+        user.top_role > target.top_role
+
+
+class MemberNotFound(Exception):
+    pass
 
 
 async def resolve_member(guild, member_id):
     member = guild.get_member(member_id)
     if member is None:
         if guild.chunked:
-            raise commands.MemberNotFound()
+            raise MemberNotFound()
         try:
             member = await guild.fetch_member(member_id)
         except discord.NotFound:
-            raise commands.MemberNotFound() from None
+            raise MemberNotFound() from None
     return member
+
+
+class MemberID(commands.Converter):
+    async def convert(self, ctx, argument):
+        try:
+            m = await commands.MemberConverter().convert(ctx, argument)
+        except commands.BadArgument:
+            try:
+                member_id = int(argument, base=10)
+                m = await resolve_member(ctx.guild, member_id)
+            except ValueError:
+                raise commands.BadArgument(
+                    f"{argument} is not a valid member or member ID.") from None
+            except MemberNotFound:
+                # hackban case
+                return type('_Hackban', (), {'id': member_id, '__str__': lambda s: f'Member ID {s.id}'})()
+
+        if not can_execute_action(ctx, ctx.author, m):
+            raise commands.BadArgument(
+                'You cannot do this action on this user due to role hierarchy.')
+        return m
 
 
 class Role(commands.Converter):
@@ -56,33 +79,6 @@ class Role(commands.Converter):
         if found is None:
             raise commands.BadArgument("Could not find that role.")
         return found
-
-
-class MemberID(commands.Converter):
-    async def convert(self, ctx, argument):
-        try:
-            m = await commands.MemberConverter().convert(ctx, argument)
-        except commands.BadArgument:
-            try:
-                member_id = int(argument, base=10)
-                m = await resolve_member(ctx.guild, member_id)
-            except ValueError:
-                raise commands.BadArgument(
-                    f"{argument} is not a valid member or member ID."
-                ) from None
-            except commands.MemberNotFound:
-                # hackban case
-                return type(
-                    "_Hackban",
-                    (),
-                    {"id": member_id, "__str__": lambda s: f"Member ID {s.id}"},
-                )()
-
-        if not can_execute_action(ctx, ctx.author, m):
-            raise commands.BadArgument(
-                "You cannot do this action on this user due to role hierarchy."
-            )
-        return m
 
 
 class Moderation(BaseCog, name="moderation"):
@@ -677,7 +673,8 @@ class Moderation(BaseCog, name="moderation"):
                 ["Mentionable", role.mentionable, True],
                 ["Colour", utils.rgb_to_hex(role_colour), True],
                 ["Members", sum(1 for member in role.members), True],
-                ["Permissions", f"```\n{repr_permissions or 'Nothing special.'}```", False],
+                ["Permissions",
+                    f"```\n{repr_permissions or 'Nothing special.'}```", False],
             ]
             embed = utils.embed_message(
                 colour=discord.Color.from_rgb(*role_colour)

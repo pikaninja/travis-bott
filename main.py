@@ -28,7 +28,7 @@ bot = MyBot(
     chunk_guilds_at_startup=True,
 )
 
-bot.version = "2020.10.16"
+bot.version = "But Better"
 bot.description = (
     "A general purpose discord bot that provides a lot of utilities and such to use."
 )

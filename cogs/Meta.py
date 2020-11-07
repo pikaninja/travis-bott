@@ -190,7 +190,7 @@ class Meta(BaseCog, name="meta"):
         embed.add_field(
             name="Currently in", value=f"{sum(1 for g in self.bot.guilds)} servers"
         )
-        embed.add_field(name="Current prefix", value=f"`{self.bot.cache['prefixes'][ctx.guild.id]}`")
+        embed.add_field(name="Current prefix", value=f"`{(await self.bot.get_prefix(ctx.message))[2]}`")
 
         await ctx.send(embed=embed)
 
@@ -250,7 +250,7 @@ class Meta(BaseCog, name="meta"):
 
         emoji_bytes = await emoji.url.read()
 
-        if len(ctx.guilds.emojis) == ctx.guild.emoji_limit:
+        if len(ctx.guild.emojis) == ctx.guild.emoji_limit:
             return await ctx.send(
                 "I can't add that as the server has reached its emoji limit, "
                 "try getting it increased somehow."
