@@ -1,4 +1,6 @@
+import collections
 import contextlib
+import glob
 import io
 import os
 import json
@@ -85,6 +87,39 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
     @is_owner()
     async def dev(self, ctx):
         await ctx.send_help(ctx.command)
+
+    @dev.command(name="stats")
+    @is_owner()
+    async def dev_stats(self, ctx):
+        """Gives some stats on the bot."""
+
+        ctr = collections.Counter()
+        for ctr['file'], f in enumerate(glob.glob('./**/*.py', recursive=True)):
+            with open(f) as fp:
+                for ctr['line'], line in enumerate(fp, ctr['line']):
+                    line = line.strip()
+                    ctr['class'] += line.startswith('class')
+                    ctr['function'] += line.startswith('def')
+                    ctr['coroutine'] += line.startswith('async def')
+                    ctr['comment'] += '#' in line
+        
+        code_count = '\n'.join(f'{key}: {count}' for key, count in ctr.items())
+        server_count = sum(1 for g in self.bot.guilds)
+        command_count = sum(1 for cmd in self.bot.commands)
+        ping = round(self.bot.latency * 1000)
+
+        fields = [
+            ["Server Count", server_count, True],
+            ["Command Count", command_count, True],
+            ["Ping", ping, True],
+            ["Code Count", f"```\n{code_count}```", False]
+        ]
+
+        embed = utils.embed_message(title="Dev Stats")
+
+        [embed.add_field(name=n, value=v, inline=i) for n, v, i in fields]
+
+        await ctx.send(embed=embed)
 
     @dev.command(name="leave")
     @is_owner()
