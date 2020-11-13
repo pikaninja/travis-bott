@@ -484,10 +484,10 @@ class Moderation(BaseCog, name="moderation"):
             columns[0], columns[1] = utils.split_list(in_role)
             columns.sort(reverse=True)
 
-        if len(columns[0]) > 1024:
+        if len("\n".join(columns[0])) > 1024:
             columns[0] = columns[0][:20]
 
-        if len(columns[1]) > 1024:
+        if len("\n".join(columns[1])) > 1024:
             columns[1] = columns[1][:20]
 
         embed = utils.embed_message(
