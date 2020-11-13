@@ -471,12 +471,11 @@ class Moderation(BaseCog, name="moderation"):
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(send_messages=True)
-    async def members(self, ctx, *, role: str):
+    async def members(self, ctx, *, role: Role):
         """Check the list of members in a certain role.
         Permissions needed: `Manage Messages`"""
 
         in_role = []
-        role = await utils.find_roles(ctx.guild, role)
         [in_role.append(f"{member.mention} ({member})")
          for member in role.members]
         columns = [in_role, ["\u200b"]]
@@ -532,7 +531,7 @@ class Moderation(BaseCog, name="moderation"):
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     @commands.bot_has_permissions(manage_roles=True)
-    async def role(self, ctx, user: discord.Member, *roles: str):
+    async def role(self, ctx, user: discord.Member, *roles: Role):
         """
         Permissions needed: `Manage Roles`
 
@@ -554,7 +553,6 @@ class Moderation(BaseCog, name="moderation"):
         current_roles = user.roles
 
         for role in roles:
-            role = await utils.find_roles(ctx.guild, role)
             if role.id in mr_ids:
                 continue
             if role in user.roles:
@@ -587,13 +585,8 @@ class Moderation(BaseCog, name="moderation"):
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     @commands.bot_has_permissions(manage_roles=True)
-    async def role_del(self, ctx, *, role: str):
+    async def role_del(self, ctx, *, role: Role):
         """Deletes a given role."""
-
-        role = await utils.find_roles(ctx.guild, role)
-
-        if role is None:
-            return await ctx.send("That role does not exist or I could not find it.")
 
         await role.delete(reason=f"Responsible User: {ctx.author}")
         await ctx.thumbsup()
@@ -602,13 +595,8 @@ class Moderation(BaseCog, name="moderation"):
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     @commands.bot_has_permissions(manage_roles=True)
-    async def role_colour(self, ctx, role: str, colour: str):
+    async def role_colour(self, ctx, role: Role, colour: str):
         """Sets the colour of a given role."""
-
-        role = await utils.find_roles(ctx.guild, role)
-
-        if role is None:
-            return await ctx.send("That role does not exist or I could not find it.")
 
         hex_regex = r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
 
@@ -627,19 +615,12 @@ class Moderation(BaseCog, name="moderation"):
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     @commands.bot_has_permissions(send_messages=True)
-    async def role_info(self, ctx, *roles: str):
+    async def role_info(self, ctx, *roles: Role):
         """Get information on a given role."""
 
         embed_list = []
 
         for role in roles:
-            role = await utils.find_roles(ctx.guild, role)
-
-            if role is None:
-                return await ctx.send(
-                    "That role does not exist or I could not find it."
-                )
-
             role_perms = []
 
             permissions_dict = {
@@ -699,19 +680,18 @@ class Moderation(BaseCog, name="moderation"):
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(send_messages=True)
-    async def role_id(self, ctx, *role: str):
+    async def role_id(self, ctx, *roles: Role):
         """Gets the ID of one or multiple role(s).
         e.g. {prefix}role id Developer support \"Hello World\" """
 
         role_names = []
         role_ids = []
 
-        for r in role:
-            _role = await utils.find_roles(ctx.guild, r)
-            if _role.id in role_ids:
+        for role in roles:
+            if role.id in role_ids:
                 continue
-            role_names.append(f"{_role.mention}")
-            role_ids.append(f"{_role.id}")
+            role_names.append(f"{role.mention}")
+            role_ids.append(f"{role.id}")
 
         embed = utils.embed_message()
         embed.add_field(name="Names", value="\n".join(role_names))
