@@ -484,6 +484,12 @@ class Moderation(BaseCog, name="moderation"):
             columns[0], columns[1] = utils.split_list(in_role)
             columns.sort(reverse=True)
 
+        if len(columns[0]) > 1024:
+            columns[0] = columns[0][:20]
+
+        if len(columns[1]) > 1024:
+            columns[1] = columns[1][:20]
+
         embed = utils.embed_message(
             title=f"Members in {role.name} [{sum(1 for m in role.members)}]"
         )

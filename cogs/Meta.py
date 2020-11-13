@@ -40,7 +40,7 @@ class Meta(BaseCog, name="meta"):
         self.weather_api_key = config("WEATHER_API_KEY")
 
     @commands.command()
-    async def convert(self, ctx, amount: int, cur_from: str, cur_to: str):
+    async def convert(self, ctx, amount: float, cur_from: str, cur_to: str):
         """Converts a given amount of money from one currency (3 letter e.g. GBP) to another currency."""
 
         currency_converter = CurrencyConverter()

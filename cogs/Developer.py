@@ -112,6 +112,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             ["Server Count", server_count, True],
             ["Command Count", command_count, True],
             ["Ping", ping, True],
+            ["Uptime", str(self.bot.get_uptime()), True],
             ["Code Count", f"```\n{code_count}```", False]
         ]
 
