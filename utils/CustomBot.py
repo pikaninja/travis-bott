@@ -16,8 +16,13 @@ from decouple import config
 
 
 async def get_prefix(bot: commands.AutoShardedBot, message: discord.Message):
+    if (
+        message.author.id == bot.owner_id and \
+            message.content.startswith(("dev", "jsk"))
+    ):
+        return ""
     if message.guild is None:
-        return commands.when_mentioned_or("tb!")
+        return commands.when_mentioned_or("tb!")(bot, message)
     else:
         prefix = bot.cache["prefixes"][message.guild.id]
         return commands.when_mentioned_or(prefix)(bot, message)

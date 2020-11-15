@@ -1,4 +1,5 @@
 from decouple import config
+import discord
 from discord.ext import commands
 
 from utils import utils
@@ -11,6 +12,28 @@ class Misc(BaseCog, name="misc"):
     def __init__(self, bot, show_name):
         self.bot = bot
         self.show_name = show_name
+
+    @commands.command()
+    async def password(self, ctx):
+        """Generates a password and sends it to you in DMs!"""
+
+        url = "http://kal-byte.co.uk:4040/passwordgen"
+        async with self.bot.session.get(url) as r:
+            if r.status != 200:
+                return await ctx.send(f"The API returned a {r.status} status.")
+            data = await r.json()
+            password = data["data"]
+            try:
+                await ctx.author.send(
+                    "Here is your newly generated password:\n"
+                    f"{password}"
+                )
+                await ctx.send("Check your DMs to get your generated password.")
+            except discord.Forbidden:
+                await ctx.send(
+                    "I could not send the password to you. "
+                    "Please make sure you can recieve DMs from the bot."
+                )
 
     @commands.command(hidden=True, aliases=["hello"])
     async def hey(self, ctx):
@@ -74,12 +97,14 @@ How to remove your data.
 
         await ctx.send(f"Uptime: {self.bot.get_uptime()}")
 
-    @commands.command(aliases=["git", "code"])
+    @commands.command(aliases=["git", "code", "src"])
     async def github(self, ctx):
         """Sends the bots github repo"""
 
-        await ctx.author.send(f"{config('GITHUB_LINK')}")
-        await ctx.thumbsup()
+        await ctx.send(
+            "Heres my source code:\n"
+            f"{config('GITHUB_LINK')}"
+        )
 
 
 def setup(bot):

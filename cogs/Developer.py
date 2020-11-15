@@ -127,6 +127,8 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
     async def dev_leave(self, ctx):
         """Forces the bot to leave the current server"""
 
+        await ctx.guild.leave()
+
     @dev.command(name="disable")
     @is_owner()
     async def dev_disable(self, ctx, cmd: CommandConverter, *, reason):

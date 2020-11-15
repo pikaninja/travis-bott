@@ -115,7 +115,7 @@ def embed_message(
     *,
     title: str = None,
     message: str = None,
-    colour: discord.Colour = 0x2F3136,
+    colour: discord.Colour = 0xE0651D,
     footer_text: str = "",
     footer_icon: str = "",
     url: str = None,

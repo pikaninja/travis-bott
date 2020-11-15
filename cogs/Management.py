@@ -9,6 +9,19 @@ import asyncio
 from utils.Paginator import AutoReactMenu
 
 
+class Prefix(commands.Converter):
+    async def convert(self, ctx, argument):
+        if len(argument) == 0:
+            return "tb!"
+
+        if argument == "None":
+            return "tb!"
+        if argument == "[BLANK]":
+            return ""
+        else:
+            return argument
+
+
 class Management(BaseCog, name="management"):
     """Management Commands"""
 
@@ -16,15 +29,15 @@ class Management(BaseCog, name="management"):
         self.bot = bot
         self.show_name = show_name
 
-    @commands.group(invoke_without_command=True)
-    @commands.guild_only()
-    @commands.has_permissions(manage_guild=True)
-    @commands.bot_has_permissions(manage_roles=True)
-    async def autoreact(self, ctx):
-        """Activates the user-interactive menu to set up an auto-react event."""
+    # @commands.group(invoke_without_command=True)
+    # @commands.guild_only()
+    # @commands.has_permissions(manage_guild=True)
+    # @commands.bot_has_permissions(manage_roles=True)
+    # async def autoreact(self, ctx):
+    #     """Activates the user-interactive menu to set up an auto-react event."""
 
-        instance = AutoReactMenu()
-        await instance.paginate(ctx)
+    #     instance = AutoReactMenu()
+    #     await instance.paginate(ctx)
 
     @commands.command()
     @commands.guild_only()
@@ -151,15 +164,19 @@ class Management(BaseCog, name="management"):
     @prefix.command(name="set")
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
-    async def prefix_set(self, ctx, prefix: str):
-        """Sets a new prefix for the server.
-        Permissions needed: `Manage Server`"""
+    async def prefix_set(self, ctx, prefix: Prefix):
+        """To reset input \"None\",
+        for a blank prefix do:
+        {prefix}prefix set [BLANK]
 
-        if len(prefix) == 0:
-            return await ctx.send_help(ctx.command)
+        Permissions needed: `Manage Server`"""
 
         if len(prefix) > 10:
             return await ctx.send("❌ The prefix can not be above 10 characters.")
+
+        _id = ctx.bot.user.id
+        if prefix.startswith((f"<@!{_id}>", f"<@{_id}>")):
+            return await ctx.send("That prefix is reserved/already in use.")
 
         await self.bot.pool.execute(
             "UPDATE guild_settings SET guild_prefix = $1 WHERE guild_id = $2",

@@ -121,18 +121,18 @@ class Fun(BaseCog, name="fun"):
 
         await ctx.send(f"{member.mention} has been banned by {ctx.author} for: **{reason}**")
 
-    @commands.command()
-    @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
-    async def wanted(self, ctx, user: discord.Member = None):
-        """Puts a members user avatar on a wanted poster."""
+    # @commands.command()
+    # @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
+    # async def wanted(self, ctx, user: discord.Member = None):
+    #     """Puts a members user avatar on a wanted poster."""
 
-        dagpi = asyncdagpi.Client(config("DAGPI"))
-        user = user or ctx.author
-        url = str(user.avatar_url_as(static_format="png"))
-        img = await dagpi.image_process(ImageFeatures.wanted(), url)
-        img_file = discord.File(fp=img.image, filename=f"wanted.{img.format}")
-        await ctx.send(content=f"Hands up **{user.name}!**", file=img_file)
-        await dagpi.close()
+    #     dagpi = asyncdagpi.Client(config("DAGPI"))
+    #     user = user or ctx.author
+    #     url = str(user.avatar_url_as(static_format="png"))
+    #     img = await dagpi.image_process(ImageFeatures.wanted(), url)
+    #     img_file = discord.File(fp=img.image, filename=f"wanted.{img.format}")
+    #     await ctx.send(content=f"Hands up **{user.name}!**", file=img_file)
+    #     await dagpi.close()
 
     @commands.command()
     @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
