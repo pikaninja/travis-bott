@@ -144,17 +144,6 @@ class Meta(BaseCog, name="meta"):
             static_format="png", size=1024))
         await ctx.send(embed=embed)
 
-    @commands.command(aliases=["latency"])
-    async def ping(self, ctx):
-        """Get the bots ping."""
-
-        embed = utils.embed_message(
-            message=f"**{int(ctx.bot.latency * 1000)} ms**")
-        embed.set_author(
-            name="Travis Bott's Latency:", icon_url=self.bot.user.avatar_url
-        )
-        await ctx.send(embed=embed)
-
     @commands.command()
     async def info(self, ctx):
         """Get basic info on the bot."""

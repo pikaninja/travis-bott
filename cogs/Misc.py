@@ -1,9 +1,11 @@
+import time
 import typing
 from decouple import config
 import discord
 from discord.ext import commands
 
 from utils import utils
+from utils.Embed import Embed
 from utils.CustomCog import BaseCog
 
 
@@ -13,6 +15,24 @@ class Misc(BaseCog, name="misc"):
     def __init__(self, bot, show_name):
         self.bot = bot
         self.show_name = show_name
+
+    @commands.command(aliases=["latency"])
+    async def ping(self, ctx):
+        """Get the bots ping."""
+
+        embed = Embed.default(ctx)
+        embed.add_field(
+            name="Heartbeat Latency",
+            value=f"{int(ctx.bot.latency * 1000)} ms"
+        )
+        start = time.perf_counter()
+        msg = await ctx.send(embed=embed)
+        end = time.perf_counter()
+        embed.add_field(
+            name="Response Latency",
+            value=f"{((end - start) * 1000):,.2f} ms"
+        )
+        await msg.edit(embed=embed)
 
     @commands.command()
     async def password(self, ctx, length: typing.Optional[int] = 8):
