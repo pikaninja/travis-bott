@@ -1,94 +1,23 @@
-import discord
-from discord.ext import commands, menus
+from discord.ext import commands
 
-from utils.Paginator import Paginator
 from utils import utils
+from utils import CustomContext
+from utils.CustomCog import BaseCog
+from utils.Paginator import BetterPaginator
+from utils.Embed import BaseEmbed
 
 
-class BotHelpPage(menus.ListPageSource):
-    def __init__(self, help_cmd, commands):
-        super().__init__(
-            entries=sorted(commands.keys(), key=lambda c: c.qualified_name), per_page=6
-        )
-        self.commands = commands
-        self.help_cmd = help_cmd
-        self.prefix = help_cmd.clean_prefix
+class PaginatedHelp(commands.HelpCommand):
+    def __init__(self, context=CustomContext, **options):
+        super().__init__(**options)
 
-    def format_commands(self, cog, commands):
-        if cog.description:
-            short_doc = cog.description.split("\n", 1)[0] + "\n"
-        else:
-            short_doc = "No help found...\n"
-
-        current_count = len(short_doc)
-        ending_note = "+%d not shown."
-        ending_length = len(ending_note)
-
-        page = []
-        for command in commands:
-            value = f"`{command.name}`"
-            count = len(value) + 1
-            if count + current_count < 700:
-                current_count += count
-                page.append(value)
-            else:
-                if current_count + ending_length + 1 > 800:
-                    page.pop()
-                break
-
-        if len(page) == len(commands):
-            return short_doc + " ".join(page)
-
-        hidden = len(commands) - len(page)
-        return short_doc + " ".join(page) + "\n" + (ending_note % hidden)
-
-    async def format_page(self, menu, cogs):
-        prefix = menu.ctx.prefix
-        description = (
-            f"{menu.ctx.bot.description}\n"
-            "`<arg> | Required`\n"
-            "`[arg] | Optional`\n"
-            "`<|[arg...]|> | Takes multiple arguments, same rules above apply.`"
-        )
-
-        embed = utils.embed_message(title="Categories", message=description)
-
-        for cog in cogs:
-            commands = self.commands.get(cog)
-            if commands:
-                value = self.format_commands(cog, commands)
-            embed.add_field(name=cog.qualified_name, value=value, inline=True)
-
-        maximum = self.get_max_pages()
-        embed.set_footer(text=f"Page {menu.current_page + 1}/{maximum}")
-        return embed
-
-
-class HelpMenu(menus.MenuPages):
-    def __init__(self, source):
-        super().__init__(source=source, check_embeds=True)
-
-    async def finalize(self, timed_out):
-        try:
-            if timed_out:
-                await self.message.clear_reactions()
-            else:
-                await self.message.delete()
-        except discord.HTTPException:
-            pass
-
-
-class HelpCommand(commands.HelpCommand):
     async def filter_commands(self, commands, *, sort=False, key=None):
         """Custom version of filter commands due to me not liking the way it filters out cmds that are permission based."""
 
         if sort and key is None:
             def key(c): return c.name
 
-        iterator = (
-            commands if self.show_hidden else filter(
-                lambda c: not c.hidden, commands)
-        )
+        iterator = filter(lambda c: not c.hidden, commands)
 
         if not self.verify_checks:
             # if we do not need to verify the checks then we can just
@@ -103,38 +32,106 @@ class HelpCommand(commands.HelpCommand):
             ret.sort(key=key)
         return ret
 
-    # This function triggers when somone type `<prefix>help`
+    def get_ending_note(self):
+        return f"Use {self.clean_prefix}{self.invoked_with} [category|command] for more info on a command."
+
+    def get_command_signature(self, command: commands.Command):
+        return f"{self.clean_prefix}{command.qualified_name} {command.signature}"
+
+    async def command_not_found(self, string):
+        """My own impl of the command not found error."""
+
+        if len(string) >= 50:
+            return f"Could not find the command `{string[:20]}...`."
+        else:
+            return f"Could not find the command `{string}`."
+
     async def send_bot_help(self, mapping):
-        ctx = self.context
+        # embed = utils.embed_message(title="Bot Commands")
+        # embed.description = (
+        #     f"{self.context.bot.description}\n"
+        #     + "`<arg> | Required`\n"
+        #     + "`[arg] | Optional`\n"
+        #     + "`<|[arg...]|> Takes multiple arguments, follows the same rules as above.`\n"
+        # )
 
-        entries = await self.filter_commands(ctx.bot.commands)
+        help_embeds = []
 
-        all_commands = {}
-        for command in entries:
-            if command.cog is None:
+        for cog, commands in mapping.items():
+            if not hasattr(cog, "show_name"):
                 continue
-            try:
-                all_commands[command.cog].append(command)
-            except KeyError:
-                all_commands[command.cog] = [command]
+            name = "No Category" if cog is None else cog.show_name
+            filtered = await self.filter_commands(commands, sort=True)
+            if filtered:
+                all_cmds = "\n".join(
+                    f"**{self.context.prefix}{c.name}** - *" + c.help.split('\n')[0] + "*" for c in commands
+                )
+                if cog and cog.description:
+                    help_embed = BaseEmbed.default(self.context, title=name)
+                    help_embed.description = f"{all_cmds.format(prefix=self.context.prefix)}"
+                    help_embed.set_footer(text=self.get_ending_note())
+                    help_embeds.append(help_embed)
+                # value = " ".join("`" + c.name + "`" for c in commands)
+                # if cog and cog.description:
+                #     value = f"{cog.description}\n{value}"
 
-        menu = HelpMenu(BotHelpPage(self, all_commands))
-        await menu.start(ctx)
+                # embed.add_field(name=name, value=value)
 
-    # This function triggers when someone type `<prefix>help <cog>`
-    async def send_cog_help(self, cog):
-        ctx = self.context
+        p = BetterPaginator(self.context, help_embeds)
+        await p.paginate()
 
-        # Do what you want to do here
+    async def send_cog_help(self, cog: BaseCog):
+        if not hasattr(cog, "show_name"):
+            pass
+        embed = utils.embed_message(title=f"{cog.show_name} Commands")
 
-    # This function triggers when someone type `<prefix>help <command>`
-    async def send_command_help(self, command):
-        ctx = self.context
+        filtered = await self.filter_commands(cog.get_commands(), sort=True)
 
-        # Do what you want to do here
+        for command in filtered:
+            embed.add_field(
+                name=f"{command.qualified_name}",
+                value=f"{command.help.format(prefix=self.clean_prefix)}",
+                inline=False
+            )
 
-    # This function triggers when someone type `<prefix>help <group>`
-    async def send_group_help(self, group):
-        ctx = self.context
+        embed.set_footer(text=self.get_ending_note())
+        await self.get_destination().send(embed=embed)
 
-        # Do what you want to do here
+    async def send_group_help(self, group: commands.Group):
+        embed = utils.embed_message(
+            title=f"{self.clean_prefix}{group.qualified_name} {group.signature}"
+        )
+        if group.help:
+            aliases = (
+                f"*Aliases: {' | '.join('`' + x + '`' for x in  group.aliases)}*"
+                if group.aliases
+                else ""
+            )
+            group_cat = group.cog.qualified_name
+            embed.description = (
+                str(group.help).format(prefix=self.clean_prefix)
+                + "\n"
+                + aliases
+                + "\n"
+                + f"Category: {group_cat}"
+            )
+
+        if isinstance(group, commands.Group):
+            filtered = await self.filter_commands(group.commands, sort=True)
+            for command in filtered:
+                embed.add_field(
+                    name=self.get_command_signature(command),
+                    value=str(command.short_doc) or "...",
+                    inline=False,
+                )
+
+        embed.set_footer(text=self.get_ending_note())
+        await self.get_destination().send(embed=embed)
+
+    send_command_help = send_group_help
+
+    # This doesnt appear to work...
+    # yes I've even tried without my error handler, same result.
+
+    # async def send_error_message(self, error):
+    #     await self.context.author.send(error)

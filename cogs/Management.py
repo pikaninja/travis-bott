@@ -191,8 +191,9 @@ class Management(BaseCog, name="management"):
     @commands.has_permissions(manage_guild=True)
     @commands.bot_has_permissions(send_messages=True)
     async def verification(self, ctx):
-        """Permissions needed: `Manage Server`
-        Verification Setup."""
+        """Verification Setup.
+        Permissions needed: `Manage Server`
+        """
 
         return await ctx.send_help(ctx.command)
 

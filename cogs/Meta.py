@@ -524,7 +524,7 @@ class Meta(BaseCog, name="meta"):
             ["Boosting", check_boosted(user), True],
             [
                 f"Roles [{len(user_roles) if len(user_roles) < 30 else '30*'}]",
-                readable_roles,
+                readable_roles or "No roles to display.",
                 False,
             ],
             ["Permissions", utils.check_permissions(ctx, user), False],

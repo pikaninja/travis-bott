@@ -119,7 +119,11 @@ class Fun(BaseCog, name="fun"):
     async def fakeban(self, ctx, member: discord.Member, *, reason: str = "No Reason Provided."):
         """Fakes banning someone because that's funny, I think."""
 
-        await ctx.send(f"{member.mention} has been banned by {ctx.author} for: **{reason}**")
+        allowed_mentions = discord.AllowedMentions.none()
+        await ctx.send(
+            f"{member.mention} has been banned by {ctx.author} for: **{reason}**",
+            allowed_mentions=allowed_mentions
+        )
 
     # @commands.command()
     # @commands.cooldown(1, standard_cooldown, commands.BucketType.member)

@@ -3,6 +3,7 @@ import discord
 from discord import embeds
 from discord.ext import commands
 from utils import utils
+from utils.Embed import BaseEmbed
 import asyncio
 
 LAST_PAGE = "\N{LEFTWARDS BLACK ARROW}"
@@ -10,6 +11,125 @@ END_PAGE = "\N{CROSS MARK}"
 NEXT_PAGE = "\N{BLACK RIGHTWARDS ARROW}"
 
 PAGINATION_EMOJI = (LAST_PAGE, NEXT_PAGE, END_PAGE)
+
+
+class BetterPaginator:
+    def __init__(
+        self,
+        ctx: commands.Context,
+        entries: list,
+        embed: bool = True,
+        timeout: int = 300.0,
+        delete_after: bool = False
+    ) -> None:
+        self.ctx = ctx
+        self.entries = entries
+        self.embed = embed
+        self.timeout = timeout
+        self.delete_after = delete_after
+        
+        self.channel = ctx.channel
+        self.msg = ctx.message
+        self.max_pages = len(entries) - 1
+        self.paginating = True
+        self.page = 0
+        self.reactions = [
+            ("\N{LEFTWARDS BLACK ARROW}", self.backward),
+            ("\N{BLACK RIGHTWARDS ARROW}", self.forward),
+            ("\N{CROSS MARK}", self.stop),
+            ("\N{INFORMATION SOURCE}", self.info)
+        ]
+
+    async def setup(self):
+        if self.embed == False:
+            try:
+                self.msg = await self.channel.send(self.entries[0])
+            except AttributeError:
+                await self.channel.send(self.entries)
+        else:
+            try:
+                self.msg = await self.channel.send(embed=self.entries[0])
+            except (AttributeError, TypeError):
+                await self.channel.send(embed=self.entries)
+
+        if len(self.entries) == 1:
+            return
+        
+        for (r, _) in self.reactions:
+            await self.msg.add_reaction(r)
+
+    async def alter(self, page: int):
+        try:
+            await self.msg.edit(embed=self.entries[page])
+        except (AttributeError, TypeError):
+            await self.msg.edit(contnet=self.entries[page])
+
+    async def backward(self):
+        if self.page == 0:
+            self.page = self.max_pages
+            await self.alter(self.page)
+        else:
+            self.page -= 1
+            await self.alter(self.page)
+    
+    async def forward(self):
+        if self.page == self.max_pages:
+            self.page = 0
+            await self.alter(self.page)
+        else:
+            self.page += 1
+            await self.alter(self.page)
+    
+    async def stop(self):
+        try:
+            await self.msg.clear_reactions()
+        except discord.Forbidden:
+            if self.delete_after:
+                await self.msg.delete()
+            else:
+                pass
+        
+        self.paginating = False
+    
+    async def info(self):
+        embed = BaseEmbed.default(self.ctx)
+        embed.description = (
+            f"{self.ctx.bot.description}\n"
+            + "`<arg> | Required`\n"
+            + "`[arg] | Optional`\n"
+            + "`<|[arg...]|> Takes multiple arguments, follows the same rules as above.`\n"
+        )
+        
+        await self.msg.edit(embed=embed)
+
+    def _check(self, reaction, user):
+        if user.id != self.ctx.author.id:
+            return False
+        
+        if reaction.message.id != self.msg.id:
+            return False
+        
+        for (emoji, func) in self.reactions:
+            if reaction.emoji == emoji:
+                self.execute = func
+                return True
+        return False
+
+    async def paginate(self):
+        await self.setup()
+        while self.paginating:
+            done, pending = await asyncio.wait(
+                [self.ctx.bot.wait_for("reaction_add", check=self._check, timeout=self.timeout),
+                self.ctx.bot.wait_for("reaction_remove", check=self._check, timeout=self.timeout)],
+                return_when=asyncio.FIRST_COMPLETED)
+            try:
+                done.pop().result()
+            except asyncio.TimeoutError:
+                return self.stop
+            
+            for future in pending:
+                future.cancel()
+            await self.execute()
 
 
 class AutoReactMenu:

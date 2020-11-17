@@ -1,3 +1,4 @@
+import typing
 from decouple import config
 import discord
 from discord.ext import commands
@@ -14,16 +15,19 @@ class Misc(BaseCog, name="misc"):
         self.show_name = show_name
 
     @commands.command()
-    async def password(self, ctx):
+    async def password(self, ctx, length: typing.Optional[int] = 8):
         """Generates a password and sends it to you in DMs!"""
 
-        url = "http://kal-byte.co.uk:4040/passwordgen"
+        url = f"http://kal-byte.co.uk:4040/passwordgen/{length}"
         async with self.bot.session.get(url) as r:
             if r.status != 200:
                 return await ctx.send(f"The API returned a {r.status} status.")
             data = await r.json()
-            password = data["data"]
+            password = discord.utils.escape_markdown(data["data"])
             try:
+                if len(password) > 2000:
+                    return await ctx.send("That password is too long...")
+                    
                 await ctx.author.send(
                     "Here is your newly generated password:\n"
                     f"{password}"
