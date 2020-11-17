@@ -17,7 +17,7 @@ from discord.ext.commands import (
 )
 
 from utils import utils
-from utils.Embed import BaseEmbed
+from utils.Embed import Embed
 from utils.Paginator import BetterPaginator
 
 time_regex = re.compile("(?:(\d{1,5})(h|s|m|d))+?")
@@ -96,9 +96,9 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         """Testing cmd"""
 
         embeds = [
-            BaseEmbed.default(ctx, title="Test 1"),
-            BaseEmbed.default(ctx, title="Test 2"),
-            BaseEmbed.default(ctx, title="Test 3")
+            Embed.default(ctx, title="Test 1"),
+            Embed.default(ctx, title="Test 2"),
+            Embed.default(ctx, title="Test 3")
         ]
 
         p = BetterPaginator(ctx, entries=embeds)

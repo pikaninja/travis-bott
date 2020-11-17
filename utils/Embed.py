@@ -2,9 +2,9 @@ import discord
 import datetime
 
 
-class BaseEmbed(discord.Embed):
+class Embed(discord.Embed):
     def __init__(self, colour=0xe0651d, timestamp=None, **kwargs):
-        super(BaseEmbed, self).__init__(
+        super(Embed, self).__init__(
             colour=colour,
             timestamp=timestamp or datetime.datetime.utcnow(),
             **kwargs

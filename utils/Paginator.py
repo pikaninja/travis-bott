@@ -3,7 +3,7 @@ import discord
 from discord import embeds
 from discord.ext import commands
 from utils import utils
-from utils.Embed import BaseEmbed
+from utils.Embed import Embed
 import asyncio
 
 LAST_PAGE = "\N{LEFTWARDS BLACK ARROW}"
@@ -92,7 +92,7 @@ class BetterPaginator:
         self.paginating = False
     
     async def info(self):
-        embed = BaseEmbed.default(self.ctx)
+        embed = Embed.default(self.ctx)
         embed.description = (
             f"{self.ctx.bot.description}\n"
             + "`<arg> | Required`\n"

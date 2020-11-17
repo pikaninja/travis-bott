@@ -4,7 +4,7 @@ from utils import utils
 from utils import CustomContext
 from utils.CustomCog import BaseCog
 from utils.Paginator import BetterPaginator
-from utils.Embed import BaseEmbed
+from utils.Embed import Embed
 
 
 class PaginatedHelp(commands.HelpCommand):
@@ -67,7 +67,7 @@ class PaginatedHelp(commands.HelpCommand):
                     f"**{self.context.prefix}{c.name}** - *" + c.help.split('\n')[0] + "*" for c in commands
                 )
                 if cog and cog.description:
-                    help_embed = BaseEmbed.default(self.context, title=name)
+                    help_embed = Embed.default(self.context, title=name)
                     help_embed.description = f"{all_cmds.format(prefix=self.context.prefix)}"
                     help_embed.set_footer(text=self.get_ending_note())
                     help_embeds.append(help_embed)
