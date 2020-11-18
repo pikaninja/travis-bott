@@ -1,5 +1,6 @@
 import time
 import typing
+import re
 from decouple import config
 import discord
 from discord.ext import commands
@@ -7,6 +8,7 @@ from discord.ext import commands
 from utils import utils
 from utils.Embed import Embed
 from utils.CustomCog import BaseCog
+from utils.Paginator import Menu
 
 
 class Misc(BaseCog, name="misc"):
@@ -15,6 +17,50 @@ class Misc(BaseCog, name="misc"):
     def __init__(self, bot, show_name):
         self.bot = bot
         self.show_name = show_name
+
+    @commands.command(aliases=["dstatus"])
+    async def discordstatus(self, ctx):
+        """Gets the current status of Discord."""
+
+        async with self.bot.session.get("https://discordstatus.com/history.json") as response:
+            data = await response.json()
+            current = data["months"][0]["incidents"][0]
+            components = data["components"]
+
+            timestamp = re.sub(r"<var data-var='date'>|</var>|<var data-var='time'>", "", current["timestamp"])
+
+            main_embed = Embed.default(
+                ctx,
+                title="Current Status for Discord.",
+                description=(
+                    "```\n" +
+                    f"Code: {current['code']}\n" +
+                    f"Name: {current['name']}\n" +
+                    f"Message: {current['message']}\n" +
+                    f"Impact: {current['impact']}\n" +
+                    f"Timestamp: {timestamp}\n" +
+                    "```"
+                )
+            )
+
+            main_embed.url = "https://discordstatus.com/"
+
+            comp_list = []
+
+            for _set in components:
+                comp_list.append(
+                    f"Name: {_set['name']} -> **{_set['status']}**"
+                )
+
+            components_embed = Embed.default(
+                ctx,
+                title="Components",
+                description="\n".join(comp_list)
+            )
+
+            p = Menu([main_embed, components_embed],
+                     clear_reactions_after=True)
+            await p.start(ctx)
 
     @commands.command(aliases=["latency"])
     async def ping(self, ctx):

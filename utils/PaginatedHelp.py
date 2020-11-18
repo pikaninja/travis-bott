@@ -77,7 +77,7 @@ class PaginatedHelp(commands.HelpCommand):
 
                 # embed.add_field(name=name, value=value)
 
-        p = BetterPaginator(self.context, help_embeds)
+        p = BetterPaginator(self.context, help_embeds, delete_after=True)
         await p.paginate()
 
     async def send_cog_help(self, cog: BaseCog):

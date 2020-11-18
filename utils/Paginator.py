@@ -14,8 +14,8 @@ PAGINATION_EMOJI = (LAST_PAGE, NEXT_PAGE, END_PAGE)
 
 
 class Menu(menus.Menu):
-    def __init__(self, pages, embed: bool = True):
-        super().__init__()
+    def __init__(self, pages, embed: bool = True, **kwargs):
+        super().__init__(**kwargs)
         self.pages = pages
         self.embed = embed
         self.cur_page = 0
@@ -56,14 +56,12 @@ class BetterPaginator:
         ctx: commands.Context,
         entries: list,
         embed: bool = True,
-        timeout: int = 300.0,
-        delete_after: bool = False
+        timeout: int = 300.0
     ) -> None:
         self.ctx = ctx
         self.entries = entries
         self.embed = embed
         self.timeout = timeout
-        self.delete_after = delete_after
 
         self.channel = ctx.channel
         self.msg = ctx.message
@@ -78,7 +76,7 @@ class BetterPaginator:
         ]
 
     async def setup(self):
-        if self.embed == False:
+        if not self.embed:
             try:
                 self.msg = await self.channel.send(self.entries[0])
             except AttributeError:
@@ -118,13 +116,11 @@ class BetterPaginator:
             await self.alter(self.page)
 
     async def stop(self):
-        try:
-            await self.msg.clear_reactions()
-        except discord.Forbidden:
-            if self.delete_after:
-                await self.msg.delete()
-            else:
-                pass
+        msg = await self.msg.channel.fetch_message(self.msg.id)
+
+        for reaction in msg.reactions:
+            if reaction.me:
+                await reaction.remove(self.ctx.bot.user)
 
         self.paginating = False
 
