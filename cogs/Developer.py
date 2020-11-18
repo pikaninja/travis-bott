@@ -18,7 +18,7 @@ from discord.ext.commands import (
 
 from utils import utils
 from utils.Embed import Embed
-from utils.Paginator import BetterPaginator
+from utils.Paginator import BetterPaginator, Menu
 
 time_regex = re.compile("(?:(\d{1,5})(h|s|m|d))+?")
 time_dict = {"h": 3600, "s": 1, "m": 60, "d": 86400}
@@ -103,6 +103,29 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
         p = BetterPaginator(ctx, entries=embeds)
         await p.paginate()
+
+    @dev.command(name="test2")
+    @is_owner()
+    async def dev_testtwo(self, ctx):
+        """Testing cmd 2 electric boogaloo"""
+
+        embeds = [
+            Embed.default(ctx, title="Test 1"),
+            Embed.default(ctx, title="Test 2"),
+            Embed.default(ctx, title="Test 3")
+        ]
+
+        texts = [
+            "1",
+            "2",
+            "3"
+        ]
+
+        p1 = Menu(embeds)
+        await p1.start(ctx)
+
+        p2 = Menu(texts, embed=False)
+        await p2.start(ctx)
 
     @dev.command(name="stats")
     @is_owner()

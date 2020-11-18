@@ -1,7 +1,7 @@
 import typing
 import discord
 from discord import embeds
-from discord.ext import commands
+from discord.ext import commands, menus
 from utils import utils
 from utils.Embed import Embed
 import asyncio
@@ -11,6 +11,43 @@ END_PAGE = "\N{CROSS MARK}"
 NEXT_PAGE = "\N{BLACK RIGHTWARDS ARROW}"
 
 PAGINATION_EMOJI = (LAST_PAGE, NEXT_PAGE, END_PAGE)
+
+
+class Menu(menus.Menu):
+    def __init__(self, pages, embed: bool = True):
+        super().__init__()
+        self.pages = pages
+        self.embed = embed
+        self.cur_page = 0
+
+    async def change(self):
+        new_page = self.pages[self.cur_page]
+        if self.embed:
+            await self.message.edit(embed=new_page)
+        else:
+            await self.message.edit(content=new_page)
+
+    async def send_initial_message(self, ctx, channel):
+        if self.embed:
+            return await channel.send(embed=self.pages[self.cur_page])
+        else:
+            return await channel.send(content=self.pages[self.cur_page])
+
+    @menus.button("\N{LEFTWARDS BLACK ARROW}")
+    async def previous_page(self, payload):
+        if self.cur_page > 0:
+            self.cur_page -= 1
+            await self.change()
+
+    @menus.button("\N{BLACK SQUARE FOR STOP}")
+    async def stop_pages(self, payload):
+        self.stop()
+
+    @menus.button("\N{BLACK RIGHTWARDS ARROW}")
+    async def next_page(self, payload):
+        if self.cur_page < len(self.pages) - 1:
+            self.cur_page += 1
+            await self.change()
 
 
 class BetterPaginator:
