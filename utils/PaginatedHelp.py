@@ -3,7 +3,7 @@ from discord.ext import commands
 from utils import utils
 from utils import CustomContext
 from utils.CustomCog import BaseCog
-from utils.Paginator import BetterPaginator
+from utils.Paginator import Menu
 from utils.Embed import Embed
 
 
@@ -77,8 +77,8 @@ class PaginatedHelp(commands.HelpCommand):
 
                 # embed.add_field(name=name, value=value)
 
-        p = BetterPaginator(self.context, help_embeds, delete_after=True)
-        await p.paginate()
+        p = Menu(help_embeds, clear_reactions_after=True)
+        await p.start(self.context)
 
     async def send_cog_help(self, cog: BaseCog):
         if not hasattr(cog, "show_name"):
