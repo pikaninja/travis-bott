@@ -176,7 +176,7 @@ How to remove your data.
         """Sends the bots github repo"""
 
         await ctx.send(
-            "Heres my source code:\n"
+            "Here's my source code, if you decide to use my code please star my repo :}:\n"
             f"{config('GITHUB_LINK')}"
         )
 

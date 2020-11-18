@@ -547,7 +547,7 @@ class Meta(BaseCog, name="meta"):
         ]
 
         embed = Embed.default(ctx)
-        embed.set_thumbnail(user.avatar_url)
+        embed.set_thumbnail(url=user.avatar_url)
         embed.set_footer(text=f"ID: {user.id} | Powered by KSoft.Si API")
         [embed.add_field(name=n, value=v, inline=i) for n, v, i in fields]
         await ctx.send(embed=embed)
@@ -585,7 +585,7 @@ class Meta(BaseCog, name="meta"):
                 ctx,
                 title=f"Weather in {data['name']}"
             )
-            embed.set_thumbnail(icon)
+            embed.set_thumbnail(url=icon)
             [embed.add_field(name=n, value=v, inline=False) for n, v in fields]
             await ctx.send(embed=embed)
 
