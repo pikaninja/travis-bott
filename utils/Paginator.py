@@ -27,7 +27,7 @@ class BetterPaginator:
         self.embed = embed
         self.timeout = timeout
         self.delete_after = delete_after
-        
+
         self.channel = ctx.channel
         self.msg = ctx.message
         self.max_pages = len(entries) - 1
@@ -54,7 +54,7 @@ class BetterPaginator:
 
         if len(self.entries) == 1:
             return
-        
+
         for (r, _) in self.reactions:
             await self.msg.add_reaction(r)
 
@@ -71,7 +71,7 @@ class BetterPaginator:
         else:
             self.page -= 1
             await self.alter(self.page)
-    
+
     async def forward(self):
         if self.page == self.max_pages:
             self.page = 0
@@ -79,7 +79,7 @@ class BetterPaginator:
         else:
             self.page += 1
             await self.alter(self.page)
-    
+
     async def stop(self):
         try:
             await self.msg.clear_reactions()
@@ -88,9 +88,9 @@ class BetterPaginator:
                 await self.msg.delete()
             else:
                 pass
-        
+
         self.paginating = False
-    
+
     async def info(self):
         embed = Embed.default(self.ctx)
         embed.description = (
@@ -99,16 +99,16 @@ class BetterPaginator:
             + "`[arg] | Optional`\n"
             + "`<|[arg...]|> Takes multiple arguments, follows the same rules as above.`\n"
         )
-        
+
         await self.msg.edit(embed=embed)
 
     def _check(self, reaction, user):
         if user.id != self.ctx.author.id:
             return False
-        
+
         if reaction.message.id != self.msg.id:
             return False
-        
+
         for (emoji, func) in self.reactions:
             if reaction.emoji == emoji:
                 self.execute = func
@@ -120,13 +120,13 @@ class BetterPaginator:
         while self.paginating:
             done, pending = await asyncio.wait(
                 [self.ctx.bot.wait_for("reaction_add", check=self._check, timeout=self.timeout),
-                self.ctx.bot.wait_for("reaction_remove", check=self._check, timeout=self.timeout)],
+                 self.ctx.bot.wait_for("reaction_remove", check=self._check, timeout=self.timeout)],
                 return_when=asyncio.FIRST_COMPLETED)
             try:
                 done.pop().result()
             except asyncio.TimeoutError:
                 return self.stop
-            
+
             for future in pending:
                 future.cancel()
             await self.execute()

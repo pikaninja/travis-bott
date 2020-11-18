@@ -47,7 +47,7 @@ class Misc(BaseCog, name="misc"):
             try:
                 if len(password) > 2000:
                     return await ctx.send("That password is too long...")
-                    
+
                 await ctx.author.send(
                     "Here is your newly generated password:\n"
                     f"{password}"

@@ -118,7 +118,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
                     ctr['function'] += line.startswith('def')
                     ctr['coroutine'] += line.startswith('async def')
                     ctr['comment'] += '#' in line
-        
+
         code_count = '\n'.join(f'{key}: {count}' for key, count in ctr.items())
         server_count = sum(1 for g in self.bot.guilds)
         command_count = sum(1 for cmd in self.bot.commands)

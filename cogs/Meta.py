@@ -167,7 +167,8 @@ class Meta(BaseCog, name="meta"):
             description=f"Thank you to {astro_user} for making the avatar."
         )
 
-        embed.set_footer(text=f"Bot Version: {self.bot.version} | D.py Version: {discord.__version__}")
+        embed.set_footer(
+            text=f"Bot Version: {self.bot.version} | D.py Version: {discord.__version__}")
 
         embed.add_field(name="Invite the bot", value=f"[Here]({invite_link})")
         embed.add_field(
@@ -198,7 +199,8 @@ class Meta(BaseCog, name="meta"):
             translation = await translate_api.translate(str(text), dest="en")
         except IndexError:
             return await ctx.send(
-                embed=Embed.error(description=f"`{text}` could not be translated.")
+                embed=Embed.error(
+                    description=f"`{text}` could not be translated.")
             )
         print(translation)
         embed = Embed.default(
@@ -207,7 +209,8 @@ class Meta(BaseCog, name="meta"):
             description=str(translation.text)
         )
 
-        embed.set_footer(text=f"Translated to English from {translation.src} - Confidence: {translation.confidence}")
+        embed.set_footer(
+            text=f"Translated to English from {translation.src} - Confidence: {translation.confidence}")
 
         await ctx.send(embed=embed)
 

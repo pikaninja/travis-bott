@@ -541,7 +541,7 @@ class Moderation(BaseCog, name="moderation"):
     async def role(self, ctx, user: discord.Member, *roles: Role):
         """
         Give someone a role.
-        
+
         Permissions needed: `Manage Roles`
         To give multiple roles, this is the syntax:
         `{prefix}role @kal#1806 "role one" role2 role`

@@ -182,8 +182,8 @@ class Fun(BaseCog, name="fun"):
 
         fmt = "What's your choice? Rock, Paper or Scissors..."
         embed = Embed.default(
-                ctx,
-                description=fmt
+            ctx,
+            description=fmt
         )
 
         msg = await ctx.send(embed=embed)

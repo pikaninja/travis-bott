@@ -13,7 +13,8 @@ class Embed(discord.Embed):
     @classmethod
     def default(cls, ctx, **kwargs):
         instance = cls(**kwargs)
-        instance.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.avatar_url)
+        instance.set_footer(
+            text=f"Requested by {ctx.author}", icon_url=ctx.author.avatar_url)
         return instance
 
     @classmethod
