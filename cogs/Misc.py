@@ -23,7 +23,7 @@ class Misc(BaseCog, name="misc"):
         embed = Embed.default(ctx)
         embed.add_field(
             name="Heartbeat Latency",
-            value=f"{int(ctx.bot.latency * 1000)} ms"
+            value=f"{(ctx.bot.latency * 1000):,.2f} ms"
         )
         start = time.perf_counter()
         msg = await ctx.send(embed=embed)

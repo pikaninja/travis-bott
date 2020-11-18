@@ -11,7 +11,15 @@ class Embed(discord.Embed):
         )
 
     @classmethod
-    def default(self, ctx, **kwargs):
-        instance = self(**kwargs)
+    def default(cls, ctx, **kwargs):
+        instance = cls(**kwargs)
         instance.set_footer(text=f"Requested by {ctx.author}", icon_url=ctx.author.avatar_url)
         return instance
+
+    @classmethod
+    def error(cls, colour=0xf5291b, **kwargs):
+        return cls(colour=colour, **kwargs)
+
+    @classmethod
+    def warning(cls, colour=0xf55c1b, **kwargs):
+        return cls(colour=colour, **kwargs)

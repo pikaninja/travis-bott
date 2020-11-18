@@ -3,6 +3,7 @@ from discord.ext import commands
 from discord.ext.commands import Cog
 
 from utils import utils
+from utils.Embed import Embed
 
 import typing
 import aiohttp
@@ -37,9 +38,9 @@ class ErrorHandler(Cog):
 
     async def send_error(self, ctx, error):
         error_log_channel = self.bot.get_channel(768497134751186954)
-        embed = utils.embed_message(
+        embed = Embed.error(
             title="Something went wrong...",
-            message=f"```py\nAn Error Occured:\n{error}\n```",
+            description=f"```py\nAn Error Occurred:\n{error}\n```",
         )
         embed.set_author(
             name=f"{ctx.author} | {ctx.author.id}", icon_url=ctx.author.avatar_url
@@ -94,15 +95,18 @@ class ErrorHandler(Cog):
         elif isinstance(error, commands.CheckFailure):
             return await self.send_to_ctx_or_author(
                 ctx,
-                "That command is disabled for the reason of: "
-                f"`{self.bot.disabled_commands[ctx.command]}`"
+                embed=Embed.error(
+                    description=f"That command is disabled for the reason of: `{self.bot.disabled_commands[ctx.command]}`"
+                )
             )
 
         # Command is on Cooldown
         elif isinstance(error, commands.CommandOnCooldown):
             return await self.send_to_ctx_or_author(
                 ctx,
-                f"This command is on cooldown. **`{int(error.retry_after)}` seconds**",
+                embed=Embed.error(
+                    description=f"This command is on cooldown. **`{int(error.retry_after)}` seconds**"
+                ),
                 delete_after=5.0,
             )
 
@@ -118,26 +122,36 @@ class ErrorHandler(Cog):
         elif isinstance(error, commands.MissingPermissions):
             return await self.send_to_ctx_or_author(
                 ctx,
-                f"You're missing the required permission: `{error.missing_perms[0]}`",
+                embed=Embed.error(
+                    description=f"You're missing the required permission: `{error.missing_perms[0]}`"
+                ),
             )
 
         # Bad Argument passed
         elif isinstance(error, commands.BadArgument):
             return await self.send_to_ctx_or_author(
                 ctx,
-                f"{error}",
+                embed=Embed.error(
+                    description=f"{error}"
+                ),
             )
 
         # Missing Permissions
         elif isinstance(error, commands.BotMissingPermissions):
             return await self.send_to_ctx_or_author(
-                ctx, f"I'm missing the required permission: `{error.missing_perms[0]}`"
+                ctx,
+                embed=Embed.error(
+                    description=f"I'm missing the required permission: `{error.missing_perms[0]}`"
+                ),
             )
 
         # User who invoked command is not owner
         elif isinstance(error, commands.NotOwner):
             return await self.send_to_ctx_or_author(
-                ctx, "You must be the owner of the bot to run this."
+                ctx,
+                embed=Embed.error(
+                    description="You must be the owner of the bot to run this."
+                ),
             )
 
         await self.send_error(ctx, error)

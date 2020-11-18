@@ -60,9 +60,9 @@ class BetterPaginator:
 
     async def alter(self, page: int):
         try:
-            await self.msg.edit(embed=self.entries[page])
+            await self.msg.edit(content=None, embed=self.entries[page])
         except (AttributeError, TypeError):
-            await self.msg.edit(contnet=self.entries[page])
+            await self.msg.edit(content=self.entries[page], embed=None)
 
     async def backward(self):
         if self.page == 0:
