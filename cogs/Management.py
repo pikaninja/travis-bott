@@ -4,6 +4,7 @@ import discord
 
 from utils import utils
 from utils.CustomCog import BaseCog
+from utils.Embed import Embed
 import asyncio
 
 from utils.Paginator import AutoReactMenu
@@ -78,7 +79,10 @@ class Management(BaseCog, name="management"):
             ["Current prefix:", f"`{prefix}`"],
         ]
 
-        embed = utils.embed_message(title=f"Configuration for {ctx.guild}")
+        embed = Embed.default(
+            ctx,
+            title=f"Configuration for {ctx.guild}"
+        )
 
         for k, v in fields:
             embed.add_field(
@@ -211,12 +215,13 @@ class Management(BaseCog, name="management"):
         if check_guild:
             return await ctx.send("❌ Verification is already set up.")
 
-        embed = utils.embed_message(
+        embed = Embed.default(
+            ctx,
             title="Human Verification",
-            message="React to this message to gain access to the rest of the server.",
-            footer_text=ctx.guild.name,
-            footer_icon=ctx.guild.icon_url,
+            description="React to this message to gain access to the rest of the server.",
         )
+
+        embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
 
         role = await utils.find_roles(ctx.guild, role)
         msg = await channel.send(embed=embed)

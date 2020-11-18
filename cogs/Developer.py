@@ -132,7 +132,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             ["Code Count", f"```\n{code_count}```", False]
         ]
 
-        embed = utils.embed_message(title="Dev Stats")
+        embed = Embed.default(ctx, title="Dev Stats")
 
         [embed.add_field(name=n, value=v, inline=i) for n, v, i in fields]
 
@@ -273,8 +273,9 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
                     self.bot.reload_extension(ext)
                 except Exception as e:
                     await ctx.send(f"**`ERROR:`** {type(e).__name__} - {e}")
-            embed = utils.embed_message(
-                message=f"Successfully reloaded:\n{', '.join([f'`{ext[5:]}`' for ext in self.bot.exts])}"
+            embed = Embed.default(
+                ctx,
+                description=f"Successfully reloaded:\n{', '.join([f'`{ext[5:]}`' for ext in self.bot.exts])}"
             )
             await ctx.send(embed=embed)
         else:
@@ -346,9 +347,9 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         except Exception:
             # Oh no it caused an error
             stdout_value = stdout.getvalue() or None
-            message = utils.embed_message(
-                message=f"```py\n{stdout_value}\n{traceback.format_exc()}\n```",
-                footer_icon=self.bot.user.avatar_url,
+            message = Embed.default(
+                ctx,
+                description=f"```py\n{stdout_value}\n{traceback.format_exc()}\n```"
             )
             await ctx.send(embed=message)
         else:
@@ -362,9 +363,9 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             if ret is None:
                 # It might have printed something
                 if stdout_value is not None:
-                    message = utils.embed_message(
-                        message=f"```py\n{stdout_value}\n```",
-                        footer_icon=self.bot.user.avatar_url,
+                    message = Embed.default(
+                        ctx,
+                        description=f"```py\n{stdout_value}\n```",
                     )
                     await ctx.send(embed=message)
                 return
@@ -387,8 +388,9 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
                     file=discord.File(io.StringIO(result), filename="ev.txt")
                 )
             else:
-                message = utils.embed_message(
-                    message=text, footer_icon=self.bot.user.avatar_url
+                message = Embed.default(
+                    ctx,
+                    description=text
                 )
                 await ctx.send(embed=message)
 

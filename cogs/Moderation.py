@@ -3,6 +3,7 @@ from discord.ext import commands, tasks
 from utils import utils
 from utils.Paginator import Paginator
 from utils.CustomCog import BaseCog
+from utils.Embed import Embed
 
 from time import time as t
 
@@ -210,7 +211,10 @@ class Moderation(BaseCog, name="moderation"):
             user.id,
             ctx.guild.id,
         )
-        embed = utils.embed_message(title=f"Warns for {user}")
+        embed = Embed.default(
+            ctx,
+            title=f"Warns for {user}"
+        )
         fmt = ""
         warns = []
         for row in user_warns:
@@ -255,8 +259,10 @@ class Moderation(BaseCog, name="moderation"):
         if not moderations:
             moderations.append("There are no active moderations.")
 
-        embed = utils.embed_message(
-            title="Active Moderations.", message="\n".join(moderations)
+        embed = Embed.default(
+            ctx,
+            title="Active Moderations.",
+            description="\n".join(moderations)
         )
         await ctx.send(embed=embed)
 
@@ -489,7 +495,8 @@ class Moderation(BaseCog, name="moderation"):
         if len("\n".join(columns[1])) > 1024:
             columns[1] = columns[1][:20]
 
-        embed = utils.embed_message(
+        embed = Embed.default(
+            ctx,
             title=f"Members in {role.name} [{sum(1 for m in role.members)}]"
         )
         [
@@ -565,9 +572,10 @@ class Moderation(BaseCog, name="moderation"):
         await user.edit(roles=current_roles)
         await ctx.thumbsup()
 
-        embed = utils.embed_message(
+        embed = Embed.default(
+            ctx,
             title="Updated Member Roles",
-            message=f"{user.mention} | {' '.join(modifiers)}",
+            description=f"{user.mention} | {' '.join(modifiers)}",
         )
         await ctx.send(embed=embed)
 
@@ -663,7 +671,8 @@ class Moderation(BaseCog, name="moderation"):
                 ["Permissions",
                     f"```\n{repr_permissions or 'Nothing special.'}```", False],
             ]
-            embed = utils.embed_message(
+            embed = Embed.default(
+                ctx,
                 colour=discord.Color.from_rgb(*role_colour)
             )
             [embed.add_field(name=n, value=v, inline=i) for n, v, i in fields]
@@ -693,7 +702,7 @@ class Moderation(BaseCog, name="moderation"):
             role_names.append(f"{role.mention}")
             role_ids.append(f"{role.id}")
 
-        embed = utils.embed_message()
+        embed = Embed.default(ctx)
         embed.add_field(name="Names", value="\n".join(role_names))
         embed.add_field(name="IDs", value="\n".join(role_ids))
         await ctx.send(embed=embed)

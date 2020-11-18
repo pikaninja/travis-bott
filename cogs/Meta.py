@@ -6,8 +6,9 @@ from discord.ext.commands.errors import BadArgument
 import ksoftapi
 
 from utils import utils
-from utils.Paginator import Paginator
+from utils.Paginator import BetterPaginator
 from utils.CustomCog import BaseCog
+from utils.Embed import Embed
 from aiohttp import request
 
 from datetime import datetime as dt
@@ -68,7 +69,7 @@ class Meta(BaseCog, name="meta"):
 
         for i in range(how_many):
             print(results[i].image_url)
-            embed = utils.embed_message()
+            embed = Embed.default(ctx)
             embed.title = results[i].title
             embed.description = results[i].description
             embed.url = results[i].url
@@ -83,8 +84,8 @@ class Meta(BaseCog, name="meta"):
             embed_list.append(embed)
 
         await cse.close()
-        p = Paginator(embed_list)
-        await p.paginate(ctx)
+        p = BetterPaginator(ctx, embed_list)
+        await p.paginate()
 
     @commands.command(aliases=["randomcolor", "rcolour", "rcolor"])
     async def randomcolour(self, ctx):
@@ -99,7 +100,8 @@ class Meta(BaseCog, name="meta"):
         colour_representation = (
             f"https://some-random-api.ml/canvas/colorviewer?hex={rgb_to_hex[1:]}"
         )
-        embed = utils.embed_message(
+        embed = Embed.default(
+            ctx,
             title="Generated Colour",
             colour=discord.Colour.from_rgb(*r_colour),
         )
@@ -123,7 +125,8 @@ class Meta(BaseCog, name="meta"):
             f"https://some-random-api.ml/canvas/colorviewer?hex={colour[1:]}"
         )
         hex_to_rgb = utils.hex_to_rgb(colour[1:])
-        embed = utils.embed_message(
+        embed = Embed.default(
+            ctx,
             colour=discord.Colour.from_rgb(*hex_to_rgb)
         )
         embed.set_thumbnail(url=colour_representation)
@@ -138,7 +141,7 @@ class Meta(BaseCog, name="meta"):
         if not member:
             member = ctx.author
 
-        embed = utils.embed_message()
+        embed = Embed.default(ctx)
         embed.set_author(name=member, icon_url=member.avatar_url)
         embed.set_image(url=member.avatar_url_as(
             static_format="png", size=1024))
@@ -158,11 +161,14 @@ class Meta(BaseCog, name="meta"):
         ) / 1000000
         total_mem = psutil.virtual_memory().total / 1000000
 
-        embed = utils.embed_message(
+        embed = Embed.default(
+            ctx,
             title=f"Info about {self.bot.user.name}",
-            message=f"Thank you to {astro_user} for making the avatar.",
-            footer_text=f"Bot Version: {self.bot.version} | D.py Version: {discord.__version__}",
+            description=f"Thank you to {astro_user} for making the avatar."
         )
+
+        embed.set_footer(text=f"Bot Version: {self.bot.version} | D.py Version: {discord.__version__}")
+
         embed.add_field(name="Invite the bot", value=f"[Here]({invite_link})")
         embed.add_field(
             name="GitHub", value=f"[Here]({config('GITHUB_LINK')})")
@@ -188,12 +194,20 @@ class Meta(BaseCog, name="meta"):
         """Automatically translates a given text to English"""
 
         translate_api = translator.Translator()
-        translation = await translate_api.translate(str(text), dest="en")
-        embed = utils.embed_message(
+        try:
+            translation = await translate_api.translate(str(text), dest="en")
+        except IndexError:
+            return await ctx.send(
+                embed=Embed.error(description=f"`{text}` could not be translated.")
+            )
+        print(translation)
+        embed = Embed.default(
+            ctx,
             title="Translation",
-            message=str(translation.text),
-            footer_text=f"Translated to English from {translation.src} - Confidence: {translation.confidence}",
+            description=str(translation.text)
         )
+
+        embed.set_footer(text=f"Translated to English from {translation.src} - Confidence: {translation.confidence}")
 
         await ctx.send(embed=embed)
 
@@ -209,23 +223,23 @@ class Meta(BaseCog, name="meta"):
 
         for _ in range(len(emojis)):
             emoji = emojis[_]
-            embed = utils.embed_message(
+            embed = Embed.default(
+                ctx,
                 title=f"Showing for {emoji.name}",
-                message=f"ID: {emoji.id}",
-                footer_text=f"Page {_ + 1}/{len(emojis)}",
-                url=str(emoji.url),
+                description=f"ID: {emoji.id}"
             )
+
+            embed.url = str(emoji.url)
+            embed.set_footer(text=f"Page {_ + 1}/{len(emojis)}")
 
             embed.set_image(url=emoji.url)
             embed.add_field(name="Animated", value=emoji.animated)
 
             embed_list.append(embed)
 
-        emoji_menu = Paginator(
-            embed_list, delete_after=False, timeout=120.0, clear_reactions=True
-        )
+        emoji_menu = BetterPaginator(ctx, embed_list)
 
-        await emoji_menu.paginate(ctx) if len(embed_list) > 1 else await ctx.send(
+        await emoji_menu.paginate() if len(embed_list) > 1 else await ctx.send(
             embed=embed_list[0]
         )
 
@@ -334,9 +348,10 @@ class Meta(BaseCog, name="meta"):
             ["Features", "\n".join(guild_features), False],
         ]
 
-        embed = utils.embed_message(
+        embed = Embed.default(
+            ctx,
             title=title,
-            message=f"**ID:** {ctx.guild.id}\n**Owner:** {ctx.guild.owner}",
+            description=f"**ID:** {ctx.guild.id}\n**Owner:** {ctx.guild.owner}",
             thumbnail=icon if ctx.guild.icon else discord.Embed.Empty(),
             footer_text="Created at ",
             timestamp=ctx.guild.created_at,
@@ -352,7 +367,10 @@ class Meta(BaseCog, name="meta"):
 
         channel: discord.TextChannel = channel or ctx.channel
 
-        embed = utils.embed_message(title=f"Information on {channel.name}")
+        embed = Embed.default(
+            ctx,
+            title=f"Information on {channel.name}"
+        )
         fields = [
             ["Channel Topic:", f"{channel.topic or 'No Topic'}"],
             ["Channel Type:", f"{channel.type}"],
@@ -395,11 +413,14 @@ class Meta(BaseCog, name="meta"):
                         "The lookup for this word is way too big to show."
                     )
 
-                embed = utils.embed_message(
-                    title=f"Definition of {word}",
-                    footer_text=f"Definition by: {author}",
-                    url=perma_link,
+                embed = Embed.default(
+                    ctx,
+                    title=f"Definition of {word}"
                 )
+
+                embed.set_footer(title=f"Definition by: {author}")
+                embed.url = perma_link
+
                 embed.set_author(
                     name=f"Requested by: {ctx.author.name}",
                     icon_url=ctx.author.avatar_url,
@@ -424,8 +445,11 @@ class Meta(BaseCog, name="meta"):
         if "x" in equation:
             equation = equation.replace("x", "*")
         result = numexpr.evaluate(str(equation)).item()
-        embed = utils.embed_message(
-            title=f"Result of {equation}:", message=result)
+        embed = Embed.default(
+            ctx,
+            title=f"Result of {equation}:",
+            description=result
+        )
         await ctx.send(embed=embed)
 
     @commands.command()
@@ -519,10 +543,9 @@ class Meta(BaseCog, name="meta"):
             ["Permissions", utils.check_permissions(ctx, user), False],
         ]
 
-        embed = utils.embed_message(
-            thumbnail=user.avatar_url,
-            footer_text=f"ID: {user.id} | Powered by KSoft.Si API",
-        )
+        embed = Embed.default(ctx)
+        embed.set_thumbnail(user.avatar_url)
+        embed.set_footer(text=f"ID: {user.id} | Powered by KSoft.Si API")
         [embed.add_field(name=n, value=v, inline=i) for n, v, i in fields]
         await ctx.send(embed=embed)
 
@@ -555,9 +578,11 @@ class Meta(BaseCog, name="meta"):
                 ["Description", description],
             ]
 
-            embed = utils.embed_message(
-                title=f"Weather in {data['name']}", thumbnail=icon
+            embed = Embed.default(
+                ctx,
+                title=f"Weather in {data['name']}"
             )
+            embed.set_thumbnail(icon)
             [embed.add_field(name=n, value=v, inline=False) for n, v in fields]
             await ctx.send(embed=embed)
 
@@ -618,7 +643,7 @@ class Meta(BaseCog, name="meta"):
                 ["Language Spoken:", data["languages"][0]["nativeName"]],
             ]
 
-            embed = utils.embed_message()
+            embed = Embed.default(ctx)
             [embed.add_field(name=n, value=str(v)) for n, v in fields]
 
             await ctx.send(embed=embed)
@@ -635,8 +660,10 @@ class Meta(BaseCog, name="meta"):
         To have multiple options (for 1) seperate them with |"""
 
         if mode == 0:
-            embed = utils.embed_message(
-                message=str("".join(query)), footer_text="")
+            embed = Embed.default(
+                ctx,
+                description=str("".join(query))
+            )
             embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
             msg = await ctx.send(embed=embed)
 
@@ -664,7 +691,7 @@ class Meta(BaseCog, name="meta"):
                     "There are too many queries! We'll hopefully allow more soon."
                 )
 
-            embed = utils.embed_message(footer_text="")
+            embed = Embed.default(ctx)
             embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
             print(query)
             for _ in range(amount):

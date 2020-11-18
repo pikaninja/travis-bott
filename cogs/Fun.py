@@ -4,6 +4,7 @@ from discord.ext import commands
 
 from utils import utils
 from utils.CustomCog import BaseCog
+from utils.Embed import Embed
 from aiohttp import request
 from asyncdagpi import ImageFeatures
 
@@ -180,7 +181,10 @@ class Fun(BaseCog, name="fun"):
         """Play rock paper scissors with the bot!"""
 
         fmt = "What's your choice? Rock, Paper or Scissors..."
-        embed = utils.embed_message(message=fmt)
+        embed = Embed.default(
+                ctx,
+                description=fmt
+        )
 
         msg = await ctx.send(embed=embed)
 
@@ -204,7 +208,11 @@ class Fun(BaseCog, name="fun"):
                 "reaction_add", timeout=30.0, check=check
             )
         except asyncio.TimeoutError:
-            await msg.clear_reactions()
+            try:
+                await msg.clear_reactions()
+            except discord.Forbidden:
+                pass
+
             embed.description = "You ran out of time!"
             await msg.edit(embed=embed)
         else:
@@ -262,7 +270,7 @@ class Fun(BaseCog, name="fun"):
             data = await r.json()
             image = data["link"]
 
-            embed = utils.embed_message()
+            embed = Embed.default(ctx)
             embed.set_image(url=image)
             await ctx.send(embed=embed)
 
@@ -278,7 +286,10 @@ class Fun(BaseCog, name="fun"):
             data = await r.json()
             quote = data["quote"]
 
-            embed = utils.embed_message(title=f'"{quote}" - Kanye West')
+            embed = Embed.default(
+                ctx,
+                title=f'"{quote}" - Kanye West'
+            )
             await ctx.send(embed=embed)
 
     @commands.command()
@@ -328,7 +339,10 @@ class Fun(BaseCog, name="fun"):
             data = await r.json()
             fact = data["text"]
 
-            embed = utils.embed_message(message=fact)
+            embed = Embed.default(
+                ctx,
+                description=fact
+            )
             await ctx.send(embed=embed)
 
 

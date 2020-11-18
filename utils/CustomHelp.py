@@ -1,6 +1,7 @@
 from discord.ext import commands
 
 from utils import utils
+from utils.Embed import Embed
 from utils import CustomContext
 from utils.CustomCog import BaseCog
 
@@ -45,7 +46,7 @@ class CustomHelp(commands.HelpCommand):
             return f"Could not find the command `{string}`."
 
     async def send_bot_help(self, mapping):
-        embed = utils.embed_message(title="Bot Commands")
+        embed = Embed.default(self.context, title="Bot Commands")
         embed.description = (
             f"{self.context.bot.description}\n"
             + "`<arg> | Required`\n"
@@ -75,7 +76,7 @@ class CustomHelp(commands.HelpCommand):
     async def send_cog_help(self, cog: BaseCog):
         if not hasattr(cog, "show_name"):
             pass
-        embed = utils.embed_message(title=f"{cog.show_name} Commands")
+        embed = Embed.default(self.context, title=f"{cog.show_name} Commands")
 
         filtered = await self.filter_commands(cog.get_commands(), sort=True)
 
@@ -90,7 +91,8 @@ class CustomHelp(commands.HelpCommand):
         await self.get_destination().send(embed=embed)
 
     async def send_group_help(self, group: commands.Group):
-        embed = utils.embed_message(
+        embed = Embed.default(
+            self.context,
             title=f"{self.clean_prefix}{group.qualified_name} {group.signature}"
         )
         if group.help:

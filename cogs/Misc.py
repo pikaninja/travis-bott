@@ -101,9 +101,13 @@ How to remove your data.
 
         bot_invite = f"https://discord.com/api/oauth2/authorize?client_id={self.bot.user.id}&permissions=8&scope=bot"
 
-        embed = utils.embed_message(
-            title="Invite the bot to your server here!", url=bot_invite
+        embed = Embed.default(
+            ctx,
+            title="Invite the bot to your server here!"
         )
+
+        embed.url = bot_invite
+
         await ctx.send(embed=embed)
 
     @commands.command()
