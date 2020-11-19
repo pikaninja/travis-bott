@@ -10,6 +10,9 @@ import re
 import time
 import logging
 
+from PIL import Image
+import pytesseract
+
 import discord
 from discord.ext import tasks
 from discord.ext.commands import (
@@ -89,6 +92,32 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
     @is_owner()
     async def dev(self, ctx):
         await ctx.send_help(ctx.command)
+
+    @dev.command(name="ocr")
+    @is_owner()
+    async def dev_ocr(self, ctx, url: str):
+        """OCR Testing"""
+
+        async with self.bot.session.get(url) as response:
+            img_bytes = await response.read()
+
+        def process_img(instream):
+            # Get Image to OCR
+            stream = io.BytesIO(instream)
+            img = Image.open(stream)
+
+            return {"text": pytesseract.image_to_string(img)}
+
+        data = await self.bot.loop.run_in_executor(None, process_img, img_bytes)
+
+        embed = Embed.default(
+            ctx,
+            description=f"{data['text']}"
+        )
+
+        embed.set_image(url=url)
+
+        await ctx.send(embed=embed)
 
     @dev.command(name="test")
     @is_owner()

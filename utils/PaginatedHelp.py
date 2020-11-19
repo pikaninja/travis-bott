@@ -149,7 +149,14 @@ class PaginatedHelp(commands.HelpCommand):
         # embed.set_footer(text=self.get_ending_note())
         # await self.get_destination().send(embed=embed)
 
-    send_command_help = send_group_help
+    async def send_command_help(self, command):
+        embed = Embed.default(self.context)
+        embed.title = self.get_command_signature(command)
+        if command.description:
+            embed.description = f"{command.description}\n\n{command.help}"
+        else:
+            embed.description = command.help or "No help found..."
+        await self.get_destination().send(embed=embed)
 
     # This doesnt appear to work...
     # yes I've even tried without my error handler, same result.

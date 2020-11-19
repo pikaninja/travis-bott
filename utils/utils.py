@@ -4,6 +4,7 @@ import time
 import typing
 from typing import Optional
 
+import humanize
 from decouple import config
 
 import discord
@@ -191,4 +192,5 @@ class MemberID(commands.Converter):
             return m
 
 def format_time(dt):
-    return dt.strftime("%B %d %Y %I:%M:%S")
+    humanized = humanize.precisedelta(dt, suppress=["seconds"], format="%0.0f")
+    return {"date": dt.strftime("%B %d %Y %I:%M:%S"), "precise": humanized}

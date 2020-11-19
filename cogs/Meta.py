@@ -381,7 +381,7 @@ class Meta(BaseCog, name="meta"):
         fields = [
             ["Channel Type:", f"{channel.type}"],
             ["Channel Category:", f"{channel.category.name}"],
-            ["Created At:", f"{utils.format_time(channel.created_at)}"],
+            ["Created At:", f"{utils.format_time(channel.created_at)['date']}"],
         ]
 
         if isinstance(channel, discord.TextChannel):

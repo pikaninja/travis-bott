@@ -4,7 +4,7 @@ from utils import utils
 from utils.Embed import Embed
 from utils import CustomContext
 from utils.CustomCog import BaseCog
-from utils.Paginator import GroupHelp
+from utils.Paginator import GroupHelp, KalPages
 
 
 class CustomHelp(commands.HelpCommand):
@@ -79,7 +79,7 @@ class CustomHelp(commands.HelpCommand):
             pass
 
         entries = await self.filter_commands(cog.get_commands(), sort=True)
-        menu = menus.MenuPages(
+        menu = KalPages(
             GroupHelp(self.context, cog, entries, prefix=self.clean_prefix),
             clear_reactions_after=True
         )
@@ -110,7 +110,7 @@ class CustomHelp(commands.HelpCommand):
 
         source = GroupHelp(self.context, group, entries,
                            prefix=self.clean_prefix)
-        menu = menus.MenuPages(source, clear_reactions_after=True)
+        menu = KalPages(source, clear_reactions_after=True)
         await menu.start(self.context)
 
         # embed = Embed.default(
@@ -144,7 +144,14 @@ class CustomHelp(commands.HelpCommand):
         # embed.set_footer(text=self.get_ending_note())
         # await self.get_destination().send(embed=embed)
 
-    send_command_help = send_group_help
+    async def send_command_help(self, command):
+        embed = Embed.default(self.context)
+        embed.title = self.get_command_signature(command)
+        if command.description:
+            embed.description = f"{command.description}\n\n{command.help}"
+        else:
+            embed.description = command.help or "No help found..."
+        await self.get_destination().send(embed=embed)
 
     # This doesnt appear to work...
     # yes I've even tried without my error handler, same result.

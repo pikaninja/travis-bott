@@ -1,4 +1,6 @@
 import asyncio
+import json
+
 import asyncpg
 import discord
 from discord.ext import commands
@@ -44,11 +46,21 @@ class MyBot(commands.AutoShardedBot):
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.loop.create_task(self.cache_prefixes())
         self.loop.create_task(self.cache_premiums())
+        self.loop.create_task(self.get_announcement())
+        self.announcement = {
+            "title": None,
+            "message": None
+        }
 
     async def close(self):
         await self.session.close()
         await self.pool.close()
         await super().close()
+
+    async def get_announcement(self):
+        with open("./announcement.json") as f:
+            data = json.load(f)
+            self.announcement = data
 
     async def cache_prefixes(self):
         all_prefixes = await self.pool.fetch(
