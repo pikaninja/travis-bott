@@ -12,7 +12,7 @@ new_guilds = False
 my_mentions = AllowedMentions(everyone=False, roles=False)
 
 my_intents = Intents(
-    guilds=True, members=True, bans=True, messages=True, reactions=True
+    guilds=True, members=True, bans=True, messages=True, reactions=True, voice_states=True
 )
 
 stuff_to_cache = MemberCacheFlags.from_intents(my_intents)

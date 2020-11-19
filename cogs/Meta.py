@@ -365,26 +365,39 @@ class Meta(BaseCog, name="meta"):
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def channel(self, ctx, channel: discord.TextChannel = None):
+    async def channel(self, ctx, channel: typing.Union[discord.TextChannel, discord.VoiceChannel] = None):
         """Gives you information on a channel."""
 
-        channel: discord.TextChannel = channel or ctx.channel
+        channel= channel or ctx.channel
 
         embed = Embed.default(
             ctx,
             title=f"Information on {channel.name}"
         )
+
+        channel_topic = channel.topic or "No Topic" if isinstance(channel, discord.TextChannel) else "No Topic"
+
         fields = [
-            ["Channel Topic:", f"{channel.topic or 'No Topic'}"],
             ["Channel Type:", f"{channel.type}"],
-            ["How many can see this:",
-                f"{sum(1 for member in channel.members)}"],
-            # ["Last Message:", f"{channel.last_message.content or 'Not Available'}"],
             ["Channel Category:", f"{channel.category.name}"],
             ["Created At:", f"{channel.created_at}"],
         ]
 
-        [embed.add_field(name=n, value=v) for n, v in fields]
+        if isinstance(channel, discord.TextChannel):
+            fields.append(["Channel Topic:", f"{channel_topic}"])
+
+        if isinstance(channel, discord.VoiceChannel):
+            fields.append(
+                [f"Currently Connected ({len(channel.members)})", f"{' '.join([m.name for m in channel.members]) or None}"]
+            )
+            fields.append(
+                [f"Bitrate", f"{channel.bitrate}"]
+            )
+            fields.append(
+                [f"User Limit", f"{channel.user_limit}"]
+            )
+
+        [embed.add_field(name=n, value=v, inline=False) for n, v in fields]
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["urban", "ud"])

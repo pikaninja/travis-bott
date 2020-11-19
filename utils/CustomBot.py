@@ -87,6 +87,11 @@ class MyBot(commands.AutoShardedBot):
 
         await self.process_commands(message)
 
+    async def on_message_edit(self, before, after):
+        if before.content != after.content:
+            ctx = await self.get_context(after)
+            await self.invoke(ctx)
+
     def get_uptime(self) -> timedelta:
         """Gets the uptime of the bot"""
 

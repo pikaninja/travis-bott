@@ -1,6 +1,8 @@
+import time
+
 import asyncdagpi
 from decouple import config
-from discord.ext import commands
+from discord.ext import commands, menus
 
 from utils import utils
 from utils.CustomCog import BaseCog
@@ -15,6 +17,20 @@ import random
 import vacefron
 
 standard_cooldown = 3.0
+
+
+class CookiesLBPage(menus.ListPageSource):
+    def __init__(self, ctx, data):
+        super().__init__(data, per_page=10)
+        self.ctx = ctx
+
+    async def format_page(self, menu, entries):
+        embed = Embed.default(
+            self.ctx,
+            title="Cookie Leaderboard",
+            description="\n".join(entries)
+        )
+        return embed
 
 
 class Fun(BaseCog, name="fun"):
@@ -114,6 +130,76 @@ class Fun(BaseCog, name="fun"):
             "pink",
             "red",
         ]
+
+    async def handle_cookies(self, user: discord.Member):
+        """Handles added cookies to user"""
+
+        check_if_exists = await self.bot.pool.fetchrow("SELECT * FROM cookies WHERE user_id = $1", user.id)
+
+        if not check_if_exists:
+            await self.bot.pool.execute(
+                "INSERT INTO cookies(user_id, cookies) VALUES($1, $2)",
+                user.id, 1
+            )
+        else:
+            await self.bot.pool.execute(
+                "UPDATE cookies SET cookies = cookies + 1 WHERE user_id = $1",
+                user.id
+            )
+
+    @commands.group(aliases=["cc"], invoke_without_command=True)
+    @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
+    async def cookieclick(self, ctx):
+        """First person to click on the cookie wins!"""
+
+        timer = 3
+        embed = Embed.default(
+            ctx,
+            description="First person to click wins..."
+        )
+
+        msg = await ctx.send(embed=embed)
+
+        await asyncio.sleep(3.0)
+
+        for _ in range(timer):
+            embed.description = f"Starting in {3 - _} seconds..."
+            await msg.edit(embed=embed)
+            await asyncio.sleep(1)
+
+        embed.description = f"CLICK CLICK CLICK"
+        await msg.edit(embed=embed)
+
+        def _check(r, u):
+            return u != ctx.bot.user and str(r.emoji) == "\N{COOKIE}"
+
+        await msg.add_reaction("\N{COOKIE}")
+        start = time.perf_counter()
+        try:
+            reaction, user = await self.bot.wait_for("reaction_add", timeout=10.0, check=_check)
+        except asyncio.TimeoutError:
+            return await ctx.send("Damn, no one wanted the cookie...")
+
+        end = time.perf_counter()
+
+        embed.description = f"{user.mention} got it first in `{end - start:,.2f}` seconds \N{EYES}"
+        await msg.edit(embed=embed)
+        await self.handle_cookies(user)
+
+    @cookieclick.command(name="leaderboard", aliases=["lb"])
+    async def cookieclick_leaderboard(self, ctx):
+        """Gives the leaderboard of all cookie clickers."""
+
+        fields = await self.bot.pool.fetch("SELECT * FROM cookies order by cookies desc")
+
+        desc = []
+
+        for field in fields:
+            user = self.bot.get_user(field["user_id"])
+            desc.append(f"{user} - {field['cookies']} cookies")
+
+        pages = menus.MenuPages(source=CookiesLBPage(ctx, desc), clear_reactions_after=True)
+        await pages.start(ctx)
 
     @commands.command(aliases=["fban"])
     @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
