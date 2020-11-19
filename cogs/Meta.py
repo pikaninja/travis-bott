@@ -368,19 +368,20 @@ class Meta(BaseCog, name="meta"):
     async def channel(self, ctx, channel: typing.Union[discord.TextChannel, discord.VoiceChannel] = None):
         """Gives you information on a channel."""
 
-        channel= channel or ctx.channel
+        channel = channel or ctx.channel
 
         embed = Embed.default(
             ctx,
             title=f"Information on {channel.name}"
         )
 
-        channel_topic = channel.topic or "No Topic" if isinstance(channel, discord.TextChannel) else "No Topic"
+        channel_topic = channel.topic or "No Topic" if isinstance(
+            channel, discord.TextChannel) else "No Topic"
 
         fields = [
             ["Channel Type:", f"{channel.type}"],
             ["Channel Category:", f"{channel.category.name}"],
-            ["Created At:", f"{channel.created_at}"],
+            ["Created At:", f"{utils.format_time(channel.created_at)}"],
         ]
 
         if isinstance(channel, discord.TextChannel):
@@ -388,7 +389,8 @@ class Meta(BaseCog, name="meta"):
 
         if isinstance(channel, discord.VoiceChannel):
             fields.append(
-                [f"Currently Connected ({len(channel.members)})", f"{' '.join([m.name for m in channel.members]) or None}"]
+                [f"Currently Connected ({len(channel.members)})",
+                 f"{' '.join([m.name for m in channel.members]) or None}"]
             )
             fields.append(
                 [f"Bitrate", f"{channel.bitrate}"]

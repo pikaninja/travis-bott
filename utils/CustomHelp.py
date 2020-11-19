@@ -1,9 +1,10 @@
-from discord.ext import commands
+from discord.ext import commands, menus
 
 from utils import utils
 from utils.Embed import Embed
 from utils import CustomContext
 from utils.CustomCog import BaseCog
+from utils.Paginator import GroupHelp
 
 
 class CustomHelp(commands.HelpCommand):
@@ -76,51 +77,72 @@ class CustomHelp(commands.HelpCommand):
     async def send_cog_help(self, cog: BaseCog):
         if not hasattr(cog, "show_name"):
             pass
-        embed = Embed.default(self.context, title=f"{cog.show_name} Commands")
 
-        filtered = await self.filter_commands(cog.get_commands(), sort=True)
+        entries = await self.filter_commands(cog.get_commands(), sort=True)
+        menu = menus.MenuPages(
+            GroupHelp(self.context, cog, entries, prefix=self.clean_prefix),
+            clear_reactions_after=True
+        )
+        await menu.start(self.context)
 
-        for command in filtered:
-            embed.add_field(
-                name=f"{command.qualified_name}",
-                value=f"{command.help.format(prefix=self.clean_prefix)}",
-                inline=False
-            )
-
-        embed.set_footer(text=self.get_ending_note())
-        await self.get_destination().send(embed=embed)
+        # embed = Embed.default(self.context, title=f"{cog.show_name} Commands")
+        #
+        # filtered = await self.filter_commands(cog.get_commands(), sort=True)
+        #
+        # for command in filtered:
+        #     embed.add_field(
+        #         name=f"{command.qualified_name}",
+        #         value=f"{command.help.format(prefix=self.clean_prefix)}",
+        #         inline=False
+        #     )
+        #
+        # embed.set_footer(text=self.get_ending_note())
+        # await self.get_destination().send(embed=embed)
 
     async def send_group_help(self, group: commands.Group):
-        embed = Embed.default(
-            self.context,
-            title=f"{self.clean_prefix}{group.qualified_name} {group.signature}"
-        )
-        if group.help:
-            aliases = (
-                f"*Aliases: {' | '.join('`' + x + '`' for x in  group.aliases)}*"
-                if group.aliases
-                else ""
-            )
-            group_cat = group.cog.qualified_name
-            embed.description = (
-                str(group.help).format(prefix=self.clean_prefix)
-                + "\n"
-                + aliases
-                + "\n"
-                + f"Category: {group_cat}"
-            )
+        subcommands = group.commands
+        if len(subcommands) == 0:
+            return await self.send_command_help(group)
 
-        if isinstance(group, commands.Group):
-            filtered = await self.filter_commands(group.commands, sort=True)
-            for command in filtered:
-                embed.add_field(
-                    name=self.get_command_signature(command),
-                    value=str(command.short_doc) or "...",
-                    inline=False,
-                )
+        entries = await self.filter_commands(subcommands, sort=True)
+        if len(entries) == 0:
+            return await self.send_command_help(group)
 
-        embed.set_footer(text=self.get_ending_note())
-        await self.get_destination().send(embed=embed)
+        source = GroupHelp(self.context, group, entries,
+                           prefix=self.clean_prefix)
+        menu = menus.MenuPages(source, clear_reactions_after=True)
+        await menu.start(self.context)
+
+        # embed = Embed.default(
+        #     self.context,
+        #     title=f"{self.clean_prefix}{group.qualified_name} {group.signature}"
+        # )
+        # if group.help:
+        #     aliases = (
+        #         f"*Aliases: {' | '.join('`' + x + '`' for x in  group.aliases)}*"
+        #         if group.aliases
+        #         else ""
+        #     )
+        #     group_cat = group.cog.qualified_name
+        #     embed.description = (
+        #         str(group.help).format(prefix=self.clean_prefix)
+        #         + "\n"
+        #         + aliases
+        #         + "\n"
+        #         + f"Category: {group_cat}"
+        #     )
+        #
+        # if isinstance(group, commands.Group):
+        #     filtered = await self.filter_commands(group.commands, sort=True)
+        #     for command in filtered:
+        #         embed.add_field(
+        #             name=self.get_command_signature(command),
+        #             value=str(command.short_doc) or "...",
+        #             inline=False,
+        #         )
+        #
+        # embed.set_footer(text=self.get_ending_note())
+        # await self.get_destination().send(embed=embed)
 
     send_command_help = send_group_help
 

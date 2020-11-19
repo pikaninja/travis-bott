@@ -13,6 +13,37 @@ NEXT_PAGE = "\N{BLACK RIGHTWARDS ARROW}"
 PAGINATION_EMOJI = (LAST_PAGE, NEXT_PAGE, END_PAGE)
 
 
+class GroupHelp(menus.ListPageSource):
+    def __init__(self, ctx, group, cmds, *, prefix):
+        super().__init__(entries=cmds, per_page=4)
+        self.ctx = ctx
+        self.group = group
+        self.prefix = prefix
+        self.title = f"{self.group.qualified_name} Commands"
+        self.description = self.group.description
+
+    async def format_page(self, menu, cmds):
+        embed = Embed.default(
+            self.ctx,
+            title=self.title,
+            description=self.description
+        )
+
+        for cmd in cmds:
+            signature = f"{cmd.qualified_name} {cmd.signature}"
+            embed.add_field(
+                name=signature, value=cmd.short_doc or "No help given...", inline=False)
+
+        maximum = self.get_max_pages()
+        if maximum > 1:
+            embed.set_author(
+                name=f"Page {menu.current_page + 1}/{maximum} ({len(self.entries)} commands)")
+
+        embed.set_footer(
+            text=f"Use {self.prefix}help command for more info on a command.")
+        return embed
+
+
 class Menu(menus.Menu):
     def __init__(self, pages, embed: bool = True, **kwargs):
         super().__init__(**kwargs)

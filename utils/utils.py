@@ -189,3 +189,6 @@ class MemberID(commands.Converter):
                     "You cannot do this action on this" " user due to role hierarchy."
                 )
             return m
+
+def format_time(dt):
+    return dt.strftime("%B %d %Y %I:%M:%S")

@@ -27,7 +27,8 @@ class Misc(BaseCog, name="misc"):
             current = data["months"][0]["incidents"][0]
             components = data["components"]
 
-            timestamp = re.sub(r"<var data-var='date'>|</var>|<var data-var='time'>", "", current["timestamp"])
+            timestamp = re.sub(
+                r"<var data-var='date'>|</var>|<var data-var='time'>", "", current["timestamp"])
 
             main_embed = Embed.default(
                 ctx,
@@ -102,7 +103,7 @@ class Misc(BaseCog, name="misc"):
             except discord.Forbidden:
                 await ctx.send(
                     "I could not send the password to you. "
-                    "Please make sure you can recieve DMs from the bot."
+                    "Please make sure you can receive DMs from the bot."
                 )
 
     @commands.command(hidden=True, aliases=["hello"])

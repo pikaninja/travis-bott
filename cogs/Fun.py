@@ -148,7 +148,7 @@ class Fun(BaseCog, name="fun"):
             )
 
     @commands.group(aliases=["cc"], invoke_without_command=True)
-    @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
+    @commands.cooldown(1, 60, commands.BucketType.member)
     async def cookieclick(self, ctx):
         """First person to click on the cookie wins!"""
 
@@ -171,7 +171,12 @@ class Fun(BaseCog, name="fun"):
         await msg.edit(embed=embed)
 
         def _check(r, u):
-            return u != ctx.bot.user and str(r.emoji) == "\N{COOKIE}"
+            return all((
+                u != ctx.bot.user,
+                str(r.emoji) == "\N{COOKIE}",
+                not u.bot,
+                r.message.id == msg.id
+            ))
 
         await msg.add_reaction("\N{COOKIE}")
         start = time.perf_counter()
@@ -190,7 +195,7 @@ class Fun(BaseCog, name="fun"):
     async def cookieclick_leaderboard(self, ctx):
         """Gives the leaderboard of all cookie clickers."""
 
-        fields = await self.bot.pool.fetch("SELECT * FROM cookies order by cookies desc")
+        fields = await self.bot.pool.fetch("SELECT * FROM cookies order by cookies DESC LIMIT 100")
 
         desc = []
 
@@ -198,7 +203,8 @@ class Fun(BaseCog, name="fun"):
             user = self.bot.get_user(field["user_id"])
             desc.append(f"{user} - {field['cookies']} cookies")
 
-        pages = menus.MenuPages(source=CookiesLBPage(ctx, desc), clear_reactions_after=True)
+        pages = menus.MenuPages(source=CookiesLBPage(
+            ctx, desc), clear_reactions_after=True)
         await pages.start(ctx)
 
     @commands.command(aliases=["fban"])
