@@ -1,3 +1,4 @@
+import json
 import time
 import typing
 import re
@@ -8,7 +9,7 @@ from discord.ext import commands
 from utils import utils
 from utils.Embed import Embed
 from utils.CustomCog import BaseCog
-from utils.Paginator import Menu
+import KalDiscordUtils
 
 
 class Misc(BaseCog, name="misc"):
@@ -17,6 +18,38 @@ class Misc(BaseCog, name="misc"):
     def __init__(self, bot, show_name):
         self.bot = bot
         self.show_name = show_name
+
+    @commands.command()
+    @commands.cooldown(5, 1, commands.BucketType.user)
+    async def rawmsg(self, ctx, message: discord.Message):
+        """Gets the raw JSON data of a message, if you don't know what that is, this command probably isn't for you.
+        """
+
+        async with self.bot.session.get(
+                f"https://discord.com/api/v8/channels/{message.channel.id}/messages/{message.id}",
+                headers={"Authorization": f"Bot {self.bot.http.token}"}) as r:
+            if r.status != 200:
+                return await ctx.send("So that just didn't work.")
+
+            r = await r.json()
+
+        formatted = json.dumps(r, indent=4)
+        msg = f"{formatted}"
+
+        if len(msg) > 2000:
+            paginator = commands.Paginator(
+                max_size=2000,
+                prefix="```json",
+                suffix="```"
+            )
+            paginator.add_line(line=msg[:1988])
+            paginator.add_line(line=msg[1988:])
+
+        if len(msg) < 2000:
+            await ctx.send(f"```json\n{msg}```")
+        else:
+            menu = KalDiscordUtils.Menu(paginator.pages, embed=False)
+            await menu.start(ctx)
 
     @commands.command(aliases=["dstatus"])
     async def discordstatus(self, ctx):

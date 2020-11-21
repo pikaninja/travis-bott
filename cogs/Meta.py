@@ -342,13 +342,13 @@ class Meta(BaseCog, name="meta"):
             ["Boosters", sum(1 for m in ctx.guild.premium_subscribers), True],
             ["Role Count", sum(1 for role in ctx.guild.roles), True],
             ["Voice Region", str(ctx.guild.region), True],
-            ["AFK Channel", str(ctx.guild.afk_channel), True],
+            ["AFK Channel", str(ctx.guild.afk_channel or "None"), True],
             [
                 "<:text_channel:762721785502236716> / <:voice_channel:762721785984188436>",
                 f"{sum(1 for tc in ctx.guild.text_channels)} / {sum(1 for vc in ctx.guild.voice_channels)}",
                 True,
             ],
-            ["Features", "\n".join(guild_features), False],
+            ["Features", "\n".join(guild_features) or "None", False],
         ]
 
         embed = Embed.default(
