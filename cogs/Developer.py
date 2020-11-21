@@ -23,6 +23,8 @@ from utils import utils
 from utils.Embed import Embed
 from utils.Paginator import BetterPaginator, Menu
 
+from selenium import webdriver
+
 time_regex = re.compile("(?:(\d{1,5})(h|s|m|d))+?")
 time_dict = {"h": 3600, "s": 1, "m": 60, "d": 86400}
 
@@ -122,29 +124,44 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             menu = Menu(paginator.pages, embed=False)
             await menu.start(ctx)
 
+    @dev.command(name="ss")
+    @is_owner()
+    async def dev_ss(self, ctx, url: str):
+        """Website screenshotting"""
+
+        def ss_website():
+            driver = webdriver.Chrome()
+            driver.get(url)
+            el = driver.find_element_by_tag_name('body')
+            el.screenshot("./scrape.png")
+            driver.quit()
+
+        await self.bot.loop.run_in_executor(None, ss_website())
+
     @dev.command(name="ocr")
     @is_owner()
     async def dev_ocr(self, ctx, url: str):
         """OCR Testing"""
 
-        async with self.bot.session.get(url) as response:
-            img_bytes = await response.read()
+        async with ctx.typing():
+            async with self.bot.session.get(url) as response:
+                img_bytes = await response.read()
 
-        def process_img(instream):
-            # Get Image to OCR
-            stream = io.BytesIO(instream)
-            img = Image.open(stream)
+            def process_img(instream):
+                # Get Image to OCR
+                stream = io.BytesIO(instream)
+                img = Image.open(stream)
 
-            return {"text": pytesseract.image_to_string(img)}
+                return {"text": pytesseract.image_to_string(img)}
 
-        data = await self.bot.loop.run_in_executor(None, process_img, img_bytes)
+            data = await self.bot.loop.run_in_executor(None, process_img, img_bytes)
 
-        embed = Embed.default(
-            ctx,
-            description=f"{data['text']}"
-        )
+            embed = Embed.default(
+                ctx,
+                description=f"{data['text']}"
+            )
 
-        embed.set_image(url=url)
+            embed.set_image(url=url)
 
         await ctx.send(embed=embed)
 

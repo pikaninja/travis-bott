@@ -4,6 +4,7 @@ import time
 import typing
 from typing import Optional
 
+import Levenshtein
 import humanize
 from decouple import config
 
@@ -194,3 +195,17 @@ class MemberID(commands.Converter):
 def format_time(dt):
     humanized = humanize.precisedelta(dt, suppress=["seconds"], format="%0.0f")
     return {"date": dt.strftime("%B %d %Y %I:%M:%S"), "precise": humanized}
+
+def get_best_difference(list_of_strings, string_main) -> typing.Union[None, str]:
+    differences = {}
+    values = []
+    for string in list_of_strings:
+        difference = Levenshtein.distance(string_main, string)
+        differences[string] = difference
+    for key, value in differences.items():
+        values.append(value)
+    values = sorted(values, reverse=False)
+    if values[0] > 5:
+        return None
+    differences = sorted(differences, key=differences.get, reverse=False)
+    return differences[0]

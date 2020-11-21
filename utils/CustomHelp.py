@@ -6,6 +6,8 @@ from utils import CustomContext
 from utils.CustomCog import BaseCog
 from utils.Paginator import GroupHelp, KalPages
 
+import Levenshtein
+
 
 class CustomHelp(commands.HelpCommand):
     def __init__(self, context=CustomContext, **options):
@@ -42,9 +44,15 @@ class CustomHelp(commands.HelpCommand):
         """My own impl of the command not found error."""
 
         if len(string) >= 50:
-            return f"Could not find the command `{string[:20]}...`."
+            difference = utils.get_best_difference([c.name for c in self.context.bot.commands], string)
+            if difference:
+                return f"Could not find the command `{string[:20]}...` did you mean `{difference}`?."
+            return f"Could not find the command `{string[:20]}...`"
         else:
-            return f"Could not find the command `{string}`."
+            difference = utils.get_best_difference([c.name for c in self.context.bot.commands], string)
+            if difference:
+                return f"Could not find the command `{string}` did you mean `{difference}`?."
+            return f"Could not find the command `{string}`"
 
     async def send_bot_help(self, mapping):
         embed = Embed.default(self.context, title="Bot Commands")
@@ -157,4 +165,4 @@ class CustomHelp(commands.HelpCommand):
     # yes I've even tried without my error handler, same result.
 
     # async def send_error_message(self, error):
-    #     await self.context.author.send(error)
+    #     await self.get_destination().send(error)
