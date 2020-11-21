@@ -116,3 +116,7 @@ class MyBot(commands.AutoShardedBot):
             f"SELECT * FROM {table} WHERE guild_id = $1", guild_id
         )
         return records[0]
+
+    async def reply(self, message_id, content=None, **kwargs):
+        message = self._connection._get_message(message_id)
+        await message.reply(content, **kwargs)

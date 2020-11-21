@@ -9,6 +9,7 @@ import traceback
 import re
 import time
 import logging
+import typing
 
 from PIL import Image
 import pytesseract
@@ -114,9 +115,8 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
     async def dev_ocr(self, ctx, url: str):
         """OCR Testing"""
 
-        async with ctx.typing():
-            async with self.bot.session.get(url) as response:
-                img_bytes = await response.read()
+        async with self.bot.session.get(url) as response:
+            img_bytes = await response.read()
 
             def process_img(instream):
                 # Get Image to OCR
@@ -134,44 +134,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
             embed.set_image(url=url)
 
-        await ctx.send(embed=embed)
-
-    @dev.command(name="test")
-    @is_owner()
-    async def dev_test(self, ctx):
-        """Testing cmd"""
-
-        embeds = [
-            Embed.default(ctx, title="Test 1"),
-            Embed.default(ctx, title="Test 2"),
-            Embed.default(ctx, title="Test 3")
-        ]
-
-        p = BetterPaginator(ctx, entries=embeds)
-        await p.paginate()
-
-    @dev.command(name="test2")
-    @is_owner()
-    async def dev_testtwo(self, ctx):
-        """Testing cmd 2 electric boogaloo"""
-
-        embeds = [
-            Embed.default(ctx, title="Test 1"),
-            Embed.default(ctx, title="Test 2"),
-            Embed.default(ctx, title="Test 3")
-        ]
-
-        texts = [
-            "1",
-            "2",
-            "3"
-        ]
-
-        p1 = Menu(embeds)
-        await p1.start(ctx)
-
-        p2 = Menu(texts, embed=False)
-        await p2.start(ctx)
+        await ctx.reply(embed=embed)
 
     @dev.command(name="stats")
     @is_owner()
@@ -256,6 +219,14 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         result = await self.bot.pool.execute(query)
         await ctx.send(f"Result of query: {result}")
 
+    @dev.command(name="fetch")
+    @is_owner()
+    async def dev_fetch(self, ctx, *, query):
+        """Executes an SQL statement for the bot."""
+
+        result = await self.bot.pool.fetch(query)
+        await ctx.send(f"Result of query: {result}")
+
     @dev.command(name="restart")
     @is_owner()
     async def dev_restart(self, ctx):
@@ -283,7 +254,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
     @dev.command(name="say")
     @is_owner()
-    async def dev_say(self, ctx, channel: discord.TextChannel = None, *, msg: str = None):
+    async def dev_say(self, ctx, channel: typing.Optional[discord.TextChannel], *, msg: str = None):
         """You can force the bot to say stuff, cool."""
 
         channel = channel or ctx.channel
@@ -346,7 +317,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
                 ctx,
                 description=f"Successfully reloaded:\n{', '.join([f'`{ext[5:]}`' for ext in self.bot.exts])}"
             )
-            await ctx.send(embed=embed)
+            await ctx.reply(embed=embed)
         else:
             try:
                 self.bot.reload_extension(cog)

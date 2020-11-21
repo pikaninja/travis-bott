@@ -4,7 +4,7 @@ from utils import utils
 from utils.Embed import Embed
 from utils import CustomContext
 from utils.CustomCog import BaseCog
-from utils.Paginator import GroupHelp, KalPages
+from utils.Paginator import GroupHelp, KalPages, MainHelp
 
 import Levenshtein
 
@@ -55,14 +55,7 @@ class CustomHelp(commands.HelpCommand):
             return f"Could not find the command `{string}`"
 
     async def send_bot_help(self, mapping):
-        embed = Embed.default(self.context, title="Bot Commands")
-        embed.description = (
-            f"{self.context.bot.description}\n"
-            + "`<arg> | Required`\n"
-            + "`[arg] | Optional`\n"
-            + "`<|[arg...]|> Takes multiple arguments, follows the same rules as above.`\n"
-        )
-
+        cats = []
         for cog, commands in mapping.items():
             if not hasattr(cog, "show_name"):
                 continue
@@ -71,16 +64,15 @@ class CustomHelp(commands.HelpCommand):
             if filtered:
                 all_cmds = " • ".join(f"`{c.name}`" for c in commands)
                 if cog and cog.description:
-                    embed.add_field(
-                        name=name, value=f">>> {all_cmds}\n", inline=False)
+                    cats.append([name, f">>> {all_cmds}\n"])
                 # value = " ".join("`" + c.name + "`" for c in commands)
                 # if cog and cog.description:
                 #     value = f"{cog.description}\n{value}"
 
                 # embed.add_field(name=name, value=value)
 
-        embed.set_footer(text=self.get_ending_note())
-        await self.get_destination().send(embed=embed)
+        menu = KalPages(source=MainHelp(self.context, cats))
+        await menu.start(self.context)
 
     async def send_cog_help(self, cog: BaseCog):
         if not hasattr(cog, "show_name"):

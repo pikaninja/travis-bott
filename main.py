@@ -4,8 +4,19 @@ from decouple import config
 from discord.flags import MemberCacheFlags
 import os
 import logging
+from logging.handlers import RotatingFileHandler
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    level=logging.INFO,
+    filename="./logs/discord.log",
+    filemode="w"
+)
+
+log = logging.getLogger(__name__)
+handler = RotatingFileHandler("./logs/discord.log",
+                              maxBytes=5242880, # 5 Megabytes
+                              backupCount=1)
+log.addHandler(handler)
 
 new_guilds = False
 
@@ -48,6 +59,7 @@ bot.exts = [
     "cogs.Management",
     "cogs.Moderation",
     "cogs.Fun",
+    "cogs.ImageManipulation",
     "cogs.Misc",
 ]
 

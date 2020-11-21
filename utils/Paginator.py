@@ -54,6 +54,30 @@ class KalPages(menus.MenuPages):
         self.bot.loop.create_task(go_back_to_current_page())
 
 
+class MainHelp(menus.ListPageSource):
+    def __init__(self, ctx, categories: list):
+        super().__init__(entries=categories, per_page=4)
+        self.ctx = ctx
+
+    async def format_page(self, menu, category):
+        embed = Embed.default(
+            self.ctx,
+            title="Bot Help",
+            description= (
+                f"{self.ctx.bot.description}\n"
+                + "`<arg> | Required`\n"
+                + "`[arg] | Optional`\n"
+                + "`<|[arg...]|> Takes multiple arguments, follows the same rules as above.`\n"
+            )
+        )
+        embed.set_footer(text=f"Use {self.ctx.prefix}help command for more info on a command.")
+
+        for k, v in category:
+            embed.add_field(name=k, value=v, inline=False)
+
+        return embed
+
+
 class GroupHelp(menus.ListPageSource):
     def __init__(self, ctx, group, cmds, *, prefix):
         super().__init__(entries=cmds, per_page=4)
