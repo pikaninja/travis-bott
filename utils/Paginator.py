@@ -12,6 +12,17 @@ NEXT_PAGE = "\N{BLACK RIGHTWARDS ARROW}"
 
 PAGINATION_EMOJI = (LAST_PAGE, NEXT_PAGE, END_PAGE)
 
+class LPS(menus.ListPageSource):
+    def __init__(self, ctx, data):
+        super().__init__(data, per_page=10)
+        self.ctx = ctx
+
+    async def format_page(self, menu, entries):
+        embed = Embed.default(
+            self.ctx,
+            description="\n".join(entries)
+        )
+        return embed
 
 class KalPages(menus.MenuPages):
     def __init__(self, source, **kwargs):

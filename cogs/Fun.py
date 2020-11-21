@@ -131,6 +131,15 @@ class Fun(BaseCog, name="fun"):
             "red",
         ]
 
+    async def do_dagpi_stuff(self, user, feature) -> discord.File:
+        dagpi = asyncdagpi.Client(config("DAGPI"))
+        url = str(user.avatar_url_as(static_format="png"))
+        img = await dagpi.image_process(feature, url)
+        img_file = discord.File(fp=img.image, filename=f"image.{img.format}")
+        await dagpi.close()
+
+        return img_file
+
     async def handle_cookies(self, user: discord.Member):
         """Handles added cookies to user"""
 
@@ -218,18 +227,26 @@ class Fun(BaseCog, name="fun"):
             allowed_mentions=allowed_mentions
         )
 
-    # @commands.command()
-    # @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
-    # async def wanted(self, ctx, user: discord.Member = None):
-    #     """Puts a members user avatar on a wanted poster."""
+    @commands.command()
+    @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
+    async def wanted(self, ctx, user: discord.Member = None):
+        """Puts a members user avatar on a wanted poster."""
 
-    #     dagpi = asyncdagpi.Client(config("DAGPI"))
-    #     user = user or ctx.author
-    #     url = str(user.avatar_url_as(static_format="png"))
-    #     img = await dagpi.image_process(ImageFeatures.wanted(), url)
-    #     img_file = discord.File(fp=img.image, filename=f"wanted.{img.format}")
-    #     await ctx.send(content=f"Hands up **{user.name}!**", file=img_file)
-    #     await dagpi.close()
+        user = user or ctx.author
+        img_file = await self.do_dagpi_stuff(user, ImageFeatures.wanted())
+        await ctx.send(content=f"Hands up **{user.name}!**", file=img_file)
+
+    @commands.command()
+    @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
+    async def colours(self, ctx, user: discord.Member = None):
+        """Gives you the top 5 colours of your own or someone elses profile picture."""
+
+        user = user or ctx.author
+        img_file = await self.do_dagpi_stuff(user, ImageFeatures.colors())
+        await ctx.send(
+            f"Top 5 Colours for {user}",
+            file=img_file
+        )
 
     @commands.command()
     @commands.cooldown(1, standard_cooldown, commands.BucketType.member)

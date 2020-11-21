@@ -14,7 +14,7 @@ from PIL import Image
 import pytesseract
 
 import discord
-from discord.ext import tasks
+from discord.ext import tasks, commands
 from discord.ext.commands import (
     Cog, is_owner, BadArgument, group, Converter
 )
@@ -92,6 +92,35 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
     @is_owner()
     async def dev(self, ctx):
         await ctx.send_help(ctx.command)
+
+    @dev.command(name="msg")
+    @is_owner()
+    async def dev_msg(self, ctx, message: discord.Message):
+        async with self.bot.session.get(
+                f"https://discord.com/api/v8/channels/{message.channel.id}/messages/{message.id}",
+                headers={"Authorization": f"Bot {self.bot.http.token}"}) as r:
+            if r.status != 200:
+                return await ctx.send("So that just didn't work.")
+
+            r = await r.json()
+
+        formatted = json.dumps(r, indent=4)
+        msg = f"{formatted}"
+
+        if len(msg) > 2000:
+            paginator = commands.Paginator(
+                max_size=2000,
+                prefix="```json",
+                suffix="```"
+            )
+            paginator.add_line(line=msg[:1988])
+            paginator.add_line(line=msg[1988:])
+
+        if len(msg) < 2000:
+            await ctx.send(f"```json\n{msg}```")
+        else:
+            menu = Menu(paginator.pages, embed=False)
+            await menu.start(ctx)
 
     @dev.command(name="ocr")
     @is_owner()

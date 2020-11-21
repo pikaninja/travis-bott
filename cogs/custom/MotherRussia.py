@@ -65,7 +65,7 @@ class MotherRussia(Cog, command_attrs=dict(hidden=True)):
 
     @command(name="nuke")
     async def mr_nuke(self, ctx):
-        if ctx.guild.id != self.id:
+        if ctx.guild.id not in [self.id, 779233819923709963]:
             return
         await ctx.send(
             "'Platform is a nuke bot guys!' or something along those lines - Arooster 2k20"

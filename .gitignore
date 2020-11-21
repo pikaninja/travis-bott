@@ -9,3 +9,4 @@ __pycache__/
 /cogs/custom/__pycache__/
 /events/__pycache__/
 /utils/__pycache__/
+requirements.txt

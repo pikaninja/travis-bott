@@ -436,7 +436,7 @@ class Meta(BaseCog, name="meta"):
                     title=f"Definition of {word}"
                 )
 
-                embed.set_footer(title=f"Definition by: {author}")
+                embed.set_footer(text=f"Definition by: {author}")
                 embed.url = perma_link
 
                 embed.set_author(
