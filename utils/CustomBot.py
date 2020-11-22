@@ -93,7 +93,7 @@ class MyBot(commands.AutoShardedBot):
         ):
             prefix = self.cache["prefixes"][message.guild.id]
             await message.channel.send(
-                "Hey I saw you mentioned me, incase you didn't know my prefix "
+                "Hey I saw you mentioned me, in case you didn't know my prefix "
                 f"here is `{prefix}`."
             )
 
