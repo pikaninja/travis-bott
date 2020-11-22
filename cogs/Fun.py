@@ -396,14 +396,6 @@ class Fun(BaseCog, name="fun"):
     async def _8ball(self, ctx, *, query: str):
         """Ask the oh so magic 8ball a question."""
 
-        sadness = ["kms", "kill myself", "i want to die", "depressed"]
-
-        for word in sadness:
-            if word in query.lower():
-                return await ctx.send(
-                    "If you're in a position where you're ever depressed or want to kill yourself, please talk to someone about it. You can contact the developer (kal#1806) if you'd like to :)"
-                )
-
         await ctx.send(f"🎱 {ctx.author.mention}, {random.choice(self._8ballResponse)}")
 
     @commands.command()

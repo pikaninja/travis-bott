@@ -134,7 +134,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
             embed.set_image(url=url)
 
-        await ctx.reply(embed=embed)
+        await ctx.send(embed=embed)
 
     @dev.command(name="stats")
     @is_owner()
@@ -317,7 +317,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
                 ctx,
                 description=f"Successfully reloaded:\n{', '.join([f'`{ext[5:]}`' for ext in self.bot.exts])}"
             )
-            await ctx.reply(embed=embed)
+            await ctx.send(embed=embed)
         else:
             try:
                 self.bot.reload_extension(cog)

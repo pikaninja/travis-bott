@@ -92,8 +92,8 @@ class Misc(BaseCog, name="misc"):
                 description="\n".join(comp_list)
             )
 
-            p = Menu([main_embed, components_embed],
-                     clear_reactions_after=True)
+            p = KalDiscordUtils.Menu([main_embed, components_embed],
+                                     clear_reactions_after=True)
             await p.start(ctx)
 
     @commands.command(aliases=["latency"])

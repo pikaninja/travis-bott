@@ -32,7 +32,7 @@ bot = MyBot(
     status=Status.dnd,
     activity=Game(name="Connecting..."),  # Connecting to the gateway :thonk:
     case_insensitive=True,
-    max_messages=100,  # Minimum we can cache, just drops resource usage.
+    max_messages=1000,
     allowed_mentions=my_mentions,
     intents=my_intents,
     member_cache_flags=stuff_to_cache,

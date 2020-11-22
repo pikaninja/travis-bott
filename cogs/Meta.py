@@ -675,14 +675,13 @@ class Meta(BaseCog, name="meta"):
         Up to ten.
 
         Query:
-        To have multiple options (for 1) seperate them with |"""
+        To have multiple options (for 1) separate them with |"""
 
         if mode == 0:
             embed = Embed.default(
                 ctx,
                 description=str("".join(query))
             )
-            embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
             msg = await ctx.send(embed=embed)
 
             await msg.add_reaction("👍")
@@ -710,8 +709,7 @@ class Meta(BaseCog, name="meta"):
                 )
 
             embed = Embed.default(ctx)
-            embed.set_author(name=ctx.author, icon_url=ctx.author.avatar_url)
-            print(query)
+
             for _ in range(amount):
                 embed.add_field(name=str(_ + 1), value=query[_])
 

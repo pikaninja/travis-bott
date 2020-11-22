@@ -413,9 +413,10 @@ class Moderation(BaseCog, name="moderation"):
         """Bans someone for a given reason.
         Permissions needed: `Ban Members`"""
 
-        # if not re.fullmatch('[0-9]{17,18}', user.id):
-        #     if await utils.is_target_staff(ctx, user):
-        #         return await ctx.send("😬 That person is staff...")
+        if isinstance(user, discord.Member):
+            staff_check = await utils.is_target_staff(ctx, user)
+            if staff_check:
+                return await ctx.send("You can't ban them!")
 
         try:
             await ctx.guild.ban(user, reason=f"{reason} | Responsible User: {ctx.author}")

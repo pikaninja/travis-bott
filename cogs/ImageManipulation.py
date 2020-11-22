@@ -51,7 +51,7 @@ class ImageManipulation(BaseCog, name="imagemanipulation"):
 
         user = user or ctx.author
         img_file = await do_dagpi_stuff(user, ImageFeatures.pixel())
-        await ctx.reply(file=img_file)
+        await ctx.send(file=img_file)
 
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
