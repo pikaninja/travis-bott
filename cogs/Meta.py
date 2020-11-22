@@ -667,28 +667,15 @@ class Meta(BaseCog, name="meta"):
             await ctx.send(embed=embed)
 
     @commands.command()
-    async def poll(self, ctx, mode: typing.Optional[int] = 0, *, query: str):
-        """Starts a poll with a given query.
-        Modes:
-        0 (Default) -> Standard poll, adds Yes, No and Maybe emoji.
-        1 -> Numbered poll, adds as many options as you give queries.
-        Up to ten.
+    async def poll(self, ctx, *, query: str):
+        """Poll System:
+        To create a standard poll just do:
+        {prefix}poll [Poll Question Here]
+        To create a multiple choice poll do:
+        {prefix}poll Question Here ? Choices, Here, Split, By, Commas
+        """
 
-        Query:
-        To have multiple options (for 1) separate them with |"""
-
-        if mode == 0:
-            embed = Embed.default(
-                ctx,
-                description=str("".join(query))
-            )
-            msg = await ctx.send(embed=embed)
-
-            await msg.add_reaction("👍")
-            await msg.add_reaction("👎")
-            await msg.add_reaction("🤷‍♀️")
-        elif mode == 1:
-            query = query.split("|")
+        if len(multi := query.split(" ? ")) > 1:
             emojis = [
                 "1️⃣",
                 "2️⃣",
@@ -701,23 +688,29 @@ class Meta(BaseCog, name="meta"):
                 "9️⃣",
                 "🔟",
             ]
-            amount = len(query)
-
-            if amount > 10:
-                return await ctx.send(
-                    "There are too many queries! We'll hopefully allow more soon."
-                )
-
-            embed = Embed.default(ctx)
-
-            for _ in range(amount):
-                embed.add_field(name=str(_ + 1), value=query[_])
+            embed = Embed.default(ctx,
+                                  title=multi[0],
+                                  description="")
+            choices = multi[1].split(", ")
+            for i in range(len(choices)):
+                embed.description += f"{emojis[i]} {choices[i]}\n"
 
             msg = await ctx.send(embed=embed)
 
-            for _ in range(amount):
-                await msg.add_reaction(emojis[_])
+            for i in range(len(choices)):
+                await msg.add_reaction(emojis[i])
+        else:
+            emojis = [
+                "\N{THUMBS UP SIGN}",
+                "\N{THUMBS DOWN SIGN}"
+            ]
+            embed = Embed.default(ctx,
+                                  title=query)
 
+            msg = await ctx.send(embed=embed)
+
+            for emoji in emojis:
+                await msg.add_reaction(emoji)
 
 def setup(bot):
     bot.add_cog(Meta(bot, "🤖 Meta"))
