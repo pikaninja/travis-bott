@@ -1,3 +1,5 @@
+import datetime
+
 from utils.CustomBot import MyBot
 from discord import Game, Status, AllowedMentions, Intents
 from decouple import config
@@ -62,6 +64,9 @@ bot.exts = [
     "cogs.ImageManipulation",
     "cogs.Misc",
 ]
+
+if datetime.datetime.utcnow().month == 11 or datetime.datetime.utcnow().month == 12:
+    bot.exts.append("cogs.Christmas")
 
 os.environ["JISHAKU_HIDE"] = "True"
 os.environ["JISHAKU_NO_UNDERSCORE"] = "True"

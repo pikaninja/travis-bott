@@ -19,8 +19,9 @@ from decouple import config
 
 async def get_prefix(bot: commands.AutoShardedBot, message: discord.Message):
     if (
-        message.author.id == bot.owner_id and
-            message.content.startswith(("dev", "jsk"))
+        bot.user.id == 706530005169209386 and
+            message.author.id == bot.owner_id and
+                message.content.startswith(("dev", "jsk"))
     ):
         return ""
     if message.guild is None:

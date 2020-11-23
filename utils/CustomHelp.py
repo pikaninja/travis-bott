@@ -148,9 +148,12 @@ class CustomHelp(commands.HelpCommand):
         embed = Embed.default(self.context)
         embed.title = self.get_command_signature(command)
         if command.description:
-            embed.description = f"{command.description}\n\n{command.help}"
+            embed.description = (
+                f"{command.description.format(prefix=self.clean_prefix)}\n\n"
+                f"{command.help.format(prefix=self.clean_prefix)}"
+            )
         else:
-            embed.description = command.help or "No help found..."
+            embed.description = command.help.format(prefix=self.clean_prefix) or "No help found..."
         await self.get_destination().send(embed=embed)
 
     # This doesnt appear to work...

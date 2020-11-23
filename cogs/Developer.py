@@ -11,6 +11,8 @@ import time
 import logging
 import typing
 
+import KalDiscordUtils
+from jishaku import codeblocks
 from PIL import Image
 import pytesseract
 
@@ -22,7 +24,7 @@ from discord.ext.commands import (
 
 from utils import utils
 from utils.Embed import Embed
-from utils.Paginator import BetterPaginator, Menu
+from utils.Paginator import BetterPaginator, Menu, LPS, KalPages
 
 from selenium import webdriver
 
@@ -213,25 +215,32 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
     @dev.command(name="sql")
     @is_owner()
-    async def dev_sql(self, ctx, *, query):
+    async def dev_sql(self, ctx, *, query: str):
         """Executes an SQL statement for the bot."""
 
-        result = await self.bot.pool.execute(query)
-        await ctx.send(f"Result of query: {result}")
+        if query.lower().startswith("select"):
+            stratergy = self.bot.pool.fetch
+        else:
+            stratergy = self.bot.pool.execute
 
-    @dev.command(name="fetch")
-    @is_owner()
-    async def dev_fetch(self, ctx, *, query):
-        """Executes an SQL statement for the bot."""
-
-        result = await self.bot.pool.fetch(query)
-        await ctx.send(f"Result of query: {result}")
+        result = await stratergy(query)
+        paginate = commands.Paginator()
+        if len(result) < 1994:
+            paginate.add_line(result[1994:])
+            paginate.add_line(result[:1994])
+            menu = KalDiscordUtils.Menu(paginate.pages, embed=False)
+            await menu.start(ctx)
+        else:
+            await ctx.send(f"Result of that:\n{result}")
 
     @dev.command(name="restart")
     @is_owner()
     async def dev_restart(self, ctx):
         await ctx.send("⚠ Restarting now...")
-        os.system("systemctl restart travis")
+        if self.bot.user.id == 706530005169209386:
+            os.system("systemctl restart travis")
+        else:
+            os.system("systemctl restart mybot")
 
     @dev.command()
     @is_owner()
