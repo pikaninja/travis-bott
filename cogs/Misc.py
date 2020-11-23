@@ -46,10 +46,11 @@ class Misc(BaseCog, name="misc"):
             paginator.add_line(line=msg[1988:])
 
         if len(msg) < 2000:
-            await ctx.send(f"```json\n{msg}```")
+            message = await ctx.send(f"```json\n{msg}```")
+            await self.bot.add_delete_reaction(ctx.channel.id, message.id)
         else:
             menu = KalDiscordUtils.Menu(paginator.pages, embed=False)
-            await menu.start(ctx)
+            start_menu = await menu.start(ctx)
 
     @commands.command(aliases=["dstatus"])
     async def discordstatus(self, ctx):

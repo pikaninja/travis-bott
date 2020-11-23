@@ -121,3 +121,36 @@ class MyBot(commands.AutoShardedBot):
     async def reply(self, message_id, content=None, **kwargs):
         message = self._connection._get_message(message_id)
         await message.reply(content, **kwargs)
+
+    async def add_delete_reaction(self, channel_id, message_id):
+        """Adds a reaction to delete the given message."""
+
+        channel = self.get_channel(channel_id)
+
+        if channel is None:
+            return
+
+        message = await channel.fetch_message(message_id)
+
+        if message is None:
+            return
+
+        await message.add_reaction("\N{WASTEBASKET}")
+
+        def _check(_reaction, _user):
+            return _user != self.user and str(_reaction.emoji) == "\N{WASTEBASKET}"
+
+        try:
+            reaction, user = await self.wait_for(
+                "reaction_add",
+                timeout=10.0,
+                check=_check
+            )
+        except asyncio.TimeoutError:
+            pass
+        else:
+            try:
+                await message.delete()
+                await channel.send(f"Message was delete by {user}")
+            except (discord.Forbidden, discord.HTTPException):
+                pass
