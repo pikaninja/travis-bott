@@ -192,9 +192,11 @@ class MemberID(commands.Converter):
                 )
             return m
 
+
 def format_time(dt):
     humanized = humanize.precisedelta(dt, suppress=["seconds"], format="%0.0f")
     return {"date": dt.strftime("%B %d %Y %I:%M:%S"), "precise": humanized}
+
 
 def get_best_difference(list_of_strings, string_main) -> typing.Union[None, str]:
     differences = {}

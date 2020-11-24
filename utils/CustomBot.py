@@ -14,14 +14,12 @@ from utils.CustomContext import CustomContext
 
 import config as cfg
 
-from decouple import config
-
 
 async def get_prefix(bot: commands.AutoShardedBot, message: discord.Message):
     if (
         bot.user.id == 706530005169209386 and
             message.author.id == bot.owner_id and
-                message.content.startswith(("dev", "jsk"))
+        message.content.startswith(("dev", "jsk"))
     ):
         return ""
     if message.guild is None:

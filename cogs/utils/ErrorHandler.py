@@ -66,7 +66,7 @@ class ErrorHandler(Cog):
     @Cog.listener()
     async def on_command_error(self, ctx, error):
         ignored_errors = (
-            #commands.CommandNotFound,
+            commands.CommandNotFound,
             commands.PartialEmojiConversionFailure,
         )
 
@@ -91,17 +91,6 @@ class ErrorHandler(Cog):
             error, owner_reinvoke_errors
         ):
             return await ctx.reinvoke()
-
-        elif isinstance(error, commands.CommandNotFound):
-            difference = utils.get_best_difference([c.name for c in self.bot.commands], ctx.message.content)
-            if difference:
-                return await self.send_to_ctx_or_author(
-                    ctx,
-                    embed=Embed.error(
-                        description=f"That command doesn't exist... did you mean `{difference}`?"
-                    )
-                )
-            return
 
         # Command failed global check
         elif isinstance(error, commands.CheckFailure):

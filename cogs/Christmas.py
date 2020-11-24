@@ -1,6 +1,8 @@
 import asyncio
+import datetime
 import random
 
+import KalDiscordUtils
 import discord
 from discord.ext import commands
 
@@ -13,6 +15,18 @@ class Christmas(BaseCog, name="christmas"):
     def __init__(self, bot, show_name):
         self.bot = bot
         self.show_name = show_name
+
+    @commands.command()
+    async def howlong(self, ctx):
+        """Gives you how long it is until Christmas."""
+
+        time = datetime.datetime(year=2020, month=12, day=25)
+        formatted_time = KalDiscordUtils.format_time(time)
+        embed = KalDiscordUtils.Embed.default(
+            ctx,
+            title=f"{formatted_time['precise']} until {formatted_time['date']}"
+        )
+        await ctx.send(embed=embed)
 
     @commands.command()
     async def snowballfight(self, ctx, user: discord.Member):

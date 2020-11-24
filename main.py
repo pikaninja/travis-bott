@@ -16,7 +16,7 @@ logging.basicConfig(
 
 log = logging.getLogger(__name__)
 handler = RotatingFileHandler("./logs/discord.log",
-                              maxBytes=5242880, # 5 Megabytes
+                              maxBytes=5242880,  # 5 Megabytes
                               backupCount=1)
 log.addHandler(handler)
 
@@ -38,7 +38,7 @@ bot = MyBot(
     allowed_mentions=my_mentions,
     intents=my_intents,
     member_cache_flags=stuff_to_cache,
-    chunk_guilds_at_startup=True,
+    chunk_guilds_at_startup=False,
 )
 
 bot.version = "But Better"
@@ -146,6 +146,5 @@ async def is_cmd_disabled(ctx):
         return False
     else:
         return True
-
 
 bot.run(config("BOT_TOKEN"))

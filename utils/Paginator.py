@@ -12,6 +12,7 @@ NEXT_PAGE = "\N{BLACK RIGHTWARDS ARROW}"
 
 PAGINATION_EMOJI = (LAST_PAGE, NEXT_PAGE, END_PAGE)
 
+
 class LPS(menus.ListPageSource):
     def __init__(self, ctx, data):
         super().__init__(data, per_page=10)
@@ -23,6 +24,7 @@ class LPS(menus.ListPageSource):
             description="\n".join(entries)
         )
         return embed
+
 
 class KalPages(menus.MenuPages):
     def __init__(self, source, **kwargs):
@@ -63,14 +65,15 @@ class MainHelp(menus.ListPageSource):
         embed = Embed.default(
             self.ctx,
             title="Bot Help",
-            description= (
+            description=(
                 f"{self.ctx.bot.description}\n"
                 + "`<arg> | Required`\n"
                 + "`[arg] | Optional`\n"
                 + "`<|[arg...]|> Takes multiple arguments, follows the same rules as above.`\n"
             )
         )
-        embed.set_footer(text=f"Use {self.ctx.prefix}help command for more info on a command.")
+        embed.set_footer(
+            text=f"Use {self.ctx.prefix}help command for more info on a command.")
 
         for k, v in category:
             embed.add_field(name=k, value=v, inline=False)

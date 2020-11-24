@@ -44,14 +44,14 @@ class CustomHelp(commands.HelpCommand):
         """My own impl of the command not found error."""
 
         if len(string) >= 50:
-            difference = utils.get_best_difference([c.name for c in self.context.bot.commands], string)
-            if difference:
-                return f"Could not find the command `{string[:20]}...` did you mean `{difference}`?."
+            # difference = utils.get_best_difference([c.name for c in self.context.bot.commands], string)
+            # if difference:
+            #     return f"Could not find the command `{string[:20]}...` did you mean `{difference}`?."
             return f"Could not find the command `{string[:20]}...`"
         else:
-            difference = utils.get_best_difference([c.name for c in self.context.bot.commands], string)
-            if difference:
-                return f"Could not find the command `{string}` did you mean `{difference}`?."
+            # difference = utils.get_best_difference([c.name for c in self.context.bot.commands], string)
+            # if difference:
+            #     return f"Could not find the command `{string}` did you mean `{difference}`?."
             return f"Could not find the command `{string}`"
 
     async def send_bot_help(self, mapping):
@@ -153,7 +153,8 @@ class CustomHelp(commands.HelpCommand):
                 f"{command.help.format(prefix=self.clean_prefix)}"
             )
         else:
-            embed.description = command.help.format(prefix=self.clean_prefix) or "No help found..."
+            embed.description = command.help.format(
+                prefix=self.clean_prefix) or "No help found..."
         await self.get_destination().send(embed=embed)
 
     # This doesnt appear to work...

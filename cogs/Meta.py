@@ -381,7 +381,8 @@ class Meta(BaseCog, name="meta"):
         fields = [
             ["Channel Type:", f"{channel.type}"],
             ["Channel Category:", f"{channel.category.name}"],
-            ["Created At:", f"{utils.format_time(channel.created_at)['date']}"],
+            ["Created At:",
+                f"{utils.format_time(channel.created_at)['date']}"],
         ]
 
         if isinstance(channel, discord.TextChannel):
@@ -711,6 +712,7 @@ class Meta(BaseCog, name="meta"):
 
             for emoji in emojis:
                 await msg.add_reaction(emoji)
+
 
 def setup(bot):
     bot.add_cog(Meta(bot, "🤖 Meta"))
