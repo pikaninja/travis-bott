@@ -149,6 +149,6 @@ class MyBot(commands.AutoShardedBot):
         else:
             try:
                 await message.delete()
-                await channel.send(f"Message was delete by {user}")
+                await channel.send(f"Message was deleted by {user}")
             except (discord.Forbidden, discord.HTTPException):
                 pass

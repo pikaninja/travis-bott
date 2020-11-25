@@ -88,17 +88,17 @@ cogs = [
 
 for cog in cogs:
     bot.load_extension(cog)
-    logging.info(f"-> [MODULE] {cog[5:]} loaded.")
+    log.info(f"-> [MODULE] {cog[5:]} loaded.")
 
 for ext in bot.exts:
     bot.load_extension(ext)
-    logging.info(f"-> [MODULE] {ext[5:]} loaded.")
+    log.info(f"-> [MODULE] {ext[5:]} loaded.")
 
 # Utilities
 for file in os.listdir("./cogs/utils"):
     if file.endswith(".py"):
         bot.load_extension(f"cogs.utils.{file[:-3]}")
-        logging.info(f"-> [MODULE] {file[:-3]} loaded.")
+        log.info(f"-> [MODULE] {file[:-3]} loaded.")
 
 """
 Y'know if you have a lot of cogs, it's just easier loading them this way.
@@ -108,7 +108,7 @@ Y'know if you have a lot of cogs, it's just easier loading them this way.
 for file in os.listdir("./events"):
     if file.endswith(".py"):
         bot.load_extension(f"events.{file[:-3]}")
-        logging.info(f"-> [EVENT] {file[:-3]} loaded.")
+        log.info(f"-> [EVENT] {file[:-3]} loaded.")
 
 
 @bot.event
@@ -118,9 +118,9 @@ async def on_ready():
         activity=Game(name=config("BOT_STATUS"))
     )  # Set the status
     # Basic info on the bot @ startup
-    logging.info(f"Logged in as -> {bot.user.name}")
-    logging.info(f"Client ID -> {bot.user.id}")
-    logging.info(f"Guild Count -> {len(bot.guilds)}")
+    log.info(f"Logged in as -> {bot.user.name}")
+    log.info(f"Client ID -> {bot.user.id}")
+    log.info(f"Guild Count -> {len(bot.guilds)}")
 
     # Makes sure that all the guilds the bot is in are registered in the database
     # This may need to be used IF the bot is offline and gets added to new servers
@@ -137,7 +137,7 @@ async def on_ready():
     if (
         new_guilds
     ):  # Just tell me if there's any guilds that got added if the bot was down
-        logging.info("-> Added new guild(s) to database.")
+        log.info("-> Added new guild(s) to database.")
 
 
 @bot.check

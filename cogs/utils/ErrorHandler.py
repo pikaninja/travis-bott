@@ -1,5 +1,6 @@
 import Levenshtein
 import discord
+from jishaku import paginators
 from discord.ext import commands
 from discord.ext.commands import Cog
 

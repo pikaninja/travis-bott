@@ -3,6 +3,15 @@ from discord.ext import commands
 
 
 class CustomContext(commands.Context):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    @property
+    def db(self):
+        """Returns bot.pool"""
+
+        return self.bot.pool
+
     async def thumbsup(self):
         """Adds a thumbs up emoji to a message"""
 
