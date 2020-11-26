@@ -22,26 +22,6 @@ async def do_dagpi_stuff(user, feature) -> discord.File:
     await dagpi.close()
     return img_file
 
-class Manipulation:
-
-    @staticmethod
-    def solarize_image(b: bytes):
-        image = Image(b)
-        image.solarize()
-        save_bytes = image.save_bytes()
-        io_bytes = BytesIO(save_bytes)
-
-        return io_bytes
-
-    @staticmethod
-    def brighten_image(b: bytes, amount: int):
-        image = Image(b)
-        image.brighten(amount)
-        save_bytes = image.save_bytes()
-        io_bytes = BytesIO(save_bytes)
-
-        return io_bytes
-
 
 class ImageManipulation(BaseCog, name="imagemanipulation"):
     """Image Manipulation"""
@@ -49,6 +29,80 @@ class ImageManipulation(BaseCog, name="imagemanipulation"):
     def __init__(self, bot, show_name):
         self.bot = bot
         self.show_name = show_name
+
+    class Manipulation:
+
+        @staticmethod
+        def solarize_image(b: bytes):
+            image = Image(b)
+            image.solarize()
+            save_bytes = image.save_bytes()
+            io_bytes = BytesIO(save_bytes)
+
+            return io_bytes
+
+        @staticmethod
+        def brighten_image(b: bytes, amount: int):
+            image = Image(b)
+            image.brighten(amount)
+            save_bytes = image.save_bytes()
+            io_bytes = BytesIO(save_bytes)
+
+            return io_bytes
+
+        @staticmethod
+        def facetime(image_one_bytes: bytes,
+                     image_two_bytes: bytes):
+
+            image_one = Image(image_one_bytes)
+            if image_one.width < 1024 and image_one.height < 1024:
+                image_one.resize(1024, 1024, 1)
+
+            if image_one.width > 1024 and image_one.height > 1024:
+                image_one.resize(1024, 1024, 1)
+
+            image_two = Image(image_two_bytes)
+            if image_two.width < 256 and image_two.height < 256:
+                image_two.resize(256, 256, 1)
+
+            if image_two.width > 256 and image_two.height > 256:
+                image_two.resize(256, 256, 1)
+
+            facetime_buttons = Image("./data/facetimebuttons.png")
+            facetime_buttons.resize(1024, 1024, 1)
+
+            image_one.watermark(image_two, 15, 15)
+            image_one.watermark(facetime_buttons, 0, 390)
+            io_bytes = BytesIO(image_one.save_bytes())
+
+            return io_bytes
+
+    @commands.command()
+    @commands.cooldown(1, 3, commands.BucketType.member)
+    async def facetime(self, ctx, user: discord.Member):
+        """Facetime with another user."""
+
+        start_time = time.perf_counter()
+        author_image = await ctx.author.avatar_url_as(static_format="png", size=1024).read()
+        user_image = await user.avatar_url_as(static_format="png", size=256).read()
+
+        func = functools.partial(self.Manipulation.facetime, user_image, author_image)
+        image_bytes = await self.bot.loop.run_in_executor(None, func)
+
+        file = discord.File(image_bytes, filename="facetime.png")
+        embed = KalDiscordUtils.Embed.default(
+            ctx,
+            title=f"yoooo y'all are facetiming"
+        )
+        embed.set_image(url="attachment://facetime.png")
+        end_time = time.perf_counter()
+
+        time_taken = f"{end_time - start_time:,.2f}"
+        await ctx.send(
+            content=f"Finished processing in: `{time_taken} seconds`",
+            file=file,
+            embed=embed
+        )
 
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
@@ -59,7 +113,7 @@ class ImageManipulation(BaseCog, name="imagemanipulation"):
         user = user or ctx.author
         user_image = await user.avatar_url_as(static_format="png").read()
 
-        func = functools.partial(Manipulation.brighten_image, user_image, amount)
+        func = functools.partial(self.Manipulation.brighten_image, user_image, amount)
         image_bytes = await self.bot.loop.run_in_executor(None, func)
 
         file = discord.File(image_bytes, filename="brightened.png")
@@ -86,7 +140,7 @@ class ImageManipulation(BaseCog, name="imagemanipulation"):
         user = user or ctx.author
         user_image = await user.avatar_url_as(static_format="png").read()
 
-        func = functools.partial(Manipulation.solarize_image, user_image)
+        func = functools.partial(self.Manipulation.solarize_image, user_image)
         image_bytes = await self.bot.loop.run_in_executor(None, func)
 
         file = discord.File(image_bytes, filename="solarize.png")
