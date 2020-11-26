@@ -1,8 +1,15 @@
+import functools
+import time
+import typing
+from io import BytesIO
+
+import KalDiscordUtils
 import asyncdagpi
 import discord
 from asyncdagpi import ImageFeatures
 from decouple import config
 from discord.ext import commands
+from polaroid.polaroid import Image
 
 from utils.CustomCog import BaseCog
 
@@ -15,6 +22,26 @@ async def do_dagpi_stuff(user, feature) -> discord.File:
     await dagpi.close()
     return img_file
 
+class Manipulation:
+
+    @staticmethod
+    def solarize_image(b: bytes):
+        image = Image(b)
+        image.solarize()
+        save_bytes = image.save_bytes()
+        io_bytes = BytesIO(save_bytes)
+
+        return io_bytes
+
+    @staticmethod
+    def brighten_image(b: bytes, amount: int):
+        image = Image(b)
+        image.brighten(amount)
+        save_bytes = image.save_bytes()
+        io_bytes = BytesIO(save_bytes)
+
+        return io_bytes
+
 
 class ImageManipulation(BaseCog, name="imagemanipulation"):
     """Image Manipulation"""
@@ -22,6 +49,60 @@ class ImageManipulation(BaseCog, name="imagemanipulation"):
     def __init__(self, bot, show_name):
         self.bot = bot
         self.show_name = show_name
+
+    @commands.command()
+    @commands.cooldown(1, 3, commands.BucketType.member)
+    async def brighten(self, ctx, user: typing.Optional[discord.Member] = None, amount: int = 50):
+        """Brightens your own or someone else's profile picture by a given amount"""
+
+        start_time = time.perf_counter()
+        user = user or ctx.author
+        user_image = await user.avatar_url_as(static_format="png").read()
+
+        func = functools.partial(Manipulation.brighten_image, user_image, amount)
+        image_bytes = await self.bot.loop.run_in_executor(None, func)
+
+        file = discord.File(image_bytes, filename="brightened.png")
+        embed = KalDiscordUtils.Embed.default(
+            ctx,
+            title=f"Brightened profile picture for: {user.name}"
+        )
+        embed.set_image(url="attachment://brightened.png")
+        end_time = time.perf_counter()
+
+        time_taken = f"{end_time - start_time:,.2f}"
+        await ctx.send(
+            content=f"Finished processing in: `{time_taken} seconds`",
+            file=file,
+            embed=embed
+        )
+
+    @commands.command()
+    @commands.cooldown(1, 3, commands.BucketType.member)
+    async def solarize(self, ctx, user: discord.Member = None):
+        """Solarizes your own or someone else's profile picture"""
+
+        start_time = time.perf_counter()
+        user = user or ctx.author
+        user_image = await user.avatar_url_as(static_format="png").read()
+
+        func = functools.partial(Manipulation.solarize_image, user_image)
+        image_bytes = await self.bot.loop.run_in_executor(None, func)
+
+        file = discord.File(image_bytes, filename="solarize.png")
+        embed = KalDiscordUtils.Embed.default(
+            ctx,
+            title=f"Solarized profile picture for: {user.name}"
+        )
+        embed.set_image(url="attachment://solarize.png")
+        end_time = time.perf_counter()
+
+        time_taken = f"{end_time - start_time:,.2f}"
+        await ctx.send(
+            content=f"Finished processing in: `{time_taken} seconds`",
+            file=file,
+            embed=embed
+        )
 
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)

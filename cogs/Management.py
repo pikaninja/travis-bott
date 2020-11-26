@@ -40,6 +40,15 @@ class Management(BaseCog, name="management"):
     #     instance = AutoReactMenu()
     #     await instance.paginate(ctx)
 
+    @commands.group(invoke_without_command=True)
+    @commands.guild_only()
+    @commands.has_permissions(manage_guild=True)
+    @commands.bot_has_permissions(manage_roles=True)
+    async def roles(self, ctx):
+        """Set up for premium roles for the guild"""
+        
+        await ctx.send_help(ctx.command)
+
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
