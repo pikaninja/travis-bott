@@ -140,11 +140,4 @@ async def on_ready():
         log.info("-> Added new guild(s) to database.")
 
 
-@bot.check
-async def is_cmd_disabled(ctx):
-    if bot.disabled_commands.get(ctx.command, None) is not None:
-        return False
-    else:
-        return True
-
 bot.run(config("BOT_TOKEN"))
