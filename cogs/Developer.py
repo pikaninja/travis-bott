@@ -14,6 +14,7 @@ import typing
 import KalDiscordUtils
 from jishaku import codeblocks
 from polaroid import Image
+from PIL import Image as PILImage
 import pytesseract
 
 import discord
@@ -148,7 +149,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             def process_img(instream):
                 # Get Image to OCR
                 stream = io.BytesIO(instream)
-                img = Image.open(stream)
+                img = PILImage.open(stream)
 
                 return {"text": pytesseract.image_to_string(img)}
 

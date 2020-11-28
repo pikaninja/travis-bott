@@ -57,9 +57,16 @@ class MyBot(commands.AutoShardedBot):
         await super().close()
 
     async def get_announcement(self):
-        with open("./announcement.json") as f:
-            data = json.load(f)
-            self.announcement = data
+        await self.wait_until_ready()
+        updates_channel = await self.fetch_channel(711586681580552232)
+        last_update = await updates_channel.fetch_message(updates_channel.last_message_id)
+        cool = last_update.content.split("\n")
+        update = {
+            "title": cool[0],
+            "message": "\n".join(cool[1:])
+        }
+
+        self.announcement = update
 
     async def cache_prefixes(self):
         all_prefixes = await self.pool.fetch(
