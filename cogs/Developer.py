@@ -13,7 +13,7 @@ import typing
 
 import KalDiscordUtils
 from jishaku import codeblocks
-from PIL import Image
+from polaroid import Image
 import pytesseract
 
 import discord
@@ -103,14 +103,39 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
     async def dev_ss(self, ctx, url: str):
         """Website screenshotting"""
 
-        def ss_website():
-            driver = webdriver.Chrome()
-            driver.get(url)
-            el = driver.find_element_by_tag_name('body')
-            el.screenshot("./scrape.png")
-            driver.quit()
+        def ss_website(web_url) -> io.BytesIO:
+            from selenium import webdriver
+            path = './scrape.png'
 
-        await self.bot.loop.run_in_executor(None, ss_website())
+            chrome_options = webdriver.ChromeOptions()
+            chrome_options.add_argument("--no-sandbox")
+            chrome_options.add_argument("--disable-gpu")
+            chrome_options.add_argument("--disable-extensions")
+            chrome_options.add_argument("--disable-dev-shm-usage")
+            chrome_options.add_argument("--disable-setuid-sandbox")
+            chrome_options.add_argument("start-maximized")
+            chrome_options.add_argument("disable-infobars")
+            # 9100
+            # chrome_options.add_argument("--remote-debugging-port=9222")
+            chrome_options.add_experimental_option(
+                "UseAutomationExtension", False)
+            chrome_options.headless = True
+
+            driver = webdriver.Chrome(executable_path='/root/chromedriver',
+                                      chrome_options=chrome_options)
+            driver.get(web_url)
+            el = driver.find_element_by_tag_name('body')
+            el.screenshot(path)
+            driver.quit()
+            img = Image("./scrape.png")
+            obj = io.BytesIO(img.save_bytes())
+
+            return obj
+
+        async with ctx.typing():
+            obj = await self.bot.loop.run_in_executor(None, ss_website, url)
+            file = discord.File(obj, filename="scrape.png")
+            await ctx.send(file=file)
 
     @dev.command(name="ocr")
     @is_owner()

@@ -46,7 +46,7 @@ class Management(BaseCog, name="management"):
     @commands.bot_has_permissions(manage_roles=True)
     async def roles(self, ctx):
         """Set up for premium roles for the guild"""
-        
+
         await ctx.send_help(ctx.command)
 
     @commands.command()

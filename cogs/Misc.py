@@ -4,12 +4,58 @@ import typing
 import re
 from decouple import config
 import discord
-from discord.ext import commands
+from discord.ext import commands, menus
 
 from utils import utils
 from utils.Embed import Embed
 from utils.CustomCog import BaseCog
 import KalDiscordUtils
+
+from utils.Paginator import KalPages
+
+
+class CogConverter(commands.Converter):
+    async def convert(self, ctx, argument):
+        argument = argument.lower()
+        cog = ctx.bot.get_cog(argument)
+        showable = hasattr(cog, "show_name")
+        if cog is None or not showable:
+            raise commands.BadArgument("That category was not found.")
+
+        return cog
+
+
+class CommandCatList(menus.ListPageSource):
+    def __init__(self, ctx, cog_name, data):
+        super().__init__(data, per_page=4)
+        self.data = data
+        self.ctx = ctx
+        self.cog_name = cog_name
+
+    async def format_page(self, menu, cmds):
+        embed = KalDiscordUtils.Embed.default(
+            self.ctx,
+            title=self.cog_name,
+            description="\n".join(cmds)
+        )
+
+        return embed
+
+
+class CommandsList(menus.ListPageSource):
+    def __init__(self, ctx, data):
+        super().__init__(data, per_page=4)
+        self.data = data
+        self.ctx = ctx
+
+    async def format_page(self, menu, cmds):
+        embed = KalDiscordUtils.Embed.default(
+            self.ctx,
+            title=cmds[0][0],
+            description="\n".join([c[1] for c in cmds])
+        )
+
+        return embed
 
 
 class Misc(BaseCog, name="misc"):
@@ -19,11 +65,50 @@ class Misc(BaseCog, name="misc"):
         self.bot = bot
         self.show_name = show_name
 
+    @commands.command(name="commands", aliases=["cmds"])
+    async def _commands(self, ctx, *, category: CogConverter = None):
+
+        if category:
+            cmd_list = list()
+            for command in category.get_commands():
+                if command.help:
+                    cmd_list.append(
+                        f"**{command.name}** → {command.help.format(prefix=ctx.prefix)}")
+
+            menu = KalPages(source=CommandCatList(
+                ctx, category.show_name, cmd_list))
+            await menu.start(ctx)
+
+        else:
+            cmd_list = list()
+            for cog in self.bot.cogs:
+                cog = self.bot.get_cog(cog)
+                if not hasattr(cog, "show_name"):
+                    continue
+                for cmd in cog.get_commands():
+                    if cmd.help:
+                        cmd_list.append(
+                            [cog.show_name, f"**{cmd.name}** → {cmd.help.format(prefix=ctx.prefix)}"])
+
+            menu = KalPages(source=CommandsList(ctx, cmd_list))
+            await menu.start(ctx)
+
     @commands.command()
-    @commands.cooldown(5, 1, commands.BucketType.user)
+    async def quote(self, ctx, message: discord.Message, *, quote: str):
+        """Old Discord quoting system"""
+
+        allowed_mentions = discord.AllowedMentions.none()
+        await ctx.send(
+            f"> {message.clean_content}\n"
+            f"{message.author.mention} {quote} "
+            f"|| Message from {ctx.author} ||",
+            allowed_mentions=allowed_mentions
+        )
+
+    @commands.command()
+    @commands.cooldown(1, 5, commands.BucketType.user)
     async def rawmsg(self, ctx, message: discord.Message):
-        """Gets the raw JSON data of a message, if you don't know what that is, this command probably isn't for you.
-        """
+        """Gets the raw JSON data of a message, if you don't know what that is, this command probably isn't for you."""
 
         async with self.bot.session.get(
                 f"https://discord.com/api/v8/channels/{message.channel.id}/messages/{message.id}",

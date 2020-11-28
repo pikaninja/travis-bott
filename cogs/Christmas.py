@@ -44,7 +44,7 @@ class Christmas(BaseCog, name="christmas"):
 
         while currently_fighting:
             if turn == 0:
-                damage = random.randint(10, 25)
+                damage = random.randint(22, 35)
                 peoples_hp[user] -= damage
                 hp_now = peoples_hp[user] if peoples_hp[user] > 0 else 0
                 await ctx.send(
