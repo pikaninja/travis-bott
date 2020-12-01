@@ -3,7 +3,7 @@ import datetime
 
 
 class Embed(discord.Embed):
-    def __init__(self, colour=0x2150c1, timestamp=None, **kwargs):
+    def __init__(self, colour=0x024136, timestamp=None, **kwargs):
         super(Embed, self).__init__(
             colour=colour,
             timestamp=timestamp or datetime.datetime.utcnow(),

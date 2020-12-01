@@ -55,7 +55,7 @@ class Meta(BaseCog, name="meta"):
 
         await ctx.send(f"{amount} {cur_from} -> {cur_to} = {conversion:,.2f}")
 
-    @commands.command()
+    @commands.command(aliases=["g"])
     async def google(self, ctx, *, query: str):
         """Searches google for a given query."""
 
@@ -467,7 +467,7 @@ class Meta(BaseCog, name="meta"):
         embed = Embed.default(
             ctx,
             title=f"Result of {equation}:",
-            description=result
+            description=f"{result}"
         )
         await ctx.send(embed=embed)
 

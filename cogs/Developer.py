@@ -14,11 +14,11 @@ import typing
 import KalDiscordUtils
 from jishaku import codeblocks
 from polaroid import Image
-from PIL import Image as PILImage
+from PIL import Image as PILImage, ImageDraw, ImageFont
 import pytesseract
 
 import discord
-from discord.ext import tasks, commands
+from discord.ext import tasks, commands, menus
 from discord.ext.commands import (
     Cog, is_owner, BadArgument, group, Converter
 )
@@ -53,6 +53,26 @@ class TimeConverter(Converter):
 class CommandConverter(Converter):
     async def convert(self, ctx, argument):
         return ctx.bot.get_command(argument)
+
+
+class SQLCommandPages(menus.ListPageSource):
+    def __init__(self, ctx, data):
+        super().__init__(data, per_page=4)
+        self.ctx = ctx
+
+    async def format_page(self, menu, page):
+        embed = KalDiscordUtils.Embed.default(
+            self.ctx,
+            title="SQL Result:",
+            description=(
+                "```\n" +
+                "\n".join(page) +
+                "```"
+            )
+        )
+        embed.set_footer(text=f"Page {menu.current_page + 1}/{self.get_max_pages()}")
+
+        return embed
 
 
 class Developer(Cog, command_attrs=dict(hidden=True)):
@@ -97,7 +117,30 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
     @group(invoke_without_command=True)
     @is_owner()
     async def dev(self, ctx):
-        await ctx.send_help(ctx.command)
+        pass
+
+    @dev.command(name="test")
+    @is_owner()
+    async def dev_test(self, ctx):
+        """Testing PIL"""
+
+        buffer = io.BytesIO()
+
+        text = "The quick brown fox jumped over the lazy dog longer test lol watch this."
+        wrapped_text = textwrap.wrap(text, width=30)
+        text = "\n".join(wrapped_text)
+        size = ImageFont.load_default().getsize(text)
+
+        with PILImage.new("RGB", (size[0], (size[1] * (len(wrapped_text) + 1)) + 5), 0x2150c1) as base:
+
+            canvas = ImageDraw.Draw(base)
+            canvas.multiline_text((5, 5), text)
+
+            base.save(buffer, "png")
+
+        buffer.seek(0)
+
+        await ctx.send(file=discord.File(buffer, "test.png"))
 
     @dev.command(name="ss")
     @is_owner()
@@ -200,44 +243,10 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
     @dev.command(name="leave")
     @is_owner()
-    async def dev_leave(self, ctx):
+    async def dev_leave(cself, ctx):
         """Forces the bot to leave the current server"""
 
         await ctx.guild.leave()
-
-    @dev.command(name="disable")
-    @is_owner()
-    async def dev_disable(self, ctx, cmd: CommandConverter, *, reason):
-        """Disables a command globaly for a given reason."""
-
-        if cmd is None:
-            return await ctx.send("Invalid command entered.")
-        self.bot.disabled_commands[cmd] = reason
-        await ctx.send(f"Successfully disabled {cmd.qualified_name} "
-                       f"for the reason: {reason}")
-
-    @dev.command(name="enable")
-    @is_owner()
-    async def dev_enable(self, ctx, cmd: CommandConverter):
-        """Enables a command again."""
-
-        if cmd is None:
-            return await ctx.send("Invalid command entered.")
-        del self.bot.disabled_commands[cmd]
-        await ctx.send(f"Successfully enabled {cmd.qualified_name}")
-
-    @dev.command(name="disabled")
-    @is_owner()
-    async def dev_disabled(self, ctx):
-        """Gives a list of all current disabled commands."""
-
-        await ctx.send(
-            "Current disabled commands:\n" +
-            "\n".join(
-                [f"• {k.qualified_name} - `{v}`" for k, v
-                    in self.bot.disabled_commands.items()]
-            )
-        )
 
     @dev.command(name="sql")
     @is_owner()
@@ -249,15 +258,14 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         else:
             stratergy = self.bot.pool.execute
 
-        result = await stratergy(query)
-        paginate = commands.Paginator()
-        if len(result) < 1994:
-            paginate.add_line(result[1994:])
-            paginate.add_line(result[:1994])
-            menu = KalDiscordUtils.Menu(paginate.pages, embed=False)
-            await menu.start(ctx)
-        else:
-            await ctx.send(f"Result of that:\n{result}")
+        results = await stratergy(query)
+        statements = []
+
+        for result in results:
+            statements.append(repr(result))
+
+        menu = KalPages(source=SQLCommandPages(ctx, statements))
+        await menu.start(ctx)
 
     @dev.command(name="restart")
     @is_owner()
@@ -337,7 +345,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         else:
             await ctx.send("**`SUCCESS`**")
 
-    @dev.command(name="reload")
+    @dev.command(name="reload", aliases=["r"])
     @is_owner()
     async def dev_reload(self, ctx, cog: str = None):
         # Reloads a given Cog

@@ -13,6 +13,57 @@ import KalDiscordUtils
 
 from utils.Paginator import KalPages
 
+"""
+This Jishaku stuff was gracefully stolen from Stella
+"""
+
+import contextlib
+import jishaku.paginators
+import jishaku.exception_handling
+from collections import namedtuple
+from typing import Union
+
+EmojiSettings = namedtuple('EmojiSettings', 'start back forward end close')
+
+class FakeEmote(discord.PartialEmoji):
+
+    @classmethod
+    def from_name(cls, name):
+        emoji_name = re.sub("|<|>", "", name)
+        a, name, id = emoji_name.split(":")
+        return cls(name=name, id=int(id), animated=bool(a))
+
+
+emote = EmojiSettings(
+    start=FakeEmote.from_name("<:leftbigarrow:780746237766664192>"),
+    back=FakeEmote.from_name("<:leftarrow:780746237825646672>"),
+    forward=FakeEmote.from_name("<:righarrow:780746237807820800>"),
+    end=FakeEmote.from_name("<:rightarrowbig:780746237829840926>"),
+    close=FakeEmote.from_name("<:stop:780746237527064578>")
+)
+jishaku.paginators.EMOJI_DEFAULT = emote  # Overrides jishaku emojis
+
+
+async def attempt_add_reaction(msg: discord.Message, reaction: Union[str, discord.Emoji]):
+    """
+    This is responsible for every add reaction happening in jishaku. Instead of replacing each emoji that it uses in
+    the source code, it will try to find the corresponding emoji that is being used instead.
+    """
+    reacts = {
+        "\N{WHITE HEAVY CHECK MARK}": "<:checkmark:783295580298018827>",
+        "\N{BLACK RIGHT-POINTING TRIANGLE}": emote.forward,
+        "\N{HEAVY EXCLAMATION MARK SYMBOL}": "<:exclamation:783295580545220618>",
+        "\N{DOUBLE EXCLAMATION MARK}": "<:doubleexclamation:783295580218064947>",
+        "\N{ALARM CLOCK}": emote.end
+    }
+    react = reacts[reaction] if reaction in reacts else reaction
+    with contextlib.suppress(discord.HTTPException):
+        return await msg.add_reaction(react)
+
+
+jishaku.exception_handling.attempt_add_reaction = attempt_add_reaction
+
+
 
 class CogConverter(commands.Converter):
     async def convert(self, ctx, argument):
@@ -291,7 +342,7 @@ How to remove your data.
 
         await ctx.send(f"Uptime: {self.bot.get_uptime()}")
 
-    @commands.command(aliases=["git", "code", "src"])
+    @commands.command(aliases=["git", "code", "src", "source"])
     async def github(self, ctx):
         """Sends the bots github repo"""
 

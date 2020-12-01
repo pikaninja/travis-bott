@@ -16,7 +16,7 @@ logging.basicConfig(
 
 log = logging.getLogger(__name__)
 handler = RotatingFileHandler("./logs/discord.log",
-                              maxBytes=5242880,  # 5 Megabytes
+                              maxBytes=5242880, # 5 Megabytes
                               backupCount=1)
 log.addHandler(handler)
 

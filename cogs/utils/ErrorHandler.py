@@ -98,7 +98,7 @@ class ErrorHandler(Cog):
             return await self.send_to_ctx_or_author(
                 ctx,
                 embed=Embed.error(
-                    description=f"That command is disabled for the reason of: `{self.bot.disabled_commands[ctx.command]}`"
+                    description=f"{error}"
                 )
             )
 

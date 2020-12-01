@@ -56,14 +56,14 @@ class ImageManipulation(BaseCog, name="imagemanipulation"):
 
             image_one = Image(image_one_bytes)
             if image_one.size != (1024, 1024):
-                image_one.resize(1024, 1024, 1)
+                image_one.resize(1024, 1024, 5)
 
             image_two = Image(image_two_bytes)
             if image_two.size != (256, 256):
-                image_two.resize(256, 256, 1)
+                image_two.resize(256, 256, 5)
 
             facetime_buttons = Image("./data/facetimebuttons.png")
-            facetime_buttons.resize(1024, 1024, 1)
+            facetime_buttons.resize(1024, 1024, 5)
 
             image_one.watermark(image_two, 15, 15)
             image_one.watermark(facetime_buttons, 0, 390)
@@ -71,10 +71,10 @@ class ImageManipulation(BaseCog, name="imagemanipulation"):
 
             return io_bytes
 
-    @commands.command()
+    @commands.command(aliases=["ft"])
     @commands.cooldown(1, 3, commands.BucketType.member)
     async def facetime(self, ctx, user: discord.Member = None):
-        """Facetime with another user."""
+        """Facetime with another user or even an image if you're really that lonely, I guess."""
 
         async with ctx.typing():
             start_time = time.perf_counter()
@@ -110,22 +110,37 @@ class ImageManipulation(BaseCog, name="imagemanipulation"):
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
     async def brighten(self, ctx, user: typing.Optional[discord.Member] = None, amount: int = 50):
-        """Brightens your own or someone else's profile picture by a given amount"""
+        """Brightens a given picture or your own or even someone else's profile picture by a given amount"""
 
         async with ctx.typing():
             start_time = time.perf_counter()
-            user = user or ctx.author
-            user_image = await user.avatar_url_as(static_format="png").read()
+            try:
+                asset = ctx.message.attachments[0]
+            except IndexError:
+                asset = (
+                    user.avatar_url_as(static_format="png") if user
+                    else ctx.author.avatar_url_as(static_format="png")
+                )
+                user = user if user else ctx.author
+
+            image = await asset.read()
 
             func = functools.partial(
-                self.Manipulation.brighten_image, user_image, amount)
+                self.Manipulation.brighten_image, image, amount)
             image_bytes = await self.bot.loop.run_in_executor(None, func)
 
             file = discord.File(image_bytes, filename="brightened.png")
+
+            title = (
+                f"Brightened profile picture for: {user.name}" if user
+                else f"Brightened image for {ctx.author.name}"
+            )
+
             embed = KalDiscordUtils.Embed.default(
                 ctx,
-                title=f"Brightened profile picture for: {user.name}"
+                title=title
             )
+
             embed.set_image(url="attachment://brightened.png")
             end_time = time.perf_counter()
 

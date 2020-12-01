@@ -35,7 +35,6 @@ class MyBot(commands.AutoShardedBot):
 
         self.start_time = dt.now()
         self.cache = {}
-        self.disabled_commands = {}
 
         self.loop = asyncio.get_event_loop()
         self.pool = self.loop.run_until_complete(
