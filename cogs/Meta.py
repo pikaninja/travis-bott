@@ -147,7 +147,7 @@ class Meta(BaseCog, name="meta"):
             static_format="png", size=1024))
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(aliases=["about"])
     async def info(self, ctx):
         """Get basic info on the bot."""
 

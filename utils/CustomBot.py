@@ -50,6 +50,10 @@ class MyBot(commands.AutoShardedBot):
             "message": None
         }
 
+    @property
+    async def kal(self):
+        return self.get_user(self.owner_id)
+
     async def close(self):
         await self.session.close()
         await self.pool.close()

@@ -297,7 +297,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
     @dev.command(name="say")
     @is_owner()
-    async def dev_say(self, ctx, channel: typing.Optional[discord.TextChannel], *, msg: str = None):
+    async def dev_say(self, ctx, channel: typing.Optional[discord.TextChannel] = None, *, msg: str = None):
         """You can force the bot to say stuff, cool."""
 
         channel = channel or ctx.channel
@@ -400,7 +400,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
         # Make the environment
         env = {
-            "bot": self.bot,
+            "client": self.bot,
             "ctx": ctx,
             "channel": ctx.channel,
             "author": ctx.author,

@@ -41,7 +41,9 @@ class MotherRussia(Cog, command_attrs=dict(hidden=True)):
         if member.guild.id == self.id:
             # Nuke Bot Protection
             if member.bot:
-                await member.kick(reason="No fuckin bots")
+                return await member.kick(reason="No fuckin bots")
+
+            await member.edit(nick=member.name + " 🎄")
             # Nuke bot Protection End
 
     @Cog.listener()

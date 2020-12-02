@@ -118,6 +118,7 @@ class Misc(BaseCog, name="misc"):
 
     @commands.command(name="commands", aliases=["cmds"])
     async def _commands(self, ctx, *, category: CogConverter = None):
+        """A compiled list of all commands."""
 
         if category:
             cmd_list = list()
