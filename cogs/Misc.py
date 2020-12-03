@@ -195,11 +195,19 @@ class Misc(BaseCog, name="misc"):
 
         async with self.bot.session.get("https://discordstatus.com/history.json") as response:
             data = await response.json()
-            current = data["months"][0]["incidents"][0]
+            try:
+                current = data["months"][0]["incidents"][0]
+            except IndexError:
+                embed = Embed.warning(description="There are no incidents reported this month as of yet.")
+                return await ctx.send(embed=embed)
             components = data["components"]
 
             timestamp = re.sub(
                 r"<var data-var='date'>|</var>|<var data-var='time'>", "", current["timestamp"])
+
+            if len(timestamp) > 17:
+                embed = Embed.warning(title="No issues with discord report as of yet.")
+                return await ctx.send(embed=embed)
 
             main_embed = Embed.default(
                 ctx,

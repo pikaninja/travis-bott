@@ -6,7 +6,7 @@ from discord.ext.commands.errors import BadArgument
 import ksoftapi
 
 from utils import utils
-from utils.Paginator import BetterPaginator
+from utils.Paginator import BetterPaginator, Menu
 from utils.CustomCog import BaseCog
 from utils.Embed import Embed
 from aiohttp import request
@@ -56,6 +56,7 @@ class Meta(BaseCog, name="meta"):
         await ctx.send(f"{amount} {cur_from} -> {cur_to} = {conversion:,.2f}")
 
     @commands.command(aliases=["g"])
+    @commands.cooldown(5, 5, commands.BucketType.user)
     async def google(self, ctx, *, query: str):
         """Searches google for a given query."""
 
@@ -68,24 +69,22 @@ class Meta(BaseCog, name="meta"):
         embed_list = []
 
         for i in range(how_many):
-            print(results[i].image_url)
             embed = Embed.default(ctx)
             embed.title = results[i].title
             embed.description = results[i].description
             embed.url = results[i].url
-            embed.set_image(
+            embed.set_thumbnail(
                 url=results[i].image_url
                 if results[i].image_url.startswith(("https://", "http://"))
                 else discord.Embed.Empty
             )
-
-            print(embed.image)
+            embed.set_author(name=f"Page {i + 1} / {how_many}")
 
             embed_list.append(embed)
 
         await cse.close()
-        p = BetterPaginator(ctx, embed_list)
-        await p.paginate()
+        p = Menu(embed_list, clear_reactions_after=True)
+        await p.start(ctx)
 
     @commands.command(aliases=["randomcolor", "rcolour", "rcolor"])
     async def randomcolour(self, ctx):
@@ -591,7 +590,7 @@ class Meta(BaseCog, name="meta"):
             icon = f"https://openweathermap.org/img/wn/{weather['icon']}@4x.png"
 
             fields = [
-                ["Temperature", f"{temp_celcius}℃ | {temp_fahrenheit}℉"],
+                ["Temperature", f"{temp_celcius}°C | {temp_fahrenheit}°F"],
                 ["Pressure", f"{pressure} hPa"],
                 ["Humidity", f"{humidity}%"],
                 ["Description", description],

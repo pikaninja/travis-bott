@@ -28,7 +28,7 @@ class Christmas(BaseCog, name="christmas"):
         )
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(aliases=["sbf"])
     async def snowballfight(self, ctx, user: discord.Member):
         """Starts a snowball fight with someone!"""
 
@@ -44,22 +44,24 @@ class Christmas(BaseCog, name="christmas"):
 
         while currently_fighting:
             if turn == 0:
-                damage = random.randint(22, 35)
+                damage = random.randint(1, 25)
                 peoples_hp[user] -= damage
                 hp_now = peoples_hp[user] if peoples_hp[user] > 0 else 0
                 await ctx.send(
                     f"{ctx.author} throws a snowball at {user} hitting them for {damage} HP\n"
-                    f"{user} is now at {hp_now} HP"
+                    f"{user} is now at {hp_now} HP",
+                    delete_after=5
                 )
                 turn = 1
 
             elif turn == 1:
-                damage = random.randint(10, 25)
+                damage = random.randint(1, 25)
                 peoples_hp[ctx.author] -= damage
                 hp_now = peoples_hp[ctx.author] if peoples_hp[ctx.author] > 0 else 0
                 await ctx.send(
                     f"{user} throws a snowball at {ctx.author} hitting them for {damage} HP\n"
-                    f"{ctx.author} is now at {hp_now} HP"
+                    f"{ctx.author} is now at {hp_now} HP",
+                    delete_after=5
                 )
                 turn = 0
 

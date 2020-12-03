@@ -157,6 +157,14 @@ class ErrorHandler(Cog):
             )
 
         await self.send_error(ctx, error)
+        await self.send_to_ctx_or_author(ctx, embed=Embed.error(
+            title="Uhoh an error has occurred...",
+            description=(
+                "Here's some details on it:\n"
+                "```py\n"
+                f"{error}```"
+            )
+        ))
         raise error
 
 

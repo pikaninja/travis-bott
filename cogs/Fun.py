@@ -1,3 +1,4 @@
+import datetime
 import time
 
 import asyncdagpi
@@ -131,6 +132,8 @@ class Fun(BaseCog, name="fun"):
             "red",
         ]
 
+        self.tetris_games = {}
+
     async def handle_cookies(self, user: discord.Member):
         """Handles added cookies to user"""
 
@@ -146,6 +149,71 @@ class Fun(BaseCog, name="fun"):
                 "UPDATE cookies SET cookies = cookies + 1 WHERE user_id = $1",
                 user.id
             )
+
+    # @commands.command()
+    # @commands.is_owner()
+    # async def tetris(self, ctx):
+    #     """A game of tetris"""
+    #
+    #     width, height = (12, 22)
+    #
+    #     red, black, blue, green, purple, yellow, orange = (
+    #         "\N{LARGE RED SQUARE}",
+    #         "\N{BLACK LARGE SQUARE}",
+    #         "\N{LARGE BLUE SQUARE}",
+    #         "\N{LARGE GREEN SQUARE}",
+    #         "\N{LARGE PURPLE SQUARE}",
+    #         "\N{LARGE YELLOW SQUARE}",
+    #         "\N{LARGE ORANGE SQUARE}"
+    #     )
+
+    @commands.command(aliases=["r"])
+    async def reddit(self, ctx, subreddit: str):
+        """Browse your favourite sub-reddit, gives a random submission from it."""
+
+        async with ctx.typing():
+            url = f"https://www.reddit.com/r/{subreddit}/random.json"
+            async with self.bot.session.get(url) as resp:
+                if resp.status != 200:
+                    return await ctx.send("That subreddit doesn't exist or something severely wrong just happened.")
+                data = await resp.json()
+                try:
+                    data = data[0]["data"]["children"][0]["data"]
+                except KeyError:
+                    return await ctx.send("That subreddit doesn't exist or something severely wrong just happened.")
+
+                title, author, ups, downs, score, over_18, url, perma_link, subs, created_at = (
+                    data["title"],
+                    data["author"],
+                    data["ups"],
+                    data["downs"],
+                    data["score"],
+                    data["over_18"],
+                    data["url"],
+                    data["permalink"],
+                    data["subreddit_subscribers"],
+                    data["created_utc"]
+                )
+
+                if over_18:
+                    if not ctx.channel.is_nsfw():
+                        return await ctx.send("Bonk! Go to horny jail.")
+
+                embed = Embed.default(ctx,
+                                      title=title,
+                                      url=f"https://www.reddit.com{perma_link}")
+
+                embed.add_field(name="\N{UPWARDS BLACK ARROW}",
+                                value=ups)
+                embed.add_field(name="\N{DOWNWARDS BLACK ARROW}",
+                                value=downs)
+
+                embed.set_image(url=url)
+                embed.set_author(name=f"Poster: {author}")
+                embed.set_footer(text=f"Subreddit Subs: {subs} | Post score: {score} | Posted at")
+                embed.timestamp = datetime.datetime.fromtimestamp(created_at)
+
+                await ctx.send(embed=embed)
 
     @commands.group(aliases=["cc"], invoke_without_command=True)
     @commands.cooldown(1, 60, commands.BucketType.member)
