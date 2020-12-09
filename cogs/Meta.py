@@ -1,20 +1,14 @@
 import contextlib
 from contextlib import asynccontextmanager
 
-import async_cse
-
 from decouple import config
 from discord.ext import commands, menus
 from discord.ext.commands.errors import BadArgument
-import ksoftapi
 
 from utils import utils
 from utils.Paginator import BetterPaginator, EmbedMenu
 from utils.CustomCog import BaseCog
 from utils.Embed import Embed
-from aiohttp import request
-
-from datetime import datetime as dt
 
 from currency_converter import CurrencyConverter
 import aiogoogletrans as translator
@@ -432,7 +426,7 @@ class Meta(BaseCog, name="meta"):
         if " " in definition:
             definition = definition.replace(" ", "-")
         url = "http://api.urbandictionary.com/v0/define?term=" + definition
-        async with request("GET", url, headers={}) as response:
+        async with self.bot.session.get(url) as response:
             if response.status != 200:
                 return await ctx.send("Couldn't find that or something really bad just happened.")
 
@@ -554,7 +548,7 @@ class Meta(BaseCog, name="meta"):
         """Gives the weather of a given country/city."""
 
         url = f"http://api.openweathermap.org/data/2.5/weather?appid={self.weather_api_key}&q={city_or_country}"
-        async with request("GET", url, headers={}) as r:
+        async with self.bot.session.get(url) as r:
             if r.status != 200:
                 return await ctx.send(
                     f"Could not find that city/country ||Status Code: {r.status}||"
@@ -625,7 +619,7 @@ class Meta(BaseCog, name="meta"):
         """Gives basic information on a given country."""
 
         complete_api_url = f"https://restcountries.eu/rest/v2/name/{country}"
-        async with request("GET", complete_api_url, headers={}) as r:
+        async with self.bot.session.get(complete_api_url) as r:
             if r.status != 200:
                 return await ctx.send("I could not find that country.")
             data = await r.json()

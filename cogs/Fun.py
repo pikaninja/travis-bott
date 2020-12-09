@@ -2,15 +2,10 @@ import contextlib
 import datetime
 import time
 
-import asyncdagpi
-from decouple import config
 from discord.ext import commands, menus
 
-from utils import utils
 from utils.CustomCog import BaseCog
 from utils.Embed import Embed
-from aiohttp import request
-from asyncdagpi import ImageFeatures
 
 import asyncio
 import discord
@@ -379,7 +374,7 @@ class Fun(BaseCog, name="fun"):
             ["https://some-random-api.ml/img/dog",
                 "https://some-random-api.ml/img/cat"]
         )
-        async with request("GET", url, headers={}) as r:
+        async with self.bot.session.get(url) as r:
             if r.status != 200:
                 return await ctx.send(f"The API returned a {r.status} status.")
             data = await r.json()
@@ -395,7 +390,7 @@ class Fun(BaseCog, name="fun"):
         """Gives a random quote of Kanye West himself."""
 
         url = "https://api.kanye.rest/"
-        async with request("GET", url, headers={}) as r:
+        async with self.bot.session.get(url) as r:
             if r.status != 200:
                 return await ctx.send(f"The API returned a {r.status} status")
             data = await r.json()
@@ -413,7 +408,7 @@ class Fun(BaseCog, name="fun"):
         """Gives you a random cool nickname."""
 
         url = "https://randomuser.me/api/?nat=us,dk,fr,gb,au,ca"
-        async with request("GET", url, headers={}) as r:
+        async with self.bot.session.get(url) as r:
             if r.status != 200:
                 return await ctx.send(f"The API returned a {r.status} status.")
             data = await r.json()
@@ -440,7 +435,7 @@ class Fun(BaseCog, name="fun"):
         """Gives you a cool random fact."""
 
         url = "https://uselessfacts.jsph.pl/random.json?language=en"
-        async with request("GET", url, headers={}) as r:
+        async with self.bot.session.get(url) as r:
             if r.status != 200:
                 return await ctx.send(f"The API returned a {r.status} status")
             data = await r.json()
