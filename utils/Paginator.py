@@ -112,6 +112,15 @@ class GroupHelp(menus.ListPageSource):
         return embed
 
 
+class EmbedMenu(menus.ListPageSource):
+    def __init__(self, embeds, per_page=1):
+        super().__init__(embeds, per_page=per_page)
+
+    async def format_page(self, menu, page):
+        page.set_footer(text=f"Page {menu.current_page + 1}/{self.get_max_pages()}")
+        return page
+
+
 class Menu(menus.Menu):
     def __init__(self, pages, embed: bool = True, **kwargs):
         super().__init__(**kwargs)

@@ -229,7 +229,7 @@ class Misc(BaseCog, name="misc"):
 
             for _set in components:
                 comp_list.append(
-                    f"Name: {_set['name']} -> **{_set['status']}**"
+                    f"Name: {_set['name']} -> **{_set['status'].title()}**"
                 )
 
             components_embed = Embed.default(

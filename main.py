@@ -24,9 +24,8 @@ new_guilds = False
 
 my_mentions = AllowedMentions(everyone=False, roles=False)
 
-my_intents = Intents(
-    guilds=True, members=True, bans=True, messages=True, reactions=True, voice_states=True
-)
+my_intents = Intents.default()
+my_intents.members = True
 
 stuff_to_cache = MemberCacheFlags.from_intents(my_intents)
 
@@ -45,9 +44,8 @@ bot.version = "But Better"
 bot.description = (
     "A general purpose discord bot that provides a lot of utilities and such to use."
 )
-bot.owner_id = 671777334906454026
-# Put your ID here, maybe some other peoples
-bot.owner_ids = {671777334906454026}
+bot.owner_ids = {671777334906454026,
+                 200301688056315911}
 
 bot.exts = [
     "cogs.Developer",

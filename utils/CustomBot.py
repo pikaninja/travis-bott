@@ -18,7 +18,7 @@ import config as cfg
 async def get_prefix(bot: commands.AutoShardedBot, message: discord.Message):
     if (
         bot.user.id == 706530005169209386 and
-            message.author.id == bot.owner_id and
+            message.author.id in bot.owner_ids and
         message.content.startswith(("dev", "jsk"))
     ):
         return ""

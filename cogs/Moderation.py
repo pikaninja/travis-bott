@@ -82,6 +82,7 @@ class Role(commands.Converter):
         return found
 
 
+# noinspection PyUnresolvedReferences
 class Moderation(BaseCog, name="moderation"):
     """Moderation Commands"""
 
@@ -252,7 +253,7 @@ class Moderation(BaseCog, name="moderation"):
             ends_in = int(ends_at - t())
             member = ctx.guild.get_member(record["member_id"])
             if member is None:
-                member.append(f"❌ Invalid User | {ends_in} Seconds")
+                moderations.append(f"❌ Invalid User | {ends_in} Seconds")
             else:
                 moderations.append(f"❌ {member} | {ends_in} Seconds")
 
@@ -302,7 +303,7 @@ class Moderation(BaseCog, name="moderation"):
             return await ctx.send("🤔 That user is a staff member hmmm")
 
         if not role:
-            role = discord.utils.get(ctx.guild.roles, "Muted")
+            role = discord.utils.get(ctx.guild.roles, name="Muted")
             if not role:
                 return await ctx.send("I was unable to find any role to mute with.")
 

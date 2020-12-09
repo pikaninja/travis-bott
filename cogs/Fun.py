@@ -1,3 +1,4 @@
+import contextlib
 import datetime
 import time
 
@@ -62,59 +63,6 @@ class Fun(BaseCog, name="fun"):
             "Outlook not so good",
             "Very doubtful",
         ]
-        self.pp_sizes = [
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            100,
-        ]
 
         self.all_colours = [
             "darkgreen",
@@ -166,6 +114,15 @@ class Fun(BaseCog, name="fun"):
     #         "\N{LARGE YELLOW SQUARE}",
     #         "\N{LARGE ORANGE SQUARE}"
     #     )
+
+    @commands.command()
+    async def chimprate(self, ctx, user: discord.Member = None):
+        """Rate's someones chimpness :monkey:"""
+
+        user = user or ctx.author
+        random.seed(user.id)
+        chimp_amount = random.randint(0, 100)
+        await ctx.send(f"{user.name}'s chimping levels is {chimp_amount}% \N{MONKEY}")
 
     @commands.command(aliases=["r"])
     async def reddit(self, ctx, subreddit: str):
@@ -233,6 +190,10 @@ class Fun(BaseCog, name="fun"):
         for _ in range(timer):
             embed.description = f"Starting in {3 - _} seconds..."
             await msg.edit(embed=embed)
+
+            with contextlib.suppress(discord.Forbidden):
+                await msg.clear_reactions()
+
             await asyncio.sleep(1)
 
         embed.description = f"CLICK CLICK CLICK"
@@ -246,14 +207,22 @@ class Fun(BaseCog, name="fun"):
                 r.message.id == msg.id
             ))
 
-        await msg.add_reaction("\N{COOKIE}")
+        await asyncio.sleep(0.10)
+
+        with contextlib.suppress(discord.Forbidden):
+            await msg.clear_reactions()
+
         start = time.perf_counter()
         try:
+            await msg.add_reaction("\N{COOKIE}")
             reaction, user = await self.bot.wait_for("reaction_add", timeout=10.0, check=_check)
         except asyncio.TimeoutError:
             return await ctx.send("Damn, no one wanted the cookie...")
 
         end = time.perf_counter()
+
+        if end - start <= 0.10:
+            return await ctx.send("smh no cheating *tut* *tut* *tut*")
 
         embed.description = f"{user.mention} got it first in `{end - start:,.2f}` seconds \N{EYES}"
         await msg.edit(embed=embed)
@@ -392,15 +361,14 @@ class Fun(BaseCog, name="fun"):
 
     @commands.command(aliases=["pp"])
     @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
-    async def penis(self, ctx):
+    async def penis(self, ctx, user: discord.Member = None):
         """Gives you your penis size."""
 
-        size = (
-            100 if ctx.author.id == self.bot.owner_id else random.choice(
-                self.pp_sizes)
-        )
+        user = user or ctx.author
+        random.seed(user.id)
+        size = 500 if user.id in self.bot.owner_ids else random.randint(0, 100)
         pp = f"8{'=' * size}D"
-        await ctx.send(f"ur pp size is {pp} 😎")
+        await ctx.send(f"eh, that's alright: {pp}")
 
     @commands.command()
     @commands.cooldown(1, standard_cooldown, commands.BucketType.member)

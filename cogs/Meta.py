@@ -1,12 +1,15 @@
+import contextlib
+from contextlib import asynccontextmanager
+
 import async_cse
 
 from decouple import config
-from discord.ext import commands
+from discord.ext import commands, menus
 from discord.ext.commands.errors import BadArgument
 import ksoftapi
 
 from utils import utils
-from utils.Paginator import BetterPaginator, Menu
+from utils.Paginator import BetterPaginator, EmbedMenu
 from utils.CustomCog import BaseCog
 from utils.Embed import Embed
 from aiohttp import request
@@ -31,6 +34,26 @@ status_icons = {
     "offline": "<:offline:748253316533846179>",
 }
 
+# Testing python-cse
+
+import cse
+
+@asynccontextmanager
+async def google_search(query: str):
+    """Context Manager to search for the CSE"""
+
+    with contextlib.suppress(KeyError):
+        keys = [config("GOOGLE_CSE"), config("SECOND_GOOGLE_CSE")]
+        results = []
+        try:
+            engine = cse.Search(keys[0])
+            results = await engine.search(query, safe_search=True, max_results=10)
+        except cse.QuotaExceededError:
+            engine = cse.Search(keys[1])
+            results = await engine.search(query, safe_search=True, max_results=10)
+        finally:
+            await engine.close()
+            yield results
 
 class Meta(BaseCog, name="meta"):
     """General and utility commands"""
@@ -60,31 +83,26 @@ class Meta(BaseCog, name="meta"):
     async def google(self, ctx, *, query: str):
         """Searches google for a given query."""
 
-        cse = async_cse.Search(
-            [config("GOOGLE_CSE"), config("SECOND_GOOGLE_CSE")])
-        results = await cse.search(query, safesearch=True)
+        async with google_search(query) as results:
+            if not results:
+                return await ctx.send("That query returned no results.")
 
-        how_many = 10 if len(results) > 10 else len(results)
+            embeds = []
 
-        embed_list = []
+            for result in results:
+                embed = Embed.default(ctx)
+                embed.title = result.title
+                embed.description = result.snippet
+                embed.url = result.link
+                embed.set_image(url=result.image if result.image is not None
+                                    and result.image.startswith(("https://", "http://"))
+                                    else discord.Embed.Empty)
+                print(result.link)
 
-        for i in range(how_many):
-            embed = Embed.default(ctx)
-            embed.title = results[i].title
-            embed.description = results[i].description
-            embed.url = results[i].url
-            embed.set_thumbnail(
-                url=results[i].image_url
-                if results[i].image_url.startswith(("https://", "http://"))
-                else discord.Embed.Empty
-            )
-            embed.set_author(name=f"Page {i + 1} / {how_many}")
+                embeds.append(embed)
 
-            embed_list.append(embed)
-
-        await cse.close()
-        p = Menu(embed_list, clear_reactions_after=True)
-        await p.start(ctx)
+            menu = menus.MenuPages(EmbedMenu(embeds), clear_reactions_after=True)
+            await menu.start(ctx)
 
     @commands.command(aliases=["randomcolor", "rcolour", "rcolor"])
     async def randomcolour(self, ctx):
@@ -415,46 +433,49 @@ class Meta(BaseCog, name="meta"):
             definition = definition.replace(" ", "-")
         url = "http://api.urbandictionary.com/v0/define?term=" + definition
         async with request("GET", url, headers={}) as response:
-            if response.status == 200:
-                data = await response.json()
+            if response.status != 200:
+                return await ctx.send("Couldn't find that or something really bad just happened.")
 
-                word = data["list"][0]["word"]
-                author = data["list"][0]["author"]
-                definition = data["list"][0]["definition"]
-                example = data["list"][0]["example"]
-                thumbs_up = data["list"][0]["thumbs_up"]
-                thumbs_down = data["list"][0]["thumbs_down"]
-                perma_link = data["list"][0]["permalink"]
+            data = await response.json()
 
-                if len(definition) > 1024 or len(example) > 1024:
-                    return await ctx.send(
-                        "The lookup for this word is way too big to show."
-                    )
+            if not data["list"]:
+                return await ctx.send("There were no results for that look up.")
 
-                embed = Embed.default(
-                    ctx,
-                    title=f"Definition of {word}"
+            word = data["list"][0]["word"]
+            author = data["list"][0]["author"]
+            definition = data["list"][0]["definition"]
+            example = data["list"][0]["example"]
+            thumbs_up = data["list"][0]["thumbs_up"]
+            thumbs_down = data["list"][0]["thumbs_down"]
+            perma_link = data["list"][0]["permalink"]
+
+            if len(definition) > 1024 or len(example) > 1024:
+                return await ctx.send(
+                    "The lookup for this word is way too big to show."
                 )
 
-                embed.set_footer(text=f"Definition by: {author}")
-                embed.url = perma_link
+            embed = Embed.default(
+                ctx,
+                title=f"Definition of {word}"
+            )
 
-                embed.set_author(
-                    name=f"Requested by: {ctx.author.name}",
-                    icon_url=ctx.author.avatar_url,
-                )
-                embed.add_field(name="Definition:",
-                                value=definition, inline=False)
-                embed.add_field(name="Example:", value=example, inline=False)
-                embed.add_field(name="\N{THUMBS UP SIGN}",
-                                value=thumbs_up, inline=True)
-                embed.add_field(
-                    name="\N{THUMBS DOWN SIGN}", value=thumbs_down, inline=True
-                )
+            embed.set_footer(text=f"Definition by: {author}")
+            embed.url = perma_link
 
-                await ctx.send(embed=embed)
-            else:
-                return await ctx.send("Could not find that definition.")
+            embed.set_author(
+                name=f"Requested by: {ctx.author.name}",
+                icon_url=ctx.author.avatar_url,
+            )
+            embed.add_field(name="Definition:",
+                            value=definition, inline=False)
+            embed.add_field(name="Example:", value=example, inline=False)
+            embed.add_field(name="\N{THUMBS UP SIGN}",
+                            value=thumbs_up, inline=True)
+            embed.add_field(
+                name="\N{THUMBS DOWN SIGN}", value=thumbs_down, inline=True
+            )
+
+            await ctx.send(embed=embed)
 
     @commands.command(aliases=["calc"])
     async def calculate(self, ctx, *, equation: str = None):
@@ -470,101 +491,62 @@ class Meta(BaseCog, name="meta"):
         )
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.command(aliases=["userinfo", "ui"])
     @commands.guild_only()
     async def whois(self, ctx, user: discord.Member = None):
         """Gives you basic information on someone."""
 
         user = user or ctx.author
-        user_id = user.id
-        user_roles = []
-        created_at_str = f"{user.created_at.day}/{user.created_at.month}/{user.created_at.year} {user.created_at.hour}:{user.created_at.minute}:{user.created_at.second}"
-        joined_at_str = f"{user.joined_at.day}/{user.joined_at.month}/{user.joined_at.year} {user.joined_at.hour}:{user.joined_at.minute}:{user.joined_at.second}"
+        embed = Embed.default(ctx)
+        embed.title = f"About {user.name}"
+        embed.description = (
+            f"**ID**: {user.id}\n"
+            f"**Bot**: {user.bot}\n"
+            f"{'**Is literally the bot owner**' if user.id in self.bot.owner_ids else ''}"
+        )
+        embed.set_thumbnail(url=user.avatar_url)
 
-        humanized_create = humanize.naturaldelta(user.created_at)
-        humanized_joined = humanize.naturaldelta(user.joined_at)
+        created_at = (
+            f"{utils.format_time(user.created_at)['date']} "
+            f"({humanize.naturaltime(user.created_at)})"
+        )
 
-        def check_boosted(user: discord.Member):
-            if user.premium_since is None:
-                return "No"
-            boosted_at_str = f"{user.premium_since.day}/{user.premium_since.month}/{user.premium_since.year} {user.premium_since.hour}:{user.premium_since.minute}:{user.premium_since.second}"
-            return boosted_at_str
-
-        def get_activity(m: discord.Member):
-            activities = []
-            if isinstance(m.activity, discord.Spotify):
-                track = f"https://open.spotify.com/track/{m.activity.track_id if not None else 'None'}"
-                activities = [
-                    f"{', '.join(m.activity.artists)} - {m.activity.title}",
-                    f"Duration: {str(m.activity.duration).split('.')[0]}",
-                    f"URL: {track}",
-                ]
-            elif isinstance(m.activity, discord.CustomActivity):
-                activities = [f"{m.activity.name}"]
-            elif isinstance(m.activity, discord.Game):
-                activities = [f"{m.activity.name}"]
-            elif isinstance(m.activity, discord.Streaming):
-                activities = [f"{m.activity.name}"]
-            else:
-                activities = [
-                    "Currently doing nothing, they might just have their game or spotify hidden."
-                ]
-            return activities
-
-        # async def check_if_bot(m: discord.Member):
-        #     if dt.now().month == m.created_at.month or \
-        #         dt.now().month - 1 == m.created_at.month:
-        #         return "Potentially a bot 😳"
-        #     return "Should be clear."
-
-        async def check_if_bot(m: discord.Member):
-            kclient = ksoftapi.Client(config("KSOFT_API"))
-            if m.bot:
-                return "This is literally a bot user."
-            is_banned = await kclient.bans.check(m.id)
-            if (
-                dt.now().month == m.created_at.month
-                and dt.now().year == m.created_at.year
-                or dt.now().month - 1 == m.created_at.month
-                and dt.now().year == m.created_at.year
-            ):
-                if is_banned:
-                    prefix = "Pretty certain a "
-                else:
-                    prefix = "Potentially a "
-                await kclient.close()
-                return prefix + "bot"
-            if is_banned:
-                prefix = " You may want to keep an eye out though."
-            else:
-                prefix = " Pretty sure they're safe"
-            await kclient.close()
-            return "Should be clear." + prefix
+        joined_at = (
+            f"{utils.format_time(user.joined_at)['date']} "
+            f"({humanize.naturaltime(user.joined_at)})"
+        )
 
         roles = user.roles[1:]
         roles.reverse()
-        [user_roles.append(role.mention)
-         for role in roles if len(user_roles) < 30]
-        readable_roles = " ".join(user_roles)
+        roles = [r.mention for r in roles][:30]
 
-        fields = [
-            ["Username", f"{user}", True],
-            ["Bot / User Bot", f"{user.bot} / {await check_if_bot(user)}", True],
-            ["Created at", f"{created_at_str} ({humanized_create} ago)", True],
-            ["Joined at", f"{joined_at_str} ({humanized_joined} ago)", True],
-            ["Boosting", check_boosted(user), True],
-            [
-                f"Roles [{len(user_roles) if len(user_roles) < 30 else '30*'}]",
-                readable_roles or "No roles to display.",
-                False,
-            ],
-            ["Permissions", utils.check_permissions(ctx, user), False],
-        ]
+        async def get_boost(u: discord.Member):
+            """Quick function to check if a user is boosting."""
 
-        embed = Embed.default(ctx)
-        embed.set_thumbnail(url=user.avatar_url)
-        embed.set_footer(text=f"ID: {user.id} | Powered by KSoft.Si API")
-        [embed.add_field(name=n, value=v, inline=i) for n, v, i in fields]
+            if u.premium_since is None:
+                return "No"
+            else:
+                return f"{utils.format_time(u.premium_since)['date']} ({humanize.naturaltime(u.premium_since)})"
+
+        boost = await get_boost(user)
+
+        embed.add_field(name="Account created",
+                        value=f"{created_at}")
+
+        embed.add_field(name="User joined date",
+                        value=f"{joined_at}")
+
+        embed.add_field(name="Boosting",
+                        value=f"{boost}")
+
+        embed.add_field(name=f"Roles [{len(roles) if len(roles) < 30 else '30*'}]",
+                        value=" ".join(roles) or "No roles.",
+                        inline=False)
+
+        embed.add_field(name="Permissions",
+                        value=utils.check_permissions(ctx, user),
+                        inline=False)
+
         await ctx.send(embed=embed)
 
     @commands.command()

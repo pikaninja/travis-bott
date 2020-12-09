@@ -81,6 +81,9 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         self.bot = bot
         self.check_premium.start()
 
+    async def cog_check(self, ctx):
+        return await self.bot.is_owner(ctx.author)
+
     @tasks.loop(seconds=300.0)
     async def check_premium(self):
         await self.bot.wait_until_ready()
@@ -120,7 +123,6 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         pass
 
     @dev.command(name="test")
-    @is_owner()
     async def dev_test(self, ctx):
         """Testing PIL"""
 
@@ -143,7 +145,6 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         await ctx.send(file=discord.File(buffer, "test.png"))
 
     @dev.command(name="ss")
-    @is_owner()
     async def dev_ss(self, ctx, url: str):
         """Website screenshotting"""
 
@@ -182,7 +183,6 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             await ctx.send(file=file)
 
     @dev.command(name="ocr")
-    @is_owner()
     async def dev_ocr(self, ctx, url: str):
         """OCR Testing"""
 
@@ -208,7 +208,6 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         await ctx.send(embed=embed)
 
     @dev.command(name="stats")
-    @is_owner()
     async def dev_stats(self, ctx):
         """Gives some stats on the bot."""
 
@@ -242,14 +241,12 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         await ctx.send(embed=embed)
 
     @dev.command(name="leave")
-    @is_owner()
     async def dev_leave(cself, ctx):
         """Forces the bot to leave the current server"""
 
         await ctx.guild.leave()
 
     @dev.command(name="sql")
-    @is_owner()
     async def dev_sql(self, ctx, *, query: str):
         """Executes an SQL statement for the bot."""
 
@@ -261,14 +258,16 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         results = await stratergy(query)
         statements = []
 
-        for result in results:
-            statements.append(repr(result))
+        if isinstance(results, list):
+            for result in results:
+                statements.append(repr(result))
+        elif isinstance(results, str):
+            statements.append(results)
 
         menu = KalPages(source=SQLCommandPages(ctx, statements))
         await menu.start(ctx)
 
     @dev.command(name="restart")
-    @is_owner()
     async def dev_restart(self, ctx):
         await ctx.send("⚠ Restarting now...")
         if self.bot.user.id == 706530005169209386:
@@ -277,7 +276,6 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             os.system("systemctl restart mybot")
 
     @dev.command()
-    @is_owner()
     async def add_premium(self, ctx, guild_id: int, sub_time: TimeConverter):
         """Adds premium to a guild for a given amount of time."""
 
@@ -296,7 +294,6 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         )
 
     @dev.command(name="say")
-    @is_owner()
     async def dev_say(self, ctx, channel: typing.Optional[discord.TextChannel] = None, *, msg: str = None):
         """You can force the bot to say stuff, cool."""
 
@@ -304,7 +301,6 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         await channel.send(msg)
 
     @dev.command(name="kill")
-    @is_owner()
     async def dev_kill(self, ctx):
         try:
             self.bot.clear()
@@ -316,7 +312,6 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             )
 
     @dev.command()
-    @is_owner()
     async def shard_recon(self, ctx, shard_id: int):
         try:
             self.bot.get_shard(shard_id).reconnect()
@@ -326,7 +321,6 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             await ctx.send("**`SUCCESS`**")
 
     @dev.command()
-    @is_owner()
     async def shard_discon(self, ctx, shard_id: int):
         try:
             self.bot.get_shard(shard_id).disconnect()
@@ -336,7 +330,6 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             await ctx.send("**`SUCCESS`**")
 
     @dev.command()
-    @is_owner()
     async def shard_con(self, ctx, shard_id: int):
         try:
             self.bot.get_shard(shard_id).connect()
@@ -346,7 +339,6 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             await ctx.send("**`SUCCESS`**")
 
     @dev.command(name="reload", aliases=["r"])
-    @is_owner()
     async def dev_reload(self, ctx, cog: str = None):
         # Reloads a given Cog
 
@@ -370,7 +362,6 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
                 await ctx.send("**`SUCCESS`**")
 
     @dev.command(name="load")
-    @is_owner()
     async def dev_load(self, ctx, cog: str):
         # Loads a given Cog
         try:
@@ -381,7 +372,6 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             await ctx.send("**`SUCCESS`**")
 
     @dev.command(name="unload")
-    @is_owner()
     async def dev_unload(self, ctx, cog: str):
         # Unloads a given Cog
         try:
@@ -392,7 +382,6 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             await ctx.send("**`SUCCESS`**")
 
     @dev.command(name="ev")
-    @is_owner()
     async def dev_ev(self, ctx, *, content: str):
         """Evaluates Python code
         Gracefully stolen from Rapptz ->
