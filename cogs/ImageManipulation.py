@@ -1,4 +1,5 @@
 import functools
+import random
 import time
 import typing
 from io import BytesIO
@@ -10,6 +11,7 @@ from asyncdagpi import ImageFeatures
 from decouple import config
 from discord.ext import commands
 from polaroid.polaroid import Image
+from wand.image import Image as WandImage
 
 from utils.CustomCog import BaseCog
 
@@ -70,6 +72,49 @@ class ImageManipulation(BaseCog, name="imagemanipulation"):
             io_bytes = BytesIO(image_one.save_bytes())
 
             return io_bytes
+
+        @staticmethod
+        def magik(image: BytesIO):
+            with WandImage(file=image) as img:
+                img.liquid_rescale(width=int(img.width * 0.5),
+                                   height=int(img.height * 0.5),
+                                   delta_x=random.randint(1, 2),
+                                   rigidity=0)
+
+                img.liquid_rescale(width=int(img.width * 1.5),
+                                   height=int(img.height * 1.5),
+                                   delta_x=random.randrange(1, 3),
+                                   rigidity=0)
+
+                buffer = BytesIO()
+                img.save(file=buffer)
+
+            buffer.seek(0)
+            return buffer
+
+
+    @commands.command()
+    @commands.cooldown(1, 3, commands.BucketType.member)
+    async def magik(self, ctx, user: discord.Member = None):
+        """I'm pretty sure you've seen this command before"""
+
+        async with ctx.timeit:
+            async with ctx.typing():
+                user = user or ctx.author
+                user_avatar = user.avatar_url_as(static_format="png", size=1024)
+                buffer = BytesIO()
+                await user_avatar.save(buffer)
+
+                func = functools.partial(
+                    self.Manipulation.magik, buffer)
+                buffer = await self.bot.loop.run_in_executor(None, func)
+
+                file = discord.File(buffer, filename="magik.png")
+                embed = KalDiscordUtils.Embed.default(ctx)
+                embed.set_image(url="attachment://magik.png")
+
+                await ctx.send(file=file,
+                               embed=embed)
 
     @commands.command(aliases=["ft"])
     @commands.cooldown(1, 3, commands.BucketType.member)
