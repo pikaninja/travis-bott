@@ -158,14 +158,14 @@ class XP(commands.Cog, name="⚗ XP"):
         await self.process_xp(ctx, message.author)
 
     @commands.group(invoke_without_command=True)
-    async def xp(self, ctx):
+    async def xp(self, ctx: CustomContext):
         """The commands that allow you set up the XP system."""
 
         await ctx.send_help(ctx.command)
 
     @xp.command(name="messages")
     @commands.has_permissions(manage_guild=True)
-    async def xp_messages(self, ctx):
+    async def xp_messages(self, ctx: CustomContext):
         """Enables or disables level up messages for the server."""
 
         await ctx.send(
@@ -231,7 +231,7 @@ class XP(commands.Cog, name="⚗ XP"):
 
     @xp.command(name="channel")
     @commands.has_permissions(manage_guild=True)
-    async def xp_channel(self, ctx, channel: discord.TextChannel):
+    async def xp_channel(self, ctx: CustomContext, channel: discord.TextChannel):
         """Allows you to set the text channel for where level ups go."""
 
         config = await db.record(
@@ -260,7 +260,7 @@ class XP(commands.Cog, name="⚗ XP"):
         await ctx.send(f"Successfully set level up messages to go to {channel.mention}")
 
     @commands.command()
-    async def rank(self, ctx, user: discord.Member = None):
+    async def rank(self, ctx: CustomContext, user: discord.Member = None):
         """Gets your current rank and how much xp is required until you level up."""
 
         user = user or ctx.author

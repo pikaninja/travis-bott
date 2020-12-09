@@ -8,6 +8,7 @@ from discord.ext import commands, menus
 
 from utils import utils
 from utils.CustomBot import MyBot
+from utils.CustomContext import CustomContext
 from utils.Embed import Embed
 from utils.CustomCog import BaseCog
 import KalDiscordUtils
@@ -118,7 +119,7 @@ class Misc(BaseCog, name="misc"):
         self.show_name = show_name
 
     @commands.command(name="commands", aliases=["cmds"])
-    async def _commands(self, ctx, *, category: CogConverter = None):
+    async def _commands(self, ctx: CustomContext, *, category: CogConverter = None):
         """A compiled list of all commands."""
 
         if category:
@@ -147,7 +148,7 @@ class Misc(BaseCog, name="misc"):
             await menu.start(ctx)
 
     @commands.command()
-    async def quote(self, ctx, message: discord.Message, *, quote: str):
+    async def quote(self, ctx: CustomContext, message: discord.Message, *, quote: str):
         """Old Discord quoting system"""
 
         allowed_mentions = discord.AllowedMentions.none()
@@ -160,7 +161,7 @@ class Misc(BaseCog, name="misc"):
 
     @commands.command()
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def rawmsg(self, ctx, message: discord.Message):
+    async def rawmsg(self, ctx: CustomContext, message: discord.Message):
         """Gets the raw JSON data of a message, if you don't know what that is, this command probably isn't for you."""
 
         async with self.bot.session.get(
@@ -191,7 +192,7 @@ class Misc(BaseCog, name="misc"):
             start_menu = await menu.start(ctx)
 
     @commands.command(aliases=["dstatus"])
-    async def discordstatus(self, ctx):
+    async def discordstatus(self, ctx: CustomContext):
         """Gets the current status of Discord."""
 
         async with self.bot.session.get("https://discordstatus.com/history.json") as response:
@@ -244,7 +245,7 @@ class Misc(BaseCog, name="misc"):
             await p.start(ctx)
 
     @commands.command(aliases=["latency"])
-    async def ping(self, ctx):
+    async def ping(self, ctx: CustomContext):
         """Get the bots ping."""
 
         embed = Embed.default(ctx)
@@ -262,7 +263,7 @@ class Misc(BaseCog, name="misc"):
         await msg.edit(embed=embed)
 
     @commands.command()
-    async def password(self, ctx, length: typing.Optional[int] = 8):
+    async def password(self, ctx: CustomContext, length: typing.Optional[int] = 8):
         """Generates a password and sends it to you in DMs!"""
 
         url = f"http://kal-byte.co.uk:4040/passwordgen/{length}"
@@ -287,7 +288,7 @@ class Misc(BaseCog, name="misc"):
                 )
 
     @commands.command(hidden=True, aliases=["hello"])
-    async def hey(self, ctx):
+    async def hey(self, ctx: CustomContext):
         """Displays the bots introduction."""
 
         await ctx.send(
@@ -295,7 +296,7 @@ class Misc(BaseCog, name="misc"):
         )
 
     @commands.command()
-    async def privacy(self, ctx):
+    async def privacy(self, ctx: CustomContext):
         """Sends the bots privacy policy via dms."""
 
         message = """What information is stored?
@@ -315,7 +316,7 @@ How to remove your data.
         await ctx.author.send(message)
 
     @commands.command()
-    async def suggest(self, ctx, *, suggestion: str):
+    async def suggest(self, ctx: CustomContext, *, suggestion: str):
         """Send a suggestion to the bot developer."""
 
         msg = f"**Suggestion from {ctx.author} ({ctx.author.id}) at {ctx.message.created_at}**\n{suggestion}"
@@ -323,7 +324,7 @@ How to remove your data.
         await ctx.thumbsup()
 
     @commands.command()
-    async def invite(self, ctx):
+    async def invite(self, ctx: CustomContext):
         """Sends an link to invite the bot to your server."""
 
         bot_invite = f"https://discord.com/api/oauth2/authorize?client_id={self.bot.user.id}&permissions=8&scope=bot"
@@ -338,7 +339,7 @@ How to remove your data.
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def support(self, ctx):
+    async def support(self, ctx: CustomContext):
         """Gives a link to the support server."""
 
         await ctx.send(
@@ -347,13 +348,13 @@ How to remove your data.
         )
 
     @commands.command()
-    async def uptime(self, ctx):
+    async def uptime(self, ctx: CustomContext):
         """Get the bots uptime."""
 
         await ctx.send(f"Uptime: {self.bot.get_uptime()}")
 
     @commands.command(aliases=["git", "code", "src", "source"])
-    async def github(self, ctx):
+    async def github(self, ctx: CustomContext):
         """Sends the bots github repo"""
 
         await ctx.send(

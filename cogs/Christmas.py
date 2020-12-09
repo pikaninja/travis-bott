@@ -8,6 +8,7 @@ from discord.ext import commands
 
 from utils.CustomBot import MyBot
 from utils.CustomCog import BaseCog
+from utils.CustomContext import CustomContext
 
 
 class Christmas(BaseCog, name="christmas"):
@@ -18,7 +19,7 @@ class Christmas(BaseCog, name="christmas"):
         self.show_name = show_name
 
     @commands.command()
-    async def howlong(self, ctx):
+    async def howlong(self, ctx: CustomContext):
         """Gives you how long it is until Christmas."""
 
         time = datetime.datetime(year=2020, month=12, day=25)
@@ -30,7 +31,7 @@ class Christmas(BaseCog, name="christmas"):
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["sbf"])
-    async def snowballfight(self, ctx, user: discord.Member):
+    async def snowballfight(self, ctx: CustomContext, user: discord.Member):
         """Starts a snowball fight with someone!"""
 
         if user == ctx.author:

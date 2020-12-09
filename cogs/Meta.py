@@ -7,6 +7,7 @@ from discord.ext.commands.errors import BadArgument
 
 from utils import utils
 from utils.CustomBot import MyBot
+from utils.CustomContext import CustomContext
 from utils.Paginator import BetterPaginator, EmbedMenu
 from utils.CustomCog import BaseCog
 from utils.Embed import Embed
@@ -59,7 +60,7 @@ class Meta(BaseCog, name="meta"):
         self.weather_api_key = config("WEATHER_API_KEY")
 
     @commands.command()
-    async def convert(self, ctx, amount: float, cur_from: str, cur_to: str):
+    async def convert(self, ctx: CustomContext, amount: float, cur_from: str, cur_to: str):
         """Converts a given amount of money from one currency (3 letter e.g. GBP) to another currency."""
 
         currency_converter = CurrencyConverter()
@@ -75,7 +76,7 @@ class Meta(BaseCog, name="meta"):
 
     @commands.command(aliases=["g"])
     @commands.cooldown(5, 5, commands.BucketType.user)
-    async def google(self, ctx, *, query: str):
+    async def google(self, ctx: CustomContext, *, query: str):
         """Searches google for a given query."""
 
         async with google_search(query) as results:
@@ -100,7 +101,7 @@ class Meta(BaseCog, name="meta"):
             await menu.start(ctx)
 
     @commands.command(aliases=["randomcolor", "rcolour", "rcolor"])
-    async def randomcolour(self, ctx):
+    async def randomcolour(self, ctx: CustomContext):
         """Gives a random colour."""
 
         r_colour = (
@@ -123,7 +124,7 @@ class Meta(BaseCog, name="meta"):
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["color"])
-    async def colour(self, ctx, colour: str):
+    async def colour(self, ctx: CustomContext, colour: str):
         """Shows a representation of a given colour"""
 
         hex_regex = r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
@@ -147,7 +148,7 @@ class Meta(BaseCog, name="meta"):
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["av"])
-    async def avatar(self, ctx, member: typing.Optional[discord.Member]):
+    async def avatar(self, ctx: CustomContext, member: typing.Optional[discord.Member]):
         """Get your own or another persons avatar."""
 
         if not member:
@@ -160,7 +161,7 @@ class Meta(BaseCog, name="meta"):
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["about"])
-    async def info(self, ctx):
+    async def info(self, ctx: CustomContext):
         """Get basic info on the bot."""
 
         invite_link = f"https://discord.com/api/oauth2/authorize?client_id={self.bot.user.id}&permissions=8&scope=bot"
@@ -203,7 +204,7 @@ class Meta(BaseCog, name="meta"):
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def translate(self, ctx, *, text: str):
+    async def translate(self, ctx: CustomContext, *, text: str):
         """Automatically translates a given text to English"""
 
         translate_api = translator.Translator()
@@ -227,7 +228,7 @@ class Meta(BaseCog, name="meta"):
         await ctx.send(embed=embed)
 
     @commands.group(invoke_without_command=True)
-    async def emoji(self, ctx, *emojis: discord.PartialEmoji):
+    async def emoji(self, ctx: CustomContext, *emojis: discord.PartialEmoji):
         """Get's the full image of an emoji and adds some more info.
         ~~If you have `manage_emojis` permissions if you react with the detective, the emoji gets added to the server.~~"""
 
@@ -260,7 +261,7 @@ class Meta(BaseCog, name="meta"):
 
     @emoji.command(name="steal")
     @commands.has_permissions(manage_emojis=True)
-    async def steal_emoji(self, ctx, emoji: discord.PartialEmoji, *, name: str = None):
+    async def steal_emoji(self, ctx: CustomContext, emoji: discord.PartialEmoji, *, name: str = None):
         """Steals a given emoji and you're able to give it a new name.
         Permissions needed: `Manage Emojis`"""
 
@@ -285,7 +286,7 @@ class Meta(BaseCog, name="meta"):
     @emoji.command(name="fromid")
     @commands.has_permissions(manage_emojis=True)
     async def steal_emoji_from_id(
-        self, ctx, gif_or_png: str, emoji_id: int, *, name: str = None
+        self, ctx: CustomContext, gif_or_png: str, emoji_id: int, *, name: str = None
     ):
         """Steals a given emoji by its ID you're able to give it a new name.
         Permissions needed: `Manage Emojis`"""
@@ -313,12 +314,12 @@ class Meta(BaseCog, name="meta"):
             )
 
     @emoji.error
-    async def on_emoji_error(self, ctx, error):
+    async def on_emoji_error(self, ctx: CustomContext, error):
         if isinstance(error, commands.PartialEmojiConversionFailure):
             return await ctx.send("I could not convert that emoji.")
 
     @commands.command(aliases=["server"])
-    async def serverinfo(self, ctx):
+    async def serverinfo(self, ctx: CustomContext):
         """Gives you information based on the current server"""
 
         guild_features = []
@@ -377,7 +378,7 @@ class Meta(BaseCog, name="meta"):
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def channel(self, ctx, channel: typing.Union[discord.TextChannel, discord.VoiceChannel] = None):
+    async def channel(self, ctx: CustomContext, channel: typing.Union[discord.TextChannel, discord.VoiceChannel] = None):
         """Gives you information on a channel."""
 
         channel = channel or ctx.channel
@@ -416,7 +417,7 @@ class Meta(BaseCog, name="meta"):
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["urban", "ud"])
-    async def urbandictionary(self, ctx, *, definition: str):
+    async def urbandictionary(self, ctx: CustomContext, *, definition: str):
         """Get a urban dictionary definition of almost any word!"""
 
         if len(definition) == 0:
@@ -473,7 +474,7 @@ class Meta(BaseCog, name="meta"):
             await ctx.send(embed=embed)
 
     @commands.command(aliases=["calc"])
-    async def calculate(self, ctx, *, equation: str = None):
+    async def calculate(self, ctx: CustomContext, *, equation: str = None):
         """Gives you the answer to (basic) calculations."""
 
         if "x" in equation:
@@ -488,7 +489,7 @@ class Meta(BaseCog, name="meta"):
 
     @commands.command(aliases=["userinfo", "ui"])
     @commands.guild_only()
-    async def whois(self, ctx, user: discord.Member = None):
+    async def whois(self, ctx: CustomContext, user: discord.Member = None):
         """Gives you basic information on someone."""
 
         user = user or ctx.author
@@ -545,7 +546,7 @@ class Meta(BaseCog, name="meta"):
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def weather(self, ctx, *, city_or_country: str):
+    async def weather(self, ctx: CustomContext, *, city_or_country: str):
         """Gives the weather of a given country/city."""
 
         url = f"http://api.openweathermap.org/data/2.5/weather?appid={self.weather_api_key}&q={city_or_country}"
@@ -616,7 +617,7 @@ class Meta(BaseCog, name="meta"):
     #         await ctx.send(embed=embed)
 
     @commands.command()
-    async def country(self, ctx, *, country: str):
+    async def country(self, ctx: CustomContext, *, country: str):
         """Gives basic information on a given country."""
 
         complete_api_url = f"https://restcountries.eu/rest/v2/name/{country}"
@@ -644,7 +645,7 @@ class Meta(BaseCog, name="meta"):
             await ctx.send(embed=embed)
 
     @commands.command()
-    async def poll(self, ctx, *, query: str):
+    async def poll(self, ctx: CustomContext, *, query: str):
         """Poll System:
         To create a standard poll just do:
         {prefix}poll [Poll Question Here]

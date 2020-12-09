@@ -4,6 +4,7 @@ import discord
 
 from utils import db, utils
 from utils.CustomBot import MyBot
+from utils.CustomContext import CustomContext
 
 
 class ReactionRoles(commands.Cog, name="🎉 Reaction Roles"):
@@ -12,7 +13,7 @@ class ReactionRoles(commands.Cog, name="🎉 Reaction Roles"):
 
     @commands.group(aliases=["rr", "reactionroles"], invoke_without_command=True)
     @commands.has_permissions(manage_guild=True)
-    async def reaction_roles(self, ctx):
+    async def reaction_roles(self, ctx: CustomContext):
         """Sets up reaction roles for a specific message."""
 
         await ctx.send_help(ctx.command)
@@ -21,7 +22,7 @@ class ReactionRoles(commands.Cog, name="🎉 Reaction Roles"):
     @commands.has_permissions(manage_guild=True)
     async def rr_add(
         self,
-        ctx,
+        ctx: CustomContext,
         channel: discord.TextChannel,
         message_id: discord.Message,
         emoji: discord.PartialEmoji,

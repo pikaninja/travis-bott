@@ -25,6 +25,7 @@ from discord.ext.commands import (
 
 from utils import utils
 from utils.CustomBot import MyBot
+from utils.CustomContext import CustomContext
 from utils.Embed import Embed
 from utils.Paginator import BetterPaginator, Menu, LPS, KalPages
 
@@ -82,7 +83,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         self.bot: MyBot = bot
         self.check_premium.start()
 
-    async def cog_check(self, ctx):
+    async def cog_check(self, ctx: CustomContext):
         return await self.bot.is_owner(ctx.author)
 
     @tasks.loop(seconds=300.0)
@@ -120,11 +121,11 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
     @group(invoke_without_command=True)
     @is_owner()
-    async def dev(self, ctx):
+    async def dev(self, ctx: CustomContext):
         pass
 
     @dev.command(name="test")
-    async def dev_test(self, ctx):
+    async def dev_test(self, ctx: CustomContext):
         """Testing PIL"""
 
         buffer = io.BytesIO()
@@ -146,7 +147,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         await ctx.send(file=discord.File(buffer, "test.png"))
 
     @dev.command(name="ss")
-    async def dev_ss(self, ctx, url: str):
+    async def dev_ss(self, ctx: CustomContext, url: str):
         """Website screenshotting"""
 
         def ss_website(web_url) -> io.BytesIO:
@@ -184,7 +185,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             await ctx.send(file=file)
 
     @dev.command(name="ocr")
-    async def dev_ocr(self, ctx, url: str):
+    async def dev_ocr(self, ctx: CustomContext, url: str):
         """OCR Testing"""
 
         async with self.bot.session.get(url) as response:
@@ -209,7 +210,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         await ctx.send(embed=embed)
 
     @dev.command(name="stats")
-    async def dev_stats(self, ctx):
+    async def dev_stats(self, ctx: CustomContext):
         """Gives some stats on the bot."""
 
         ctr = collections.Counter()
@@ -242,13 +243,13 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         await ctx.send(embed=embed)
 
     @dev.command(name="leave")
-    async def dev_leave(cself, ctx):
+    async def dev_leave(self, ctx: CustomContext):
         """Forces the bot to leave the current server"""
 
         await ctx.guild.leave()
 
     @dev.command(name="sql")
-    async def dev_sql(self, ctx, *, query: str):
+    async def dev_sql(self, ctx: CustomContext, *, query: str):
         """Executes an SQL statement for the bot."""
 
         if query.lower().startswith("select"):
@@ -269,7 +270,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         await menu.start(ctx)
 
     @dev.command(name="restart")
-    async def dev_restart(self, ctx):
+    async def dev_restart(self, ctx: CustomContext):
         await ctx.send("⚠ Restarting now...")
         if self.bot.user.id == 706530005169209386:
             os.system("systemctl restart travis")
@@ -277,7 +278,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             os.system("systemctl restart mybot")
 
     @dev.command()
-    async def add_premium(self, ctx, guild_id: int, sub_time: TimeConverter):
+    async def add_premium(self, ctx: CustomContext, guild_id: int, sub_time: TimeConverter):
         """Adds premium to a guild for a given amount of time."""
 
         prem_time = int((time.time() + sub_time))
@@ -295,14 +296,14 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         )
 
     @dev.command(name="say")
-    async def dev_say(self, ctx, channel: typing.Optional[discord.TextChannel] = None, *, msg: str = None):
+    async def dev_say(self, ctx: CustomContext, channel: typing.Optional[discord.TextChannel] = None, *, msg: str = None):
         """You can force the bot to say stuff, cool."""
 
         channel = channel or ctx.channel
         await channel.send(msg)
 
     @dev.command(name="kill")
-    async def dev_kill(self, ctx):
+    async def dev_kill(self, ctx: CustomContext):
         try:
             self.bot.clear()
             await self.bot.close()
@@ -313,7 +314,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             )
 
     @dev.command()
-    async def shard_recon(self, ctx, shard_id: int):
+    async def shard_recon(self, ctx: CustomContext, shard_id: int):
         try:
             self.bot.get_shard(shard_id).reconnect()
         except Exception as e:
@@ -322,7 +323,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             await ctx.send("**`SUCCESS`**")
 
     @dev.command()
-    async def shard_discon(self, ctx, shard_id: int):
+    async def shard_discon(self, ctx: CustomContext, shard_id: int):
         try:
             self.bot.get_shard(shard_id).disconnect()
         except Exception as e:
@@ -331,7 +332,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             await ctx.send("**`SUCCESS`**")
 
     @dev.command()
-    async def shard_con(self, ctx, shard_id: int):
+    async def shard_con(self, ctx: CustomContext, shard_id: int):
         try:
             self.bot.get_shard(shard_id).connect()
         except Exception as e:
@@ -340,7 +341,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             await ctx.send("**`SUCCESS`**")
 
     @dev.command(name="reload", aliases=["r"])
-    async def dev_reload(self, ctx, cog: str = None):
+    async def dev_reload(self, ctx: CustomContext, cog: str = None):
         # Reloads a given Cog
 
         if cog is None:
@@ -363,7 +364,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
                 await ctx.send("**`SUCCESS`**")
 
     @dev.command(name="load")
-    async def dev_load(self, ctx, cog: str):
+    async def dev_load(self, ctx: CustomContext, cog: str):
         # Loads a given Cog
         try:
             self.bot.load_extension(cog)
@@ -373,7 +374,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             await ctx.send("**`SUCCESS`**")
 
     @dev.command(name="unload")
-    async def dev_unload(self, ctx, cog: str):
+    async def dev_unload(self, ctx: CustomContext, cog: str):
         # Unloads a given Cog
         try:
             self.bot.unload_extension(cog)
@@ -383,7 +384,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             await ctx.send("**`SUCCESS`**")
 
     @dev.command(name="ev")
-    async def dev_ev(self, ctx, *, content: str):
+    async def dev_ev(self, ctx: CustomContext, *, content: str):
         """Evaluates Python code
         Gracefully stolen from Rapptz ->
         https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/admin.py#L72-L117"""

@@ -5,6 +5,7 @@ import discord
 from utils import utils
 from utils.CustomBot import MyBot
 from utils.CustomCog import BaseCog
+from utils.CustomContext import CustomContext
 from utils.Embed import Embed
 import asyncio
 
@@ -45,7 +46,7 @@ class Management(BaseCog, name="management"):
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
     @commands.bot_has_permissions(manage_roles=True)
-    async def roles(self, ctx):
+    async def roles(self, ctx: CustomContext):
         """Set up for premium roles for the guild"""
 
         await ctx.send_help(ctx.command)
@@ -53,7 +54,7 @@ class Management(BaseCog, name="management"):
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
-    async def config(self, ctx):
+    async def config(self, ctx: CustomContext):
         """Shows you all of the configuration for the current server."""
 
         current_mute_role_id = await self.bot.pool.fetchval(
@@ -104,7 +105,7 @@ class Management(BaseCog, name="management"):
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
     @commands.bot_has_permissions(manage_channels=True)
-    async def superlogs(self, ctx, channel: discord.TextChannel):
+    async def superlogs(self, ctx: CustomContext, channel: discord.TextChannel):
         """Sets the channel that all of Travis' logs go to."""
 
         await self.bot.pool.execute(
@@ -119,7 +120,7 @@ class Management(BaseCog, name="management"):
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
     @commands.bot_has_permissions(manage_channels=True)
-    async def muterole(self, ctx, role: str = None):
+    async def muterole(self, ctx: CustomContext, role: str = None):
         """Sets the mute role for the server."""
 
         if role is None:
@@ -169,7 +170,7 @@ class Management(BaseCog, name="management"):
     @commands.group(invoke_without_command=True)
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
-    async def prefix(self, ctx):
+    async def prefix(self, ctx: CustomContext):
         """Gets the current prefix."""
 
         prefix = self.bot.cache["prefixes"][ctx.guild.id]
@@ -178,7 +179,7 @@ class Management(BaseCog, name="management"):
     @prefix.command(name="set")
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
-    async def prefix_set(self, ctx, prefix: Prefix):
+    async def prefix_set(self, ctx: CustomContext, prefix: Prefix):
         """To reset input \"None\",
         for a blank prefix do:
         {prefix}prefix set [BLANK]
@@ -204,7 +205,7 @@ class Management(BaseCog, name="management"):
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
     @commands.bot_has_permissions(send_messages=True)
-    async def verification(self, ctx):
+    async def verification(self, ctx: CustomContext):
         """Verification Setup.
         Permissions needed: `Manage Server`
         """
@@ -215,7 +216,7 @@ class Management(BaseCog, name="management"):
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
     @commands.bot_has_permissions(send_messages=True)
-    async def verification_setup(self, ctx, channel: discord.TextChannel, *, role: str):
+    async def verification_setup(self, ctx: CustomContext, channel: discord.TextChannel, *, role: str):
         """Goes through the process to set up verification."""
 
         check_guild = await self.bot.pool.fetchrow(
@@ -247,7 +248,7 @@ class Management(BaseCog, name="management"):
     @verification.command(name="reset")
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
-    async def verification_reset(self, ctx):
+    async def verification_reset(self, ctx: CustomContext):
         """Resets verification in the server."""
 
         check_guild = await self.bot.pool.fetchrow(

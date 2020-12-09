@@ -4,6 +4,7 @@ from utils import utils
 from utils.Paginator import Paginator, KalPages
 from utils.CustomCog import BaseCog
 from utils.CustomBot import MyBot
+from utils.CustomContext import CustomContext
 from utils.Embed import Embed
 
 from time import time as t
@@ -146,7 +147,7 @@ class Moderation(BaseCog, name="moderation"):
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(send_messages=True)
     async def warn(
-        self, ctx, user: discord.Member, *, reason: str = "No Reason Provided"
+        self, ctx: CustomContext, user: discord.Member, *, reason: str = "No Reason Provided"
     ):
         """Warns a given user for a given reason, 20 warns maximum on each user."""
 
@@ -197,7 +198,7 @@ class Moderation(BaseCog, name="moderation"):
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(send_messages=True)
-    async def delwarn(self, ctx, warn_id: str):
+    async def delwarn(self, ctx: CustomContext, warn_id: str):
         """Deletes a given warn by its ID."""
 
         get_warn = await self.bot.pool.execute(
@@ -216,7 +217,7 @@ class Moderation(BaseCog, name="moderation"):
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(send_messages=True)
-    async def warns(self, ctx, user: discord.Member):
+    async def warns(self, ctx: CustomContext, user: discord.Member):
         """Gets all of a given users warnings"""
 
         user_warns = await self.bot.pool.fetch(
@@ -249,7 +250,7 @@ class Moderation(BaseCog, name="moderation"):
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(send_messages=True)
-    async def moderations(self, ctx):
+    async def moderations(self, ctx: CustomContext):
         """Gives a list of all of the active mutes."""
 
         moderations = []
@@ -281,7 +282,7 @@ class Moderation(BaseCog, name="moderation"):
     @commands.bot_has_permissions(manage_roles=True)
     async def mute(
         self,
-        ctx,
+        ctx: CustomContext,
         user: discord.Member,
         time: str,
         *,
@@ -360,7 +361,7 @@ class Moderation(BaseCog, name="moderation"):
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_roles=True)
-    async def unmute(self, ctx, user: discord.Member):
+    async def unmute(self, ctx: CustomContext, user: discord.Member):
         """Unmutes a given user who has the servers muted role"""
 
         mute_role_id = await self.bot.pool.fetchval(
@@ -386,7 +387,7 @@ class Moderation(BaseCog, name="moderation"):
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
     @commands.bot_has_permissions(ban_members=True)
-    async def massunban(self, ctx):
+    async def massunban(self, ctx: CustomContext):
         """Gives a prompt to unban everyone.
         Permissions needed: `Manage Server`"""
 
@@ -418,7 +419,7 @@ class Moderation(BaseCog, name="moderation"):
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
-    async def ban(self, ctx, user: MemberID, *, reason: str = "No reason provided."):
+    async def ban(self, ctx: CustomContext, user: MemberID, *, reason: str = "No reason provided."):
         """Bans someone for a given reason.
         Permissions needed: `Ban Members`"""
 
@@ -437,7 +438,7 @@ class Moderation(BaseCog, name="moderation"):
     @commands.command(aliases=["unbarn", "unbanish"])
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
-    async def unban(self, ctx, user: str):
+    async def unban(self, ctx: CustomContext, user: str):
         """Unbans a given user.
         Permissions needed: `Ban Members`"""
 
@@ -453,7 +454,7 @@ class Moderation(BaseCog, name="moderation"):
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(kick_members=True)
     async def kick(
-        self, ctx, user: discord.Member, *, reason: str = "No reason provided."
+        self, ctx: CustomContext, user: discord.Member, *, reason: str = "No reason provided."
     ):
         """Kicks a user for a given reason.
         Permissions needed: `Kick Members`"""
@@ -469,7 +470,7 @@ class Moderation(BaseCog, name="moderation"):
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_nicknames=True)
-    async def setnick(self, ctx, user: discord.Member, *, new_name: str = None):
+    async def setnick(self, ctx: CustomContext, user: discord.Member, *, new_name: str = None):
         """Sets a new nickname for a given user.
         Permissions needed: `Manage Messages`"""
 
@@ -487,7 +488,7 @@ class Moderation(BaseCog, name="moderation"):
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(send_messages=True)
-    async def members(self, ctx, *, role: Role):
+    async def members(self, ctx: CustomContext, *, role: Role):
         """Check the list of members in a certain role.
         Permissions needed: `Manage Messages`"""
 
@@ -522,7 +523,7 @@ class Moderation(BaseCog, name="moderation"):
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_messages=True)
-    async def clean(self, ctx):
+    async def clean(self, ctx: CustomContext):
         """Cleans all 100 previous bot messages.
         Permissions needed: `Manage Messages`"""
 
@@ -537,7 +538,7 @@ class Moderation(BaseCog, name="moderation"):
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_messages=True)
-    async def purge(self, ctx, amount: int):
+    async def purge(self, ctx: CustomContext, amount: int):
         """Purges a given amount of messages
         Permissions needed: `Manage Messages`"""
 
@@ -548,7 +549,7 @@ class Moderation(BaseCog, name="moderation"):
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     @commands.bot_has_permissions(manage_roles=True)
-    async def role(self, ctx, user: discord.Member, *roles: Role):
+    async def role(self, ctx: CustomContext, user: discord.Member, *roles: Role):
         """
         Give someone a role.
 
@@ -593,7 +594,7 @@ class Moderation(BaseCog, name="moderation"):
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     @commands.bot_has_permissions(manage_roles=True)
-    async def role_add(self, ctx, *, role: str):
+    async def role_add(self, ctx: CustomContext, *, role: str):
         """Adds a new role with a given name."""
 
         await ctx.guild.create_role(name=role, reason=f"Responsible User: {ctx.author}")
@@ -603,7 +604,7 @@ class Moderation(BaseCog, name="moderation"):
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     @commands.bot_has_permissions(manage_roles=True)
-    async def role_del(self, ctx, *, role: Role):
+    async def role_del(self, ctx: CustomContext, *, role: Role):
         """Deletes a given role."""
 
         await role.delete(reason=f"Responsible User: {ctx.author}")
@@ -613,7 +614,7 @@ class Moderation(BaseCog, name="moderation"):
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     @commands.bot_has_permissions(manage_roles=True)
-    async def role_colour(self, ctx, role: Role, colour: str):
+    async def role_colour(self, ctx: CustomContext, role: Role, colour: str):
         """Sets the colour of a given role."""
 
         hex_regex = r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
@@ -633,7 +634,7 @@ class Moderation(BaseCog, name="moderation"):
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     @commands.bot_has_permissions(send_messages=True)
-    async def role_info(self, ctx, *roles: Role):
+    async def role_info(self, ctx: CustomContext, *roles: Role):
         """Get information on a given role."""
 
         embed_list = []
@@ -699,7 +700,7 @@ class Moderation(BaseCog, name="moderation"):
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(send_messages=True)
-    async def role_id(self, ctx, *roles: Role):
+    async def role_id(self, ctx: CustomContext, *roles: Role):
         """Gets the ID of one or multiple role(s).
         e.g. {prefix}role id Developer support \"Hello World\" """
 
@@ -721,7 +722,7 @@ class Moderation(BaseCog, name="moderation"):
     @commands.guild_only()
     @commands.has_permissions(manage_roles=True)
     @commands.bot_has_permissions(manage_roles=True)
-    async def role_name(self, ctx, role: Role, *, name: str):
+    async def role_name(self, ctx: CustomContext, role: Role, *, name: str):
         """Changes the name of a given role.
         E.g. {prefix}role name \"Role Name\" New Role Name Here"""
 
