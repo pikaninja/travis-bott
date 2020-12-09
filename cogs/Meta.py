@@ -1,6 +1,7 @@
 import contextlib
 from contextlib import asynccontextmanager
 
+import KalDiscordUtils
 from decouple import config
 from discord.ext import commands, menus
 from discord.ext.commands.errors import BadArgument
@@ -81,7 +82,7 @@ class Meta(utils.BaseCog, name="meta"):
             embeds = []
 
             for result in results:
-                embed = utils.Embed.default(ctx)
+                embed = KalDiscordUtils.Embed.default(ctx)
                 embed.title = result.title
                 embed.description = result.snippet
                 embed.url = result.link
@@ -108,7 +109,7 @@ class Meta(utils.BaseCog, name="meta"):
         colour_representation = (
             f"https://some-random-api.ml/canvas/colorviewer?hex={rgb_to_hex[1:]}"
         )
-        embed = utils.Embed.default(
+        embed = KalDiscordUtils.Embed.default(
             ctx,
             title="Generated Colour",
             colour=discord.Colour.from_rgb(*r_colour),
@@ -133,7 +134,7 @@ class Meta(utils.BaseCog, name="meta"):
             f"https://some-random-api.ml/canvas/colorviewer?hex={colour[1:]}"
         )
         hex_to_rgb = utils.hex_to_rgb(colour[1:])
-        embed = utils.Embed.default(
+        embed = KalDiscordUtils.Embed.default(
             ctx,
             colour=discord.Colour.from_rgb(*hex_to_rgb)
         )
@@ -149,7 +150,7 @@ class Meta(utils.BaseCog, name="meta"):
         if not member:
             member = ctx.author
 
-        embed = utils.Embed.default(ctx)
+        embed = KalDiscordUtils.Embed.default(ctx)
         embed.set_author(name=member, icon_url=member.avatar_url)
         embed.set_image(url=member.avatar_url_as(
             static_format="png", size=1024))
@@ -169,7 +170,7 @@ class Meta(utils.BaseCog, name="meta"):
         ) / 1000000
         total_mem = psutil.virtual_memory().total / 1000000
 
-        embed = utils.Embed.default(
+        embed = KalDiscordUtils.Embed.default(
             ctx,
             title=f"Info about {self.bot.user.name}",
             description=f"Thank you to {astro_user} for making the avatar."
@@ -207,11 +208,11 @@ class Meta(utils.BaseCog, name="meta"):
             translation = await translate_api.translate(str(text), dest="en")
         except IndexError:
             return await ctx.send(
-                embed=utils.Embed.error(
+                embed=KalDiscordUtils.Embed.error(
                     description=f"`{text}` could not be translated.")
             )
         print(translation)
-        embed = utils.Embed.default(
+        embed = KalDiscordUtils.Embed.default(
             ctx,
             title="Translation",
             description=str(translation.text)
@@ -234,7 +235,7 @@ class Meta(utils.BaseCog, name="meta"):
 
         for _ in range(len(emojis)):
             emoji = emojis[_]
-            embed = utils.Embed.default(
+            embed = KalDiscordUtils.Embed.default(
                 ctx,
                 title=f"Showing for {emoji.name}",
                 description=f"ID: {emoji.id}"
@@ -358,7 +359,7 @@ class Meta(utils.BaseCog, name="meta"):
             ["Features", "\n".join(guild_features) or "None", False],
         ]
 
-        embed = utils.Embed.default(
+        embed = KalDiscordUtils.Embed.default(
             ctx,
             title=title,
             description=f"**ID:** {ctx.guild.id}\n**Owner:** {ctx.guild.owner}",
@@ -377,7 +378,7 @@ class Meta(utils.BaseCog, name="meta"):
 
         channel = channel or ctx.channel
 
-        embed = utils.Embed.default(
+        embed = KalDiscordUtils.Embed.default(
             ctx,
             title=f"Information on {channel.name}"
         )
@@ -444,7 +445,7 @@ class Meta(utils.BaseCog, name="meta"):
                     "The lookup for this word is way too big to show."
                 )
 
-            embed = utils.Embed.default(
+            embed = KalDiscordUtils.Embed.default(
                 ctx,
                 title=f"Definition of {word}"
             )
@@ -474,7 +475,7 @@ class Meta(utils.BaseCog, name="meta"):
         if "x" in equation:
             equation = equation.replace("x", "*")
         result = numexpr.evaluate(str(equation)).item()
-        embed = utils.Embed.default(
+        embed = KalDiscordUtils.Embed.default(
             ctx,
             title=f"Result of {equation}:",
             description=f"{result}"
@@ -487,7 +488,7 @@ class Meta(utils.BaseCog, name="meta"):
         """Gives you basic information on someone."""
 
         user = user or ctx.author
-        embed = utils.Embed.default(ctx)
+        embed = KalDiscordUtils.Embed.default(ctx)
         embed.title = f"About {user.name}"
         embed.description = (
             f"**ID**: {user.id}\n"
@@ -568,7 +569,7 @@ class Meta(utils.BaseCog, name="meta"):
                 ["Description", description],
             ]
 
-            embed = utils.Embed.default(
+            embed = KalDiscordUtils.Embed.default(
                 ctx,
                 title=f"Weather in {data['name']}"
             )
@@ -633,7 +634,7 @@ class Meta(utils.BaseCog, name="meta"):
                 ["Language Spoken:", data["languages"][0]["nativeName"]],
             ]
 
-            embed = utils.Embed.default(ctx)
+            embed = KalDiscordUtils.Embed.default(ctx)
             [embed.add_field(name=n, value=str(v)) for n, v in fields]
 
             await ctx.send(embed=embed)
@@ -660,7 +661,7 @@ class Meta(utils.BaseCog, name="meta"):
                 "9️⃣",
                 "🔟",
             ]
-            embed = utils.Embed.default(ctx,
+            embed = KalDiscordUtils.Embed.default(ctx,
                                   title=multi[0],
                                   description="")
             choices = multi[1].split(", ")
@@ -676,7 +677,7 @@ class Meta(utils.BaseCog, name="meta"):
                 "\N{THUMBS UP SIGN}",
                 "\N{THUMBS DOWN SIGN}"
             ]
-            embed = utils.Embed.default(ctx,
+            embed = KalDiscordUtils.Embed.default(ctx,
                                   title=query)
 
             msg = await ctx.send(embed=embed)

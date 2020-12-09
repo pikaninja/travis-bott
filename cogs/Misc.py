@@ -83,7 +83,7 @@ class CommandCatList(menus.ListPageSource):
         self.cog_name = cog_name
 
     async def format_page(self, menu, cmds):
-        embed = KalDiscordUtils.utils.Embed.default(
+        embed = KalDiscordUtils.KalDiscordUtils.Embed.default(
             self.ctx,
             title=self.cog_name,
             description="\n".join(cmds)
@@ -99,7 +99,7 @@ class CommandsList(menus.ListPageSource):
         self.ctx = ctx
 
     async def format_page(self, menu, cmds):
-        embed = KalDiscordUtils.utils.Embed.default(
+        embed = KalDiscordUtils.KalDiscordUtils.Embed.default(
             self.ctx,
             title=cmds[0][0],
             description="\n".join([c[1] for c in cmds])
@@ -197,7 +197,7 @@ class Misc(utils.BaseCog, name="misc"):
             try:
                 current = data["months"][0]["incidents"][0]
             except IndexError:
-                embed = utils.Embed.warning(description="There are no incidents reported this month as of yet.")
+                embed = KalDiscordUtils.Embed.warning(description="There are no incidents reported this month as of yet.")
                 return await ctx.send(embed=embed)
             components = data["components"]
 
@@ -205,10 +205,10 @@ class Misc(utils.BaseCog, name="misc"):
                 r"<var data-var='date'>|</var>|<var data-var='time'>", "", current["timestamp"])
 
             if len(timestamp) > 17:
-                embed = utils.Embed.warning(title="No issues with discord report as of yet.")
+                embed = KalDiscordUtils.Embed.warning(title="No issues with discord report as of yet.")
                 return await ctx.send(embed=embed)
 
-            main_embed = utils.Embed.default(
+            main_embed = KalDiscordUtils.Embed.default(
                 ctx,
                 title="Current Status for Discord.",
                 description=(
@@ -231,7 +231,7 @@ class Misc(utils.BaseCog, name="misc"):
                     f"Name: {_set['name']} -> **{_set['status'].title()}**"
                 )
 
-            components_embed = utils.Embed.default(
+            components_embed = KalDiscordUtils.Embed.default(
                 ctx,
                 title="Components",
                 description="\n".join(comp_list)
@@ -245,7 +245,7 @@ class Misc(utils.BaseCog, name="misc"):
     async def ping(self, ctx: utils.CustomContext):
         """Get the bots ping."""
 
-        embed = utils.Embed.default(ctx)
+        embed = KalDiscordUtils.Embed.default(ctx)
         embed.add_field(
             name="Heartbeat Latency",
             value=f"{(ctx.bot.latency * 1000):,.2f} ms"
@@ -326,7 +326,7 @@ How to remove your data.
 
         bot_invite = f"https://discord.com/api/oauth2/authorize?client_id={self.bot.user.id}&permissions=8&scope=bot"
 
-        embed = utils.Embed.default(
+        embed = KalDiscordUtils.Embed.default(
             ctx,
             title="Invite the bot to your server here!"
         )

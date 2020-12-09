@@ -56,7 +56,7 @@ class SQLCommandPages(menus.ListPageSource):
         self.ctx = ctx
 
     async def format_page(self, menu, page):
-        embed = KalDiscordUtils.utils.Embed.default(
+        embed = KalDiscordUtils.KalDiscordUtils.Embed.default(
             self.ctx,
             title="SQL Result:",
             description=(
@@ -193,7 +193,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
             data = await self.bot.loop.run_in_executor(None, process_img, img_bytes)
 
-            embed = utils.Embed.default(
+            embed = KalDiscordUtils.Embed.default(
                 ctx,
                 description=f"{data['text']}"
             )
@@ -229,7 +229,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             ["Code Count", f"```\n{code_count}```", False]
         ]
 
-        embed = utils.Embed.default(ctx, title="Dev Stats")
+        embed = KalDiscordUtils.Embed.default(ctx, title="Dev Stats")
 
         [embed.add_field(name=n, value=v, inline=i) for n, v, i in fields]
 
@@ -343,7 +343,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
                     self.bot.reload_extension(ext)
                 except Exception as e:
                     await ctx.send(f"**`ERROR:`** {type(e).__name__} - {e}")
-            embed = utils.Embed.default(
+            embed = KalDiscordUtils.Embed.default(
                 ctx,
                 description=f"Successfully reloaded:\n{', '.join([f'`{ext[5:]}`' for ext in self.bot.exts])}"
             )
@@ -414,7 +414,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         except Exception:
             # Oh no it caused an error
             stdout_value = stdout.getvalue() or None
-            message = utils.Embed.default(
+            message = KalDiscordUtils.Embed.default(
                 ctx,
                 description=f"```py\n{stdout_value}\n{traceback.format_exc()}\n```"
             )
@@ -430,7 +430,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             if ret is None:
                 # It might have printed something
                 if stdout_value is not None:
-                    message = utils.Embed.default(
+                    message = KalDiscordUtils.Embed.default(
                         ctx,
                         description=f"```py\n{stdout_value}\n```",
                     )
@@ -455,7 +455,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
                     file=discord.File(io.StringIO(result), filename="ev.txt")
                 )
             else:
-                message = utils.Embed.default(
+                message = KalDiscordUtils.Embed.default(
                     ctx,
                     description=text
                 )

@@ -1,3 +1,4 @@
+import KalDiscordUtils
 from discord.ext import commands, tasks, menus
 
 import utils
@@ -84,7 +85,7 @@ class WarnsMenu(menus.ListPageSource):
         super().__init__(data, per_page=per_page)
 
     async def format_page(self, menu: menus.Menu, page):
-        embed = utils.Embed.default(menu.ctx)
+        embed = KalDiscordUtils.Embed.default(menu.ctx)
         embed.description = "\n".join(page)
 
         return embed
@@ -264,7 +265,7 @@ class Moderation(utils.BaseCog, name="moderation"):
         if not moderations:
             moderations.append("There are no active moderations.")
 
-        embed = utils.Embed.default(
+        embed = KalDiscordUtils.Embed.default(
             ctx,
             title="Active Moderations.",
             description="\n".join(moderations)
@@ -501,7 +502,7 @@ class Moderation(utils.BaseCog, name="moderation"):
         if len("\n".join(columns[1])) > 1024:
             columns[1] = columns[1][:20]
 
-        embed = utils.Embed.default(
+        embed = KalDiscordUtils.Embed.default(
             ctx,
             title=f"Members in {role.name} [{sum(1 for m in role.members)}]"
         )
@@ -578,7 +579,7 @@ class Moderation(utils.BaseCog, name="moderation"):
         await user.edit(roles=current_roles)
         await ctx.thumbsup()
 
-        embed = utils.Embed.default(
+        embed = KalDiscordUtils.Embed.default(
             ctx,
             title="Updated Member Roles",
             description=f"{user.mention} | {' '.join(modifiers)}",
@@ -677,7 +678,7 @@ class Moderation(utils.BaseCog, name="moderation"):
                 ["Permissions",
                     f"```\n{repr_permissions or 'Nothing special.'}```", False],
             ]
-            embed = utils.Embed.default(
+            embed = KalDiscordUtils.Embed.default(
                 ctx,
                 colour=discord.Color.from_rgb(*role_colour)
             )
@@ -708,7 +709,7 @@ class Moderation(utils.BaseCog, name="moderation"):
             role_names.append(f"{role.mention}")
             role_ids.append(f"{role.id}")
 
-        embed = utils.Embed.default(ctx)
+        embed = KalDiscordUtils.Embed.default(ctx)
         embed.add_field(name="Names", value="\n".join(role_names))
         embed.add_field(name="IDs", value="\n".join(role_ids))
         await ctx.send(embed=embed)

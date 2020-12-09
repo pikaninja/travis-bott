@@ -1,3 +1,4 @@
+import KalDiscordUtils
 from discord.ext import commands
 
 import discord
@@ -84,7 +85,7 @@ class Management(utils.BaseCog, name="management"):
             ["Current prefix:", f"`{prefix}`"],
         ]
 
-        embed = utils.Embed.default(
+        embed = KalDiscordUtils.Embed.default(
             ctx,
             title=f"Configuration for {ctx.guild}"
         )
@@ -220,7 +221,7 @@ class Management(utils.BaseCog, name="management"):
         if check_guild:
             return await ctx.send("❌ Verification is already set up.")
 
-        embed = utils.Embed.default(
+        embed = KalDiscordUtils.Embed.default(
             ctx,
             title="Human Verification",
             description="React to this message to gain access to the rest of the server.",

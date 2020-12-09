@@ -2,9 +2,11 @@ import contextlib
 import datetime
 import time
 
+import KalDiscordUtils
 from discord.ext import commands, menus
 
 import utils
+from utils import Embed
 
 import asyncio
 import discord
@@ -21,7 +23,7 @@ class CookiesLBPage(menus.ListPageSource):
         self.ctx = ctx
 
     async def format_page(self, menu, entries):
-        embed = utils.Embed.default(
+        embed = KalDiscordUtils.Embed.default(
             self.ctx,
             title="Cookie Leaderboard",
             description="\n".join(entries)
@@ -150,9 +152,9 @@ class Fun(utils.BaseCog, name="fun"):
                     if not ctx.channel.is_nsfw():
                         return await ctx.send("Bonk! Go to horny jail.")
 
-                embed = utils.Embed.default(ctx,
-                                      title=title,
-                                      url=f"https://www.reddit.com{perma_link}")
+                embed = KalDiscordUtils.Embed.default(ctx,
+                                                      title=title,
+                                                      url=f"https://www.reddit.com{perma_link}")
 
                 embed.add_field(name="\N{UPWARDS BLACK ARROW}",
                                 value=ups)
@@ -172,7 +174,7 @@ class Fun(utils.BaseCog, name="fun"):
         """First person to click on the cookie wins!"""
 
         timer = 3
-        embed = utils.Embed.default(
+        embed = KalDiscordUtils.Embed.default(
             ctx,
             description="First person to click wins..."
         )
@@ -291,7 +293,7 @@ class Fun(utils.BaseCog, name="fun"):
         """Play rock paper scissors with the bot!"""
 
         fmt = "What's your choice? Rock, Paper or Scissors..."
-        embed = utils.Embed.default(
+        embed = KalDiscordUtils.Embed.default(
             ctx,
             description=fmt
         )
@@ -379,7 +381,7 @@ class Fun(utils.BaseCog, name="fun"):
             data = await r.json()
             image = data["link"]
 
-            embed = utils.Embed.default(ctx)
+            embed = KalDiscordUtils.Embed.default(ctx)
             embed.set_image(url=image)
             await ctx.send(embed=embed)
 
@@ -395,7 +397,7 @@ class Fun(utils.BaseCog, name="fun"):
             data = await r.json()
             quote = data["quote"]
 
-            embed = utils.Embed.default(
+            embed = KalDiscordUtils.Embed.default(
                 ctx,
                 title=f'"{quote}" - Kanye West'
             )
@@ -440,7 +442,7 @@ class Fun(utils.BaseCog, name="fun"):
             data = await r.json()
             fact = data["text"]
 
-            embed = utils.Embed.default(
+            embed = KalDiscordUtils.Embed.default(
                 ctx,
                 description=fact
             )

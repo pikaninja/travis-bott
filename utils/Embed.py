@@ -1,8 +1,8 @@
-import discord
+from discord import Embed as BaseEmbed
 import datetime
 
 
-class Embed(discord.Embed):
+class Embed(BaseEmbed):
     def __init__(self, colour=0x024136, timestamp=None, **kwargs):
         super(Embed, self).__init__(
             colour=colour,
