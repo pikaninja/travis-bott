@@ -6,6 +6,7 @@ from discord.ext import commands, menus
 from discord.ext.commands.errors import BadArgument
 
 from utils import utils
+from utils.CustomBot import MyBot
 from utils.Paginator import BetterPaginator, EmbedMenu
 from utils.CustomCog import BaseCog
 from utils.Embed import Embed
@@ -53,7 +54,7 @@ class Meta(BaseCog, name="meta"):
     """General and utility commands"""
 
     def __init__(self, bot, show_name):
-        self.bot = bot
+        self.bot: MyBot = bot
         self.show_name = show_name
         self.weather_api_key = config("WEATHER_API_KEY")
 

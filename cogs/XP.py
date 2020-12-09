@@ -6,6 +6,7 @@ import time
 from datetime import datetime as dt
 
 from utils import db, utils
+from utils.CustomBot import MyBot
 from utils.CustomContext import CustomContext
 from utils import CustomBot
 
@@ -31,7 +32,7 @@ class XP(commands.Cog, name="⚗ XP"):
     """XP System, this is a per-user XP system and not per server."""
 
     def __init__(self, bot: CustomBot):
-        self.bot = bot
+        self.bot: MyBot = bot
         self.xp_modifier = get_xp_modifier()
 
     """

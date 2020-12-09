@@ -24,6 +24,7 @@ from discord.ext.commands import (
 )
 
 from utils import utils
+from utils.CustomBot import MyBot
 from utils.Embed import Embed
 from utils.Paginator import BetterPaginator, Menu, LPS, KalPages
 
@@ -78,7 +79,7 @@ class SQLCommandPages(menus.ListPageSource):
 class Developer(Cog, command_attrs=dict(hidden=True)):
     def __init__(self, bot):
         self._last_result = None
-        self.bot = bot
+        self.bot: MyBot = bot
         self.check_premium.start()
 
     async def cog_check(self, ctx):

@@ -3,6 +3,7 @@ from discord.ext import commands, tasks
 from utils import utils
 from utils.Paginator import Paginator
 from utils.CustomCog import BaseCog
+from utils.CustomBot import MyBot
 from utils.Embed import Embed
 
 from time import time as t
@@ -87,7 +88,7 @@ class Moderation(BaseCog, name="moderation"):
     """Moderation Commands"""
 
     def __init__(self, bot, show_name):
-        self.bot = bot
+        self.bot: MyBot = bot
         self.show_name = show_name
         self.check_mutes.start()
 

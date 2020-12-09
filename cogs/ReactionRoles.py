@@ -3,11 +3,12 @@ from discord.ext import commands
 import discord
 
 from utils import db, utils
+from utils.CustomBot import MyBot
 
 
 class ReactionRoles(commands.Cog, name="🎉 Reaction Roles"):
     def __init__(self, bot):
-        self.bot = bot
+        self.bot: MyBot = bot
 
     @commands.group(aliases=["rr", "reactionroles"], invoke_without_command=True)
     @commands.has_permissions(manage_guild=True)

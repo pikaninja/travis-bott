@@ -4,6 +4,7 @@ import time
 
 from discord.ext import commands, menus
 
+from utils.CustomBot import MyBot
 from utils.CustomCog import BaseCog
 from utils.Embed import Embed
 
@@ -34,7 +35,7 @@ class Fun(BaseCog, name="fun"):
     """Fun Commands"""
 
     def __init__(self, bot, show_name):
-        self.bot = bot
+        self.bot: MyBot = bot
         self.show_name = show_name
         self._8ballResponse = [
             "It is certain",

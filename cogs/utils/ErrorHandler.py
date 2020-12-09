@@ -5,6 +5,7 @@ from discord.ext import commands
 from discord.ext.commands import Cog
 
 from utils import utils
+from utils.CustomBot import MyBot
 from utils.Embed import Embed
 
 import typing
@@ -19,7 +20,7 @@ import config as cfg
 
 class ErrorHandler(Cog):
     def __init__(self, bot):
-        self.bot = bot
+        self.bot: MyBot = bot
 
     async def send_to_ctx_or_author(
         self, ctx, text: str = None, *args, **kwargs

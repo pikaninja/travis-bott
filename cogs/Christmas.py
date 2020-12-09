@@ -6,6 +6,7 @@ import KalDiscordUtils
 import discord
 from discord.ext import commands
 
+from utils.CustomBot import MyBot
 from utils.CustomCog import BaseCog
 
 
@@ -13,7 +14,7 @@ class Christmas(BaseCog, name="christmas"):
     """Christmas Stuff"""
 
     def __init__(self, bot, show_name):
-        self.bot = bot
+        self.bot: MyBot = bot
         self.show_name = show_name
 
     @commands.command()

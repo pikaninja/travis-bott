@@ -13,6 +13,7 @@ from discord.ext import commands
 from polaroid.polaroid import Image
 from wand.image import Image as WandImage
 
+from utils.CustomBot import MyBot
 from utils.CustomCog import BaseCog
 
 
@@ -29,7 +30,7 @@ class ImageManipulation(BaseCog, name="imagemanipulation"):
     """Image Manipulation"""
 
     def __init__(self, bot, show_name):
-        self.bot = bot
+        self.bot: MyBot = bot
         self.show_name = show_name
 
     class Manipulation:
