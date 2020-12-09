@@ -1,6 +1,5 @@
 import functools
 import random
-import time
 import typing
 from io import BytesIO
 
@@ -13,10 +12,7 @@ from discord.ext import commands
 from polaroid.polaroid import Image
 from wand.image import Image as WandImage
 
-from utils.CustomBot import MyBot
-from utils.CustomCog import BaseCog
-from utils.CustomContext import CustomContext
-
+import utils
 
 async def do_dagpi_stuff(user, feature) -> discord.File:
     dagpi = asyncdagpi.Client(config("DAGPI"))
@@ -27,11 +23,11 @@ async def do_dagpi_stuff(user, feature) -> discord.File:
     return img_file
 
 
-class ImageManipulation(BaseCog, name="imagemanipulation"):
+class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
     """Image Manipulation"""
 
     def __init__(self, bot, show_name):
-        self.bot: MyBot = bot
+        self.bot: utils.MyBot = bot
         self.show_name = show_name
 
     class Manipulation:
@@ -97,7 +93,7 @@ class ImageManipulation(BaseCog, name="imagemanipulation"):
 
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
-    async def magik(self, ctx: CustomContext, user: discord.Member = None):
+    async def magik(self, ctx: utils.CustomContext, user: discord.Member = None):
         """I'm pretty sure you've seen this command before"""
 
         async with ctx.timeit:
@@ -120,7 +116,7 @@ class ImageManipulation(BaseCog, name="imagemanipulation"):
 
     @commands.command(aliases=["ft"])
     @commands.cooldown(1, 3, commands.BucketType.member)
-    async def facetime(self, ctx: CustomContext, user: discord.Member = None):
+    async def facetime(self, ctx: utils.CustomContext, user: discord.Member = None):
         """Facetime with another user or even an image if you're really that lonely, I guess."""
 
         async with ctx.timeit:
@@ -153,7 +149,7 @@ class ImageManipulation(BaseCog, name="imagemanipulation"):
 
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
-    async def brighten(self, ctx: CustomContext, user: typing.Optional[discord.Member] = None, amount: int = 50):
+    async def brighten(self, ctx: utils.CustomContext, user: typing.Optional[discord.Member] = None, amount: int = 50):
         """Brightens a given picture or your own or even someone else's profile picture by a given amount"""
 
         async with ctx.timeit:
@@ -194,7 +190,7 @@ class ImageManipulation(BaseCog, name="imagemanipulation"):
 
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
-    async def solarize(self, ctx: CustomContext, user: discord.Member = None):
+    async def solarize(self, ctx: utils.CustomContext, user: discord.Member = None):
         """Solarizes your own or someone else's profile picture"""
 
         async with ctx.timeit:
@@ -220,7 +216,7 @@ class ImageManipulation(BaseCog, name="imagemanipulation"):
 
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
-    async def wanted(self, ctx: CustomContext, user: discord.Member = None):
+    async def wanted(self, ctx: utils.CustomContext, user: discord.Member = None):
         """Puts a members user avatar on a wanted poster."""
 
         async with ctx.timeit:
@@ -231,7 +227,7 @@ class ImageManipulation(BaseCog, name="imagemanipulation"):
 
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
-    async def colours(self, ctx: CustomContext, user: discord.Member = None):
+    async def colours(self, ctx: utils.CustomContext, user: discord.Member = None):
         """Gives you the top 5 colours of your own or another persons profile picture."""
 
         async with ctx.timeit:
@@ -245,7 +241,7 @@ class ImageManipulation(BaseCog, name="imagemanipulation"):
 
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
-    async def pixelate(self, ctx: CustomContext, user: discord.Member = None):
+    async def pixelate(self, ctx: utils.CustomContext, user: discord.Member = None):
         """Pixelates someones profile picture"""
 
         async with ctx.timeit:
@@ -256,7 +252,7 @@ class ImageManipulation(BaseCog, name="imagemanipulation"):
 
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
-    async def polaroid(self, ctx: CustomContext, user: discord.Member = None):
+    async def polaroid(self, ctx: utils.CustomContext, user: discord.Member = None):
         """Puts someones profile picture in a polaroid"""
 
         async with ctx.timeit:

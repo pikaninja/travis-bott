@@ -2,14 +2,8 @@ from discord.ext import commands
 
 import discord
 
-from utils import utils
-from utils.CustomBot import MyBot
-from utils.CustomCog import BaseCog
-from utils.CustomContext import CustomContext
-from utils.Embed import Embed
+import utils
 import asyncio
-
-from utils.Paginator import AutoReactMenu
 
 
 class Prefix(commands.Converter):
@@ -25,11 +19,11 @@ class Prefix(commands.Converter):
             return argument
 
 
-class Management(BaseCog, name="management"):
+class Management(utils.BaseCog, name="management"):
     """Management Commands"""
 
     def __init__(self, bot, show_name):
-        self.bot: MyBot = bot
+        self.bot: utils.MyBot = bot
         self.show_name = show_name
 
     # @commands.group(invoke_without_command=True)
@@ -46,7 +40,7 @@ class Management(BaseCog, name="management"):
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
     @commands.bot_has_permissions(manage_roles=True)
-    async def roles(self, ctx: CustomContext):
+    async def roles(self, ctx: utils.CustomContext):
         """Set up for premium roles for the guild"""
 
         await ctx.send_help(ctx.command)
@@ -54,7 +48,7 @@ class Management(BaseCog, name="management"):
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
-    async def config(self, ctx: CustomContext):
+    async def config(self, ctx: utils.CustomContext):
         """Shows you all of the configuration for the current server."""
 
         current_mute_role_id = await self.bot.pool.fetchval(
@@ -90,7 +84,7 @@ class Management(BaseCog, name="management"):
             ["Current prefix:", f"`{prefix}`"],
         ]
 
-        embed = Embed.default(
+        embed = utils.Embed.default(
             ctx,
             title=f"Configuration for {ctx.guild}"
         )
@@ -105,7 +99,7 @@ class Management(BaseCog, name="management"):
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
     @commands.bot_has_permissions(manage_channels=True)
-    async def superlogs(self, ctx: CustomContext, channel: discord.TextChannel):
+    async def superlogs(self, ctx: utils.CustomContext, channel: discord.TextChannel):
         """Sets the channel that all of Travis' logs go to."""
 
         await self.bot.pool.execute(
@@ -120,7 +114,7 @@ class Management(BaseCog, name="management"):
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
     @commands.bot_has_permissions(manage_channels=True)
-    async def muterole(self, ctx: CustomContext, role: str = None):
+    async def muterole(self, ctx: utils.CustomContext, role: str = None):
         """Sets the mute role for the server."""
 
         if role is None:
@@ -170,7 +164,7 @@ class Management(BaseCog, name="management"):
     @commands.group(invoke_without_command=True)
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
-    async def prefix(self, ctx: CustomContext):
+    async def prefix(self, ctx: utils.CustomContext):
         """Gets the current prefix."""
 
         prefix = self.bot.cache["prefixes"][ctx.guild.id]
@@ -179,7 +173,7 @@ class Management(BaseCog, name="management"):
     @prefix.command(name="set")
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
-    async def prefix_set(self, ctx: CustomContext, prefix: Prefix):
+    async def prefix_set(self, ctx: utils.CustomContext, prefix: Prefix):
         """To reset input \"None\",
         for a blank prefix do:
         {prefix}prefix set [BLANK]
@@ -205,7 +199,7 @@ class Management(BaseCog, name="management"):
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
     @commands.bot_has_permissions(send_messages=True)
-    async def verification(self, ctx: CustomContext):
+    async def verification(self, ctx: utils.CustomContext):
         """Verification Setup.
         Permissions needed: `Manage Server`
         """
@@ -216,7 +210,7 @@ class Management(BaseCog, name="management"):
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
     @commands.bot_has_permissions(send_messages=True)
-    async def verification_setup(self, ctx: CustomContext, channel: discord.TextChannel, *, role: str):
+    async def verification_setup(self, ctx: utils.CustomContext, channel: discord.TextChannel, *, role: str):
         """Goes through the process to set up verification."""
 
         check_guild = await self.bot.pool.fetchrow(
@@ -226,7 +220,7 @@ class Management(BaseCog, name="management"):
         if check_guild:
             return await ctx.send("❌ Verification is already set up.")
 
-        embed = Embed.default(
+        embed = utils.Embed.default(
             ctx,
             title="Human Verification",
             description="React to this message to gain access to the rest of the server.",
@@ -248,7 +242,7 @@ class Management(BaseCog, name="management"):
     @verification.command(name="reset")
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
-    async def verification_reset(self, ctx: CustomContext):
+    async def verification_reset(self, ctx: utils.CustomContext):
         """Resets verification in the server."""
 
         check_guild = await self.bot.pool.fetchrow(

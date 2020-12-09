@@ -5,12 +5,7 @@ from decouple import config
 from discord.ext import commands, menus
 from discord.ext.commands.errors import BadArgument
 
-from utils import utils
-from utils.CustomBot import MyBot
-from utils.CustomContext import CustomContext
-from utils.Paginator import BetterPaginator, EmbedMenu
-from utils.CustomCog import BaseCog
-from utils.Embed import Embed
+import utils
 
 from currency_converter import CurrencyConverter
 import aiogoogletrans as translator
@@ -51,16 +46,16 @@ async def google_search(query: str):
             await engine.close()
             yield results
 
-class Meta(BaseCog, name="meta"):
+class Meta(utils.BaseCog, name="meta"):
     """General and utility commands"""
 
     def __init__(self, bot, show_name):
-        self.bot: MyBot = bot
+        self.bot: utils.MyBot = bot
         self.show_name = show_name
         self.weather_api_key = config("WEATHER_API_KEY")
 
     @commands.command()
-    async def convert(self, ctx: CustomContext, amount: float, cur_from: str, cur_to: str):
+    async def convert(self, ctx: utils.CustomContext, amount: float, cur_from: str, cur_to: str):
         """Converts a given amount of money from one currency (3 letter e.g. GBP) to another currency."""
 
         currency_converter = CurrencyConverter()
@@ -76,7 +71,7 @@ class Meta(BaseCog, name="meta"):
 
     @commands.command(aliases=["g"])
     @commands.cooldown(5, 5, commands.BucketType.user)
-    async def google(self, ctx: CustomContext, *, query: str):
+    async def google(self, ctx: utils.CustomContext, *, query: str):
         """Searches google for a given query."""
 
         async with google_search(query) as results:
@@ -86,7 +81,7 @@ class Meta(BaseCog, name="meta"):
             embeds = []
 
             for result in results:
-                embed = Embed.default(ctx)
+                embed = utils.Embed.default(ctx)
                 embed.title = result.title
                 embed.description = result.snippet
                 embed.url = result.link
@@ -97,11 +92,11 @@ class Meta(BaseCog, name="meta"):
 
                 embeds.append(embed)
 
-            menu = menus.MenuPages(EmbedMenu(embeds), clear_reactions_after=True)
+            menu = menus.MenuPages(utils.EmbedMenu(embeds), clear_reactions_after=True)
             await menu.start(ctx)
 
     @commands.command(aliases=["randomcolor", "rcolour", "rcolor"])
-    async def randomcolour(self, ctx: CustomContext):
+    async def randomcolour(self, ctx: utils.CustomContext):
         """Gives a random colour."""
 
         r_colour = (
@@ -113,7 +108,7 @@ class Meta(BaseCog, name="meta"):
         colour_representation = (
             f"https://some-random-api.ml/canvas/colorviewer?hex={rgb_to_hex[1:]}"
         )
-        embed = Embed.default(
+        embed = utils.Embed.default(
             ctx,
             title="Generated Colour",
             colour=discord.Colour.from_rgb(*r_colour),
@@ -124,7 +119,7 @@ class Meta(BaseCog, name="meta"):
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["color"])
-    async def colour(self, ctx: CustomContext, colour: str):
+    async def colour(self, ctx: utils.CustomContext, colour: str):
         """Shows a representation of a given colour"""
 
         hex_regex = r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
@@ -138,7 +133,7 @@ class Meta(BaseCog, name="meta"):
             f"https://some-random-api.ml/canvas/colorviewer?hex={colour[1:]}"
         )
         hex_to_rgb = utils.hex_to_rgb(colour[1:])
-        embed = Embed.default(
+        embed = utils.Embed.default(
             ctx,
             colour=discord.Colour.from_rgb(*hex_to_rgb)
         )
@@ -148,20 +143,20 @@ class Meta(BaseCog, name="meta"):
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["av"])
-    async def avatar(self, ctx: CustomContext, member: typing.Optional[discord.Member]):
+    async def avatar(self, ctx: utils.CustomContext, member: typing.Optional[discord.Member]):
         """Get your own or another persons avatar."""
 
         if not member:
             member = ctx.author
 
-        embed = Embed.default(ctx)
+        embed = utils.Embed.default(ctx)
         embed.set_author(name=member, icon_url=member.avatar_url)
         embed.set_image(url=member.avatar_url_as(
             static_format="png", size=1024))
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["about"])
-    async def info(self, ctx: CustomContext):
+    async def info(self, ctx: utils.CustomContext):
         """Get basic info on the bot."""
 
         invite_link = f"https://discord.com/api/oauth2/authorize?client_id={self.bot.user.id}&permissions=8&scope=bot"
@@ -174,7 +169,7 @@ class Meta(BaseCog, name="meta"):
         ) / 1000000
         total_mem = psutil.virtual_memory().total / 1000000
 
-        embed = Embed.default(
+        embed = utils.Embed.default(
             ctx,
             title=f"Info about {self.bot.user.name}",
             description=f"Thank you to {astro_user} for making the avatar."
@@ -204,7 +199,7 @@ class Meta(BaseCog, name="meta"):
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def translate(self, ctx: CustomContext, *, text: str):
+    async def translate(self, ctx: utils.CustomContext, *, text: str):
         """Automatically translates a given text to English"""
 
         translate_api = translator.Translator()
@@ -212,11 +207,11 @@ class Meta(BaseCog, name="meta"):
             translation = await translate_api.translate(str(text), dest="en")
         except IndexError:
             return await ctx.send(
-                embed=Embed.error(
+                embed=utils.Embed.error(
                     description=f"`{text}` could not be translated.")
             )
         print(translation)
-        embed = Embed.default(
+        embed = utils.Embed.default(
             ctx,
             title="Translation",
             description=str(translation.text)
@@ -228,7 +223,7 @@ class Meta(BaseCog, name="meta"):
         await ctx.send(embed=embed)
 
     @commands.group(invoke_without_command=True)
-    async def emoji(self, ctx: CustomContext, *emojis: discord.PartialEmoji):
+    async def emoji(self, ctx: utils.CustomContext, *emojis: discord.PartialEmoji):
         """Get's the full image of an emoji and adds some more info.
         ~~If you have `manage_emojis` permissions if you react with the detective, the emoji gets added to the server.~~"""
 
@@ -239,7 +234,7 @@ class Meta(BaseCog, name="meta"):
 
         for _ in range(len(emojis)):
             emoji = emojis[_]
-            embed = Embed.default(
+            embed = utils.Embed.default(
                 ctx,
                 title=f"Showing for {emoji.name}",
                 description=f"ID: {emoji.id}"
@@ -253,15 +248,14 @@ class Meta(BaseCog, name="meta"):
 
             embed_list.append(embed)
 
-        emoji_menu = BetterPaginator(ctx, embed_list)
+        embed_pages = utils.EmbedMenu(ctx, embed_list)
 
-        await emoji_menu.paginate() if len(embed_list) > 1 else await ctx.send(
-            embed=embed_list[0]
-        )
+        menu = utils.KalPages(embed_pages)
+        await menu.start(ctx)
 
     @emoji.command(name="steal")
     @commands.has_permissions(manage_emojis=True)
-    async def steal_emoji(self, ctx: CustomContext, emoji: discord.PartialEmoji, *, name: str = None):
+    async def steal_emoji(self, ctx: utils.CustomContext, emoji: discord.PartialEmoji, *, name: str = None):
         """Steals a given emoji and you're able to give it a new name.
         Permissions needed: `Manage Emojis`"""
 
@@ -286,7 +280,7 @@ class Meta(BaseCog, name="meta"):
     @emoji.command(name="fromid")
     @commands.has_permissions(manage_emojis=True)
     async def steal_emoji_from_id(
-        self, ctx: CustomContext, gif_or_png: str, emoji_id: int, *, name: str = None
+        self, ctx: utils.CustomContext, gif_or_png: str, emoji_id: int, *, name: str = None
     ):
         """Steals a given emoji by its ID you're able to give it a new name.
         Permissions needed: `Manage Emojis`"""
@@ -314,12 +308,12 @@ class Meta(BaseCog, name="meta"):
             )
 
     @emoji.error
-    async def on_emoji_error(self, ctx: CustomContext, error):
+    async def on_emoji_error(self, ctx: utils.CustomContext, error):
         if isinstance(error, commands.PartialEmojiConversionFailure):
             return await ctx.send("I could not convert that emoji.")
 
     @commands.command(aliases=["server"])
-    async def serverinfo(self, ctx: CustomContext):
+    async def serverinfo(self, ctx: utils.CustomContext):
         """Gives you information based on the current server"""
 
         guild_features = []
@@ -364,7 +358,7 @@ class Meta(BaseCog, name="meta"):
             ["Features", "\n".join(guild_features) or "None", False],
         ]
 
-        embed = Embed.default(
+        embed = utils.Embed.default(
             ctx,
             title=title,
             description=f"**ID:** {ctx.guild.id}\n**Owner:** {ctx.guild.owner}",
@@ -378,12 +372,12 @@ class Meta(BaseCog, name="meta"):
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def channel(self, ctx: CustomContext, channel: typing.Union[discord.TextChannel, discord.VoiceChannel] = None):
+    async def channel(self, ctx: utils.CustomContext, channel: typing.Union[discord.TextChannel, discord.VoiceChannel] = None):
         """Gives you information on a channel."""
 
         channel = channel or ctx.channel
 
-        embed = Embed.default(
+        embed = utils.Embed.default(
             ctx,
             title=f"Information on {channel.name}"
         )
@@ -417,7 +411,7 @@ class Meta(BaseCog, name="meta"):
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["urban", "ud"])
-    async def urbandictionary(self, ctx: CustomContext, *, definition: str):
+    async def urbandictionary(self, ctx: utils.CustomContext, *, definition: str):
         """Get a urban dictionary definition of almost any word!"""
 
         if len(definition) == 0:
@@ -450,7 +444,7 @@ class Meta(BaseCog, name="meta"):
                     "The lookup for this word is way too big to show."
                 )
 
-            embed = Embed.default(
+            embed = utils.Embed.default(
                 ctx,
                 title=f"Definition of {word}"
             )
@@ -474,13 +468,13 @@ class Meta(BaseCog, name="meta"):
             await ctx.send(embed=embed)
 
     @commands.command(aliases=["calc"])
-    async def calculate(self, ctx: CustomContext, *, equation: str = None):
+    async def calculate(self, ctx: utils.CustomContext, *, equation: str = None):
         """Gives you the answer to (basic) calculations."""
 
         if "x" in equation:
             equation = equation.replace("x", "*")
         result = numexpr.evaluate(str(equation)).item()
-        embed = Embed.default(
+        embed = utils.Embed.default(
             ctx,
             title=f"Result of {equation}:",
             description=f"{result}"
@@ -489,11 +483,11 @@ class Meta(BaseCog, name="meta"):
 
     @commands.command(aliases=["userinfo", "ui"])
     @commands.guild_only()
-    async def whois(self, ctx: CustomContext, user: discord.Member = None):
+    async def whois(self, ctx: utils.CustomContext, user: discord.Member = None):
         """Gives you basic information on someone."""
 
         user = user or ctx.author
-        embed = Embed.default(ctx)
+        embed = utils.Embed.default(ctx)
         embed.title = f"About {user.name}"
         embed.description = (
             f"**ID**: {user.id}\n"
@@ -546,7 +540,7 @@ class Meta(BaseCog, name="meta"):
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def weather(self, ctx: CustomContext, *, city_or_country: str):
+    async def weather(self, ctx: utils.CustomContext, *, city_or_country: str):
         """Gives the weather of a given country/city."""
 
         url = f"http://api.openweathermap.org/data/2.5/weather?appid={self.weather_api_key}&q={city_or_country}"
@@ -574,7 +568,7 @@ class Meta(BaseCog, name="meta"):
                 ["Description", description],
             ]
 
-            embed = Embed.default(
+            embed = utils.Embed.default(
                 ctx,
                 title=f"Weather in {data['name']}"
             )
@@ -617,7 +611,7 @@ class Meta(BaseCog, name="meta"):
     #         await ctx.send(embed=embed)
 
     @commands.command()
-    async def country(self, ctx: CustomContext, *, country: str):
+    async def country(self, ctx: utils.CustomContext, *, country: str):
         """Gives basic information on a given country."""
 
         complete_api_url = f"https://restcountries.eu/rest/v2/name/{country}"
@@ -639,13 +633,13 @@ class Meta(BaseCog, name="meta"):
                 ["Language Spoken:", data["languages"][0]["nativeName"]],
             ]
 
-            embed = Embed.default(ctx)
+            embed = utils.Embed.default(ctx)
             [embed.add_field(name=n, value=str(v)) for n, v in fields]
 
             await ctx.send(embed=embed)
 
     @commands.command()
-    async def poll(self, ctx: CustomContext, *, query: str):
+    async def poll(self, ctx: utils.CustomContext, *, query: str):
         """Poll System:
         To create a standard poll just do:
         {prefix}poll [Poll Question Here]
@@ -666,7 +660,7 @@ class Meta(BaseCog, name="meta"):
                 "9️⃣",
                 "🔟",
             ]
-            embed = Embed.default(ctx,
+            embed = utils.Embed.default(ctx,
                                   title=multi[0],
                                   description="")
             choices = multi[1].split(", ")
@@ -682,7 +676,7 @@ class Meta(BaseCog, name="meta"):
                 "\N{THUMBS UP SIGN}",
                 "\N{THUMBS DOWN SIGN}"
             ]
-            embed = Embed.default(ctx,
+            embed = utils.Embed.default(ctx,
                                   title=query)
 
             msg = await ctx.send(embed=embed)

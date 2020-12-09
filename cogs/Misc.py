@@ -6,11 +6,7 @@ from decouple import config
 import discord
 from discord.ext import commands, menus
 
-from utils import utils
-from utils.CustomBot import MyBot
-from utils.CustomContext import CustomContext
-from utils.Embed import Embed
-from utils.CustomCog import BaseCog
+import utils
 import KalDiscordUtils
 
 from utils.Paginator import KalPages
@@ -46,6 +42,7 @@ emote = EmojiSettings(
 jishaku.paginators.EMOJI_DEFAULT = emote  # Overrides jishaku emojis
 
 
+# noinspection PyDictDuplicateKeys
 async def attempt_add_reaction(msg: discord.Message, reaction: Union[str, discord.Emoji]):
     """
     This is responsible for every add reaction happening in jishaku. Instead of replacing each emoji that it uses in
@@ -86,7 +83,7 @@ class CommandCatList(menus.ListPageSource):
         self.cog_name = cog_name
 
     async def format_page(self, menu, cmds):
-        embed = KalDiscordUtils.Embed.default(
+        embed = KalDiscordUtils.utils.Embed.default(
             self.ctx,
             title=self.cog_name,
             description="\n".join(cmds)
@@ -102,7 +99,7 @@ class CommandsList(menus.ListPageSource):
         self.ctx = ctx
 
     async def format_page(self, menu, cmds):
-        embed = KalDiscordUtils.Embed.default(
+        embed = KalDiscordUtils.utils.Embed.default(
             self.ctx,
             title=cmds[0][0],
             description="\n".join([c[1] for c in cmds])
@@ -111,15 +108,15 @@ class CommandsList(menus.ListPageSource):
         return embed
 
 
-class Misc(BaseCog, name="misc"):
+class Misc(utils.BaseCog, name="misc"):
     """Miscellaneous Commands"""
 
     def __init__(self, bot, show_name):
-        self.bot: MyBot = bot
+        self.bot: utils.MyBot = bot
         self.show_name = show_name
 
     @commands.command(name="commands", aliases=["cmds"])
-    async def _commands(self, ctx: CustomContext, *, category: CogConverter = None):
+    async def _commands(self, ctx: utils.CustomContext, *, category: CogConverter = None):
         """A compiled list of all commands."""
 
         if category:
@@ -148,7 +145,7 @@ class Misc(BaseCog, name="misc"):
             await menu.start(ctx)
 
     @commands.command()
-    async def quote(self, ctx: CustomContext, message: discord.Message, *, quote: str):
+    async def quote(self, ctx: utils.CustomContext, message: discord.Message, *, quote: str):
         """Old Discord quoting system"""
 
         allowed_mentions = discord.AllowedMentions.none()
@@ -161,7 +158,7 @@ class Misc(BaseCog, name="misc"):
 
     @commands.command()
     @commands.cooldown(1, 5, commands.BucketType.user)
-    async def rawmsg(self, ctx: CustomContext, message: discord.Message):
+    async def rawmsg(self, ctx: utils.CustomContext, message: discord.Message):
         """Gets the raw JSON data of a message, if you don't know what that is, this command probably isn't for you."""
 
         async with self.bot.session.get(
@@ -192,7 +189,7 @@ class Misc(BaseCog, name="misc"):
             start_menu = await menu.start(ctx)
 
     @commands.command(aliases=["dstatus"])
-    async def discordstatus(self, ctx: CustomContext):
+    async def discordstatus(self, ctx: utils.CustomContext):
         """Gets the current status of Discord."""
 
         async with self.bot.session.get("https://discordstatus.com/history.json") as response:
@@ -200,7 +197,7 @@ class Misc(BaseCog, name="misc"):
             try:
                 current = data["months"][0]["incidents"][0]
             except IndexError:
-                embed = Embed.warning(description="There are no incidents reported this month as of yet.")
+                embed = utils.Embed.warning(description="There are no incidents reported this month as of yet.")
                 return await ctx.send(embed=embed)
             components = data["components"]
 
@@ -208,10 +205,10 @@ class Misc(BaseCog, name="misc"):
                 r"<var data-var='date'>|</var>|<var data-var='time'>", "", current["timestamp"])
 
             if len(timestamp) > 17:
-                embed = Embed.warning(title="No issues with discord report as of yet.")
+                embed = utils.Embed.warning(title="No issues with discord report as of yet.")
                 return await ctx.send(embed=embed)
 
-            main_embed = Embed.default(
+            main_embed = utils.Embed.default(
                 ctx,
                 title="Current Status for Discord.",
                 description=(
@@ -234,7 +231,7 @@ class Misc(BaseCog, name="misc"):
                     f"Name: {_set['name']} -> **{_set['status'].title()}**"
                 )
 
-            components_embed = Embed.default(
+            components_embed = utils.Embed.default(
                 ctx,
                 title="Components",
                 description="\n".join(comp_list)
@@ -245,10 +242,10 @@ class Misc(BaseCog, name="misc"):
             await p.start(ctx)
 
     @commands.command(aliases=["latency"])
-    async def ping(self, ctx: CustomContext):
+    async def ping(self, ctx: utils.CustomContext):
         """Get the bots ping."""
 
-        embed = Embed.default(ctx)
+        embed = utils.Embed.default(ctx)
         embed.add_field(
             name="Heartbeat Latency",
             value=f"{(ctx.bot.latency * 1000):,.2f} ms"
@@ -263,7 +260,7 @@ class Misc(BaseCog, name="misc"):
         await msg.edit(embed=embed)
 
     @commands.command()
-    async def password(self, ctx: CustomContext, length: typing.Optional[int] = 8):
+    async def password(self, ctx: utils.CustomContext, length: typing.Optional[int] = 8):
         """Generates a password and sends it to you in DMs!"""
 
         url = f"http://kal-byte.co.uk:4040/passwordgen/{length}"
@@ -288,7 +285,7 @@ class Misc(BaseCog, name="misc"):
                 )
 
     @commands.command(hidden=True, aliases=["hello"])
-    async def hey(self, ctx: CustomContext):
+    async def hey(self, ctx: utils.CustomContext):
         """Displays the bots introduction."""
 
         await ctx.send(
@@ -296,7 +293,7 @@ class Misc(BaseCog, name="misc"):
         )
 
     @commands.command()
-    async def privacy(self, ctx: CustomContext):
+    async def privacy(self, ctx: utils.CustomContext):
         """Sends the bots privacy policy via dms."""
 
         message = """What information is stored?
@@ -316,7 +313,7 @@ How to remove your data.
         await ctx.author.send(message)
 
     @commands.command()
-    async def suggest(self, ctx: CustomContext, *, suggestion: str):
+    async def suggest(self, ctx: utils.CustomContext, *, suggestion: str):
         """Send a suggestion to the bot developer."""
 
         msg = f"**Suggestion from {ctx.author} ({ctx.author.id}) at {ctx.message.created_at}**\n{suggestion}"
@@ -324,12 +321,12 @@ How to remove your data.
         await ctx.thumbsup()
 
     @commands.command()
-    async def invite(self, ctx: CustomContext):
+    async def invite(self, ctx: utils.CustomContext):
         """Sends an link to invite the bot to your server."""
 
         bot_invite = f"https://discord.com/api/oauth2/authorize?client_id={self.bot.user.id}&permissions=8&scope=bot"
 
-        embed = Embed.default(
+        embed = utils.Embed.default(
             ctx,
             title="Invite the bot to your server here!"
         )
@@ -339,7 +336,7 @@ How to remove your data.
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def support(self, ctx: CustomContext):
+    async def support(self, ctx: utils.CustomContext):
         """Gives a link to the support server."""
 
         await ctx.send(
@@ -348,13 +345,13 @@ How to remove your data.
         )
 
     @commands.command()
-    async def uptime(self, ctx: CustomContext):
+    async def uptime(self, ctx: utils.CustomContext):
         """Get the bots uptime."""
 
         await ctx.send(f"Uptime: {self.bot.get_uptime()}")
 
     @commands.command(aliases=["git", "code", "src", "source"])
-    async def github(self, ctx: CustomContext):
+    async def github(self, ctx: utils.CustomContext):
         """Sends the bots github repo"""
 
         await ctx.send(

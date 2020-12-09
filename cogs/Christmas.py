@@ -6,20 +6,18 @@ import KalDiscordUtils
 import discord
 from discord.ext import commands
 
-from utils.CustomBot import MyBot
-from utils.CustomCog import BaseCog
-from utils.CustomContext import CustomContext
+import utils
 
 
-class Christmas(BaseCog, name="christmas"):
+class Christmas(utils.BaseCog, name="christmas"):
     """Christmas Stuff"""
 
     def __init__(self, bot, show_name):
-        self.bot: MyBot = bot
+        self.bot: utils.MyBot = bot
         self.show_name = show_name
 
     @commands.command()
-    async def howlong(self, ctx: CustomContext):
+    async def howlong(self, ctx: utils.CustomContext):
         """Gives you how long it is until Christmas."""
 
         time = datetime.datetime(year=2020, month=12, day=25)
@@ -31,7 +29,7 @@ class Christmas(BaseCog, name="christmas"):
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["sbf"])
-    async def snowballfight(self, ctx: CustomContext, user: discord.Member):
+    async def snowballfight(self, ctx: utils.CustomContext, user: discord.Member):
         """Starts a snowball fight with someone!"""
 
         if user == ctx.author:

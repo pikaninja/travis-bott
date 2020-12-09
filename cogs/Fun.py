@@ -4,10 +4,7 @@ import time
 
 from discord.ext import commands, menus
 
-from utils.CustomBot import MyBot
-from utils.CustomCog import BaseCog
-from utils.CustomContext import CustomContext
-from utils.Embed import Embed
+import utils
 
 import asyncio
 import discord
@@ -24,7 +21,7 @@ class CookiesLBPage(menus.ListPageSource):
         self.ctx = ctx
 
     async def format_page(self, menu, entries):
-        embed = Embed.default(
+        embed = utils.Embed.default(
             self.ctx,
             title="Cookie Leaderboard",
             description="\n".join(entries)
@@ -32,11 +29,11 @@ class CookiesLBPage(menus.ListPageSource):
         return embed
 
 
-class Fun(BaseCog, name="fun"):
+class Fun(utils.BaseCog, name="fun"):
     """Fun Commands"""
 
     def __init__(self, bot, show_name):
-        self.bot: MyBot = bot
+        self.bot: utils.MyBot = bot
         self.show_name = show_name
         self._8ballResponse = [
             "It is certain",
@@ -113,7 +110,7 @@ class Fun(BaseCog, name="fun"):
     #     )
 
     @commands.command()
-    async def chimprate(self, ctx: CustomContext, user: discord.Member = None):
+    async def chimprate(self, ctx: utils.CustomContext, user: discord.Member = None):
         """Rate's someones chimpness :monkey:"""
 
         user = user or ctx.author
@@ -122,7 +119,7 @@ class Fun(BaseCog, name="fun"):
         await ctx.send(f"{user.name}'s chimping levels is {chimp_amount}% \N{MONKEY}")
 
     @commands.command(aliases=["r"])
-    async def reddit(self, ctx: CustomContext, subreddit: str):
+    async def reddit(self, ctx: utils.CustomContext, subreddit: str):
         """Browse your favourite sub-reddit, gives a random submission from it."""
 
         async with ctx.typing():
@@ -153,7 +150,7 @@ class Fun(BaseCog, name="fun"):
                     if not ctx.channel.is_nsfw():
                         return await ctx.send("Bonk! Go to horny jail.")
 
-                embed = Embed.default(ctx,
+                embed = utils.Embed.default(ctx,
                                       title=title,
                                       url=f"https://www.reddit.com{perma_link}")
 
@@ -171,11 +168,11 @@ class Fun(BaseCog, name="fun"):
 
     @commands.group(aliases=["cc"], invoke_without_command=True)
     @commands.cooldown(1, 60, commands.BucketType.member)
-    async def cookieclick(self, ctx: CustomContext):
+    async def cookieclick(self, ctx: utils.CustomContext):
         """First person to click on the cookie wins!"""
 
         timer = 3
-        embed = Embed.default(
+        embed = utils.Embed.default(
             ctx,
             description="First person to click wins..."
         )
@@ -226,7 +223,7 @@ class Fun(BaseCog, name="fun"):
         await self.handle_cookies(user)
 
     @cookieclick.command(name="leaderboard", aliases=["lb"])
-    async def cookieclick_leaderboard(self, ctx: CustomContext):
+    async def cookieclick_leaderboard(self, ctx: utils.CustomContext):
         """Gives the leaderboard of all cookie clickers."""
 
         fields = await self.bot.pool.fetch("SELECT * FROM cookies order by cookies DESC LIMIT 100")
@@ -243,7 +240,7 @@ class Fun(BaseCog, name="fun"):
 
     @commands.command(aliases=["fban"])
     @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
-    async def fakeban(self, ctx: CustomContext, member: discord.Member, *, reason: str = "No Reason Provided."):
+    async def fakeban(self, ctx: utils.CustomContext, member: discord.Member, *, reason: str = "No Reason Provided."):
         """Fakes banning someone because that's funny, I think."""
 
         allowed_mentions = discord.AllowedMentions.none()
@@ -256,7 +253,7 @@ class Fun(BaseCog, name="fun"):
     @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
     async def eject(
         self,
-        ctx: CustomContext,
+        ctx: utils.CustomContext,
         text: typing.Union[discord.Member, str],
         colour: str,
         confirm: bool = True,
@@ -282,7 +279,7 @@ class Fun(BaseCog, name="fun"):
         await vac_api.close()
 
     @eject.error
-    async def on_eject_error(self, ctx: CustomContext, error):
+    async def on_eject_error(self, ctx: utils.CustomContext, error):
         if isinstance(error, vacefron.BadRequest):
             return await ctx.send(
                 f"List of available colours: {', '.join(self.all_colours)}"
@@ -290,11 +287,11 @@ class Fun(BaseCog, name="fun"):
 
     @commands.command(aliases=["rps"])
     @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
-    async def rockpaperscissors(self, ctx: CustomContext):
+    async def rockpaperscissors(self, ctx: utils.CustomContext):
         """Play rock paper scissors with the bot!"""
 
         fmt = "What's your choice? Rock, Paper or Scissors..."
-        embed = Embed.default(
+        embed = utils.Embed.default(
             ctx,
             description=fmt
         )
@@ -358,7 +355,7 @@ class Fun(BaseCog, name="fun"):
 
     @commands.command(aliases=["pp"])
     @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
-    async def penis(self, ctx: CustomContext, user: discord.Member = None):
+    async def penis(self, ctx: utils.CustomContext, user: discord.Member = None):
         """Gives you your penis size."""
 
         user = user or ctx.author
@@ -369,7 +366,7 @@ class Fun(BaseCog, name="fun"):
 
     @commands.command()
     @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
-    async def floof(self, ctx: CustomContext):
+    async def floof(self, ctx: utils.CustomContext):
         """Get a random image of a cat or dog."""
 
         url = random.choice(
@@ -382,13 +379,13 @@ class Fun(BaseCog, name="fun"):
             data = await r.json()
             image = data["link"]
 
-            embed = Embed.default(ctx)
+            embed = utils.Embed.default(ctx)
             embed.set_image(url=image)
             await ctx.send(embed=embed)
 
     @commands.command(aliases=["ye"])
     @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
-    async def kanye(self, ctx: CustomContext):
+    async def kanye(self, ctx: utils.CustomContext):
         """Gives a random quote of Kanye West himself."""
 
         url = "https://api.kanye.rest/"
@@ -398,7 +395,7 @@ class Fun(BaseCog, name="fun"):
             data = await r.json()
             quote = data["quote"]
 
-            embed = Embed.default(
+            embed = utils.Embed.default(
                 ctx,
                 title=f'"{quote}" - Kanye West'
             )
@@ -406,7 +403,7 @@ class Fun(BaseCog, name="fun"):
 
     @commands.command()
     @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
-    async def nickme(self, ctx: CustomContext):
+    async def nickme(self, ctx: utils.CustomContext):
         """Gives you a random cool nickname."""
 
         url = "https://randomuser.me/api/?nat=us,dk,fr,gb,au,ca"
@@ -426,14 +423,14 @@ class Fun(BaseCog, name="fun"):
 
     @commands.command("8ball", aliases=["8b"])
     @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
-    async def _8ball(self, ctx: CustomContext, *, query: str):
+    async def _8ball(self, ctx: utils.CustomContext, *, query: str):
         """Ask the oh so magic 8ball a question."""
 
         await ctx.send(f"🎱 {ctx.author.mention}, {random.choice(self._8ballResponse)}")
 
     @commands.command()
     @commands.cooldown(1, standard_cooldown, commands.BucketType.member)
-    async def fact(self, ctx: CustomContext):
+    async def fact(self, ctx: utils.CustomContext):
         """Gives you a cool random fact."""
 
         url = "https://uselessfacts.jsph.pl/random.json?language=en"
@@ -443,7 +440,7 @@ class Fun(BaseCog, name="fun"):
             data = await r.json()
             fact = data["text"]
 
-            embed = Embed.default(
+            embed = utils.Embed.default(
                 ctx,
                 description=fact
             )

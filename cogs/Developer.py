@@ -12,24 +12,17 @@ import logging
 import typing
 
 import KalDiscordUtils
-from jishaku import codeblocks
 from polaroid import Image
 from PIL import Image as PILImage, ImageDraw, ImageFont
 import pytesseract
 
 import discord
-from discord.ext import tasks, commands, menus
+from discord.ext import tasks, menus
 from discord.ext.commands import (
     Cog, is_owner, BadArgument, group, Converter
 )
 
-from utils import utils
-from utils.CustomBot import MyBot
-from utils.CustomContext import CustomContext
-from utils.Embed import Embed
-from utils.Paginator import BetterPaginator, Menu, LPS, KalPages
-
-from selenium import webdriver
+import utils
 
 time_regex = re.compile("(?:(\d{1,5})(h|s|m|d))+?")
 time_dict = {"h": 3600, "s": 1, "m": 60, "d": 86400}
@@ -63,7 +56,7 @@ class SQLCommandPages(menus.ListPageSource):
         self.ctx = ctx
 
     async def format_page(self, menu, page):
-        embed = KalDiscordUtils.Embed.default(
+        embed = KalDiscordUtils.utils.Embed.default(
             self.ctx,
             title="SQL Result:",
             description=(
@@ -80,10 +73,10 @@ class SQLCommandPages(menus.ListPageSource):
 class Developer(Cog, command_attrs=dict(hidden=True)):
     def __init__(self, bot):
         self._last_result = None
-        self.bot: MyBot = bot
+        self.bot: utils.MyBot = bot
         self.check_premium.start()
 
-    async def cog_check(self, ctx: CustomContext):
+    async def cog_check(self, ctx: utils.CustomContext):
         return await self.bot.is_owner(ctx.author)
 
     @tasks.loop(seconds=300.0)
@@ -121,11 +114,11 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
     @group(invoke_without_command=True)
     @is_owner()
-    async def dev(self, ctx: CustomContext):
+    async def dev(self, ctx: utils.CustomContext):
         pass
 
     @dev.command(name="test")
-    async def dev_test(self, ctx: CustomContext):
+    async def dev_test(self, ctx: utils.CustomContext):
         """Testing PIL"""
 
         buffer = io.BytesIO()
@@ -147,7 +140,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         await ctx.send(file=discord.File(buffer, "test.png"))
 
     @dev.command(name="ss")
-    async def dev_ss(self, ctx: CustomContext, url: str):
+    async def dev_ss(self, ctx: utils.CustomContext, url: str):
         """Website screenshotting"""
 
         def ss_website(web_url) -> io.BytesIO:
@@ -185,7 +178,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             await ctx.send(file=file)
 
     @dev.command(name="ocr")
-    async def dev_ocr(self, ctx: CustomContext, url: str):
+    async def dev_ocr(self, ctx: utils.CustomContext, url: str):
         """OCR Testing"""
 
         async with self.bot.session.get(url) as response:
@@ -200,7 +193,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
             data = await self.bot.loop.run_in_executor(None, process_img, img_bytes)
 
-            embed = Embed.default(
+            embed = utils.Embed.default(
                 ctx,
                 description=f"{data['text']}"
             )
@@ -210,7 +203,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         await ctx.send(embed=embed)
 
     @dev.command(name="stats")
-    async def dev_stats(self, ctx: CustomContext):
+    async def dev_stats(self, ctx: utils.CustomContext):
         """Gives some stats on the bot."""
 
         ctr = collections.Counter()
@@ -236,20 +229,20 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             ["Code Count", f"```\n{code_count}```", False]
         ]
 
-        embed = Embed.default(ctx, title="Dev Stats")
+        embed = utils.Embed.default(ctx, title="Dev Stats")
 
         [embed.add_field(name=n, value=v, inline=i) for n, v, i in fields]
 
         await ctx.send(embed=embed)
 
     @dev.command(name="leave")
-    async def dev_leave(self, ctx: CustomContext):
+    async def dev_leave(self, ctx: utils.CustomContext):
         """Forces the bot to leave the current server"""
 
         await ctx.guild.leave()
 
     @dev.command(name="sql")
-    async def dev_sql(self, ctx: CustomContext, *, query: str):
+    async def dev_sql(self, ctx: utils.CustomContext, *, query: str):
         """Executes an SQL statement for the bot."""
 
         if query.lower().startswith("select"):
@@ -266,11 +259,11 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         elif isinstance(results, str):
             statements.append(results)
 
-        menu = KalPages(source=SQLCommandPages(ctx, statements))
+        menu = utils.KalPages(source=SQLCommandPages(ctx, statements))
         await menu.start(ctx)
 
     @dev.command(name="restart")
-    async def dev_restart(self, ctx: CustomContext):
+    async def dev_restart(self, ctx: utils.CustomContext):
         await ctx.send("⚠ Restarting now...")
         if self.bot.user.id == 706530005169209386:
             os.system("systemctl restart travis")
@@ -278,7 +271,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             os.system("systemctl restart mybot")
 
     @dev.command()
-    async def add_premium(self, ctx: CustomContext, guild_id: int, sub_time: TimeConverter):
+    async def add_premium(self, ctx: utils.CustomContext, guild_id: int, sub_time: TimeConverter):
         """Adds premium to a guild for a given amount of time."""
 
         prem_time = int((time.time() + sub_time))
@@ -296,14 +289,14 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         )
 
     @dev.command(name="say")
-    async def dev_say(self, ctx: CustomContext, channel: typing.Optional[discord.TextChannel] = None, *, msg: str = None):
+    async def dev_say(self, ctx: utils.CustomContext, channel: typing.Optional[discord.TextChannel] = None, *, msg: str = None):
         """You can force the bot to say stuff, cool."""
 
         channel = channel or ctx.channel
         await channel.send(msg)
 
     @dev.command(name="kill")
-    async def dev_kill(self, ctx: CustomContext):
+    async def dev_kill(self, ctx: utils.CustomContext):
         try:
             self.bot.clear()
             await self.bot.close()
@@ -314,7 +307,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             )
 
     @dev.command()
-    async def shard_recon(self, ctx: CustomContext, shard_id: int):
+    async def shard_recon(self, ctx: utils.CustomContext, shard_id: int):
         try:
             self.bot.get_shard(shard_id).reconnect()
         except Exception as e:
@@ -323,7 +316,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             await ctx.send("**`SUCCESS`**")
 
     @dev.command()
-    async def shard_discon(self, ctx: CustomContext, shard_id: int):
+    async def shard_discon(self, ctx: utils.CustomContext, shard_id: int):
         try:
             self.bot.get_shard(shard_id).disconnect()
         except Exception as e:
@@ -332,7 +325,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             await ctx.send("**`SUCCESS`**")
 
     @dev.command()
-    async def shard_con(self, ctx: CustomContext, shard_id: int):
+    async def shard_con(self, ctx: utils.CustomContext, shard_id: int):
         try:
             self.bot.get_shard(shard_id).connect()
         except Exception as e:
@@ -341,7 +334,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             await ctx.send("**`SUCCESS`**")
 
     @dev.command(name="reload", aliases=["r"])
-    async def dev_reload(self, ctx: CustomContext, cog: str = None):
+    async def dev_reload(self, ctx: utils.CustomContext, cog: str = None):
         # Reloads a given Cog
 
         if cog is None:
@@ -350,7 +343,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
                     self.bot.reload_extension(ext)
                 except Exception as e:
                     await ctx.send(f"**`ERROR:`** {type(e).__name__} - {e}")
-            embed = Embed.default(
+            embed = utils.Embed.default(
                 ctx,
                 description=f"Successfully reloaded:\n{', '.join([f'`{ext[5:]}`' for ext in self.bot.exts])}"
             )
@@ -364,7 +357,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
                 await ctx.send("**`SUCCESS`**")
 
     @dev.command(name="load")
-    async def dev_load(self, ctx: CustomContext, cog: str):
+    async def dev_load(self, ctx: utils.CustomContext, cog: str):
         # Loads a given Cog
         try:
             self.bot.load_extension(cog)
@@ -374,7 +367,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             await ctx.send("**`SUCCESS`**")
 
     @dev.command(name="unload")
-    async def dev_unload(self, ctx: CustomContext, cog: str):
+    async def dev_unload(self, ctx: utils.CustomContext, cog: str):
         # Unloads a given Cog
         try:
             self.bot.unload_extension(cog)
@@ -384,7 +377,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             await ctx.send("**`SUCCESS`**")
 
     @dev.command(name="ev")
-    async def dev_ev(self, ctx: CustomContext, *, content: str):
+    async def dev_ev(self, ctx: utils.CustomContext, *, content: str):
         """Evaluates Python code
         Gracefully stolen from Rapptz ->
         https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/admin.py#L72-L117"""
@@ -421,7 +414,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         except Exception:
             # Oh no it caused an error
             stdout_value = stdout.getvalue() or None
-            message = Embed.default(
+            message = utils.Embed.default(
                 ctx,
                 description=f"```py\n{stdout_value}\n{traceback.format_exc()}\n```"
             )
@@ -437,7 +430,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             if ret is None:
                 # It might have printed something
                 if stdout_value is not None:
-                    message = Embed.default(
+                    message = utils.Embed.default(
                         ctx,
                         description=f"```py\n{stdout_value}\n```",
                     )
@@ -462,7 +455,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
                     file=discord.File(io.StringIO(result), filename="ev.txt")
                 )
             else:
-                message = Embed.default(
+                message = utils.Embed.default(
                     ctx,
                     description=text
                 )
