@@ -1,7 +1,7 @@
-from discord.ext import commands, tasks
+from discord.ext import commands, tasks, menus
 
 from utils import utils
-from utils.Paginator import Paginator
+from utils.Paginator import Paginator, KalPages
 from utils.CustomCog import BaseCog
 from utils.CustomBot import MyBot
 from utils.Embed import Embed
@@ -81,6 +81,17 @@ class Role(commands.Converter):
         if found is None:
             raise commands.BadArgument("Could not find that role.")
         return found
+
+
+class WarnsMenu(menus.ListPageSource):
+    def __init__(self, data, *, per_page=10):
+        super().__init__(data, per_page=per_page)
+
+    async def format_page(self, menu: menus.Menu, page):
+        embed = Embed.default(menu.ctx)
+        embed.description = "\n".join(page)
+
+        return embed
 
 
 # noinspection PyUnresolvedReferences
@@ -213,11 +224,7 @@ class Moderation(BaseCog, name="moderation"):
             user.id,
             ctx.guild.id,
         )
-        embed = Embed.default(
-            ctx,
-            title=f"Warns for {user}"
-        )
-        fmt = ""
+
         warns = []
         for row in user_warns:
             info = {
@@ -231,12 +238,12 @@ class Moderation(BaseCog, name="moderation"):
             date_warned = dt.fromtimestamp(info["date_warned"])
             moderator = ctx.guild.get_member(info["warner_id"])
             warns.append(
-                f"ID: **{info['warn_id']}** - Moderator: **{moderator}**\nWarned At: **{date_warned}** - Reason:\n{info['warn_reason']}"
+                f"ID: **{info['warn_id']}** - Moderator: **{moderator}**\n"
+                f"Warned At: **{date_warned}** - Reason:\n{info['warn_reason']}"
             )
-        fmt = "No warnings for this user." if len(
-            warns) == 0 else "\n".join(warns)
-        embed.description = fmt
-        await ctx.send(embed=embed)
+        fmt = ["No warnings for this user."] if len(warns) == 0 else warns
+        menu = KalPages(WarnsMenu(fmt), clear_reactions_after=True)
+        await menu.start(ctx)
 
     @commands.command()
     @commands.guild_only()
