@@ -124,6 +124,18 @@ class WarnsMenu(menus.ListPageSource):
         return embed
 
 
+class ModerationsMenu(menus.ListPageSource):
+    def __init__(self, data, *, per_page=5):
+        super().__init__(data, per_page=per_page)
+
+    async def format_page(self, menu: menus.Menu, page):
+        embed = KalDiscordUtils.Embed.default(menu.ctx)
+        embed.title = "Active Mutes"
+        embed.description = "\n".join(page)
+
+        return embed
+
+
 class NotStaffMember(commands.Converter):
     async def convert(self, ctx, argument):
         converter = commands.MemberConverter()
@@ -234,6 +246,26 @@ class Moderation(utils.BaseCog, name="moderation"):
 
         await ctx.send(embed=embed)
         ctx.bot.dispatch("mod_cmd", "unmute", ctx.author, user, None)
+
+    @commands.command()
+    @commands.has_permissions(manage_messages=True)
+    @commands.bot_has_permissions(send_messages=True)
+    async def moderations(self, ctx: utils.CustomContext):
+        """Gets all of the current active mutes."""
+
+        mutes = await self.bot.pool.fetch("SELECT * FROM guild_mutes WHERE guild_id = $1",
+                                          ctx.guild.id)
+
+        fmt = []
+
+        for mute in mutes:
+            user = ctx.guild.get_member(mute["member_id"])
+            dt_obj = dt.fromtimestamp(mute["end_time"])
+            humanized = humanize.precisedelta(dt_obj, format="%0.0f")
+            fmt.append(f"{user} | {humanized}")
+
+        menu = utils.KalPages(ModerationsMenu(fmt), clear_reactions_after=True)
+        await menu.start(ctx)
 
     # @commands.command()
     # @commands.guild_only()
@@ -352,36 +384,6 @@ class Moderation(utils.BaseCog, name="moderation"):
         fmt = ["No warnings for this user."] if len(warns) == 0 else warns
         menu = utils.KalPages(WarnsMenu(fmt), clear_reactions_after=True)
         await menu.start(ctx)
-
-    @commands.command()
-    @commands.guild_only()
-    @commands.has_permissions(manage_messages=True)
-    @commands.bot_has_permissions(send_messages=True)
-    async def moderations(self, ctx: utils.CustomContext):
-        """Gives a list of all of the active mutes."""
-
-        moderations = []
-        mutes = await self.bot.pool.fetch(
-            "SELECT * FROM guild_mutes WHERE guild_id = $1", ctx.guild.id
-        )
-        for record in mutes:
-            ends_at = record["end_time"]
-            ends_in = int(ends_at - t())
-            member = ctx.guild.get_member(record["member_id"])
-            if member is None:
-                moderations.append(f"❌ Invalid User | {ends_in} Seconds")
-            else:
-                moderations.append(f"❌ {member} | {ends_in} Seconds")
-
-        if not moderations:
-            moderations.append("There are no active moderations.")
-
-        embed = KalDiscordUtils.Embed.default(
-            ctx,
-            title="Active Moderations.",
-            description="\n".join(moderations)
-        )
-        await ctx.send(embed=embed)
 
     @commands.command(aliases=["unbanall"])
     @commands.guild_only()
