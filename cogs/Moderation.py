@@ -149,7 +149,7 @@ class NotStaffMember(commands.Converter):
             return member
 
 
-# noinspection PyUnresolvedReferences
+# noinspection PyUnresolvedReferences,PyMissingConstructor
 class Moderation(utils.BaseCog, name="moderation"):
     """Moderation Commands"""
 

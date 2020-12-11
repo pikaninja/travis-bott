@@ -1,5 +1,6 @@
 import functools
 import random
+import re
 import typing
 from io import BytesIO
 
@@ -10,6 +11,7 @@ from asyncdagpi import ImageFeatures
 from decouple import config
 from discord.ext import commands
 from polaroid.polaroid import Image
+from wand.color import Color
 from wand.image import Image as WandImage
 
 import utils
@@ -22,6 +24,54 @@ async def do_dagpi_stuff(user, feature) -> discord.File:
     await dagpi.close()
     return img_file
 
+
+class ImageOrMember(commands.Converter):
+    async def convert(self, ctx: utils.CustomContext, argument: str):
+        try:
+            if isinstance(argument, discord.Member):
+                argument = str(argument)
+            member_converter = commands.MemberConverter()
+            member = await member_converter.convert(ctx, argument)
+
+            asset = member.avatar_url_as(static_format="png",
+                                         format="png",
+                                         size=512)
+            image = await asset.read()
+
+            return image
+
+        except (commands.MemberNotFound, TypeError):
+
+            try:
+                url_regex = r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
+                if re.match(url_regex, argument):
+                    async with ctx.bot.session.get(argument) as response:
+                        image = await response.read()
+                        return image
+            except TypeError:
+                return None
+
+        return None
+
+
+async def get_image(ctx: utils.CustomContext, argument: str):
+    """This coincides with ImageOrMember to allow me to use attachments."""
+
+    converter = ImageOrMember()
+    image = await converter.convert(ctx, argument)
+    if image is None:
+        if ctx.message.attachments:
+            asset = ctx.message.attachments[0]
+            image = await asset.read()
+            return image
+        else:
+            asset = ctx.author.avatar_url_as(static_format="png",
+                                             format="png",
+                                             size=512)
+            image = await asset.read()
+            return image
+    else:
+        return image
 
 class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
     """Image Manipulation"""
@@ -90,6 +140,79 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
             buffer.seek(0)
             return buffer
 
+        @staticmethod
+        def floor(image: BytesIO): # https://github.com/linKhehe/Zane fank u link
+            with WandImage(file=image) as img:
+                img.resize(256, 256)
+                img.matte_color = Color("BLACK")
+                img.virtual_pixel = "tile"
+                args = (0, 0, 77, 153,
+                        img.height, 0, 179, 153,
+                        0, img.width, 51, 255,
+                        img.height, img.width, 204, 255)
+                img.distort("perspective", args)
+
+                buffer = BytesIO()
+                img.save(file=buffer)
+
+            buffer.seek(0)
+            return buffer
+
+        @staticmethod
+        def chroma(image: BytesIO):
+            with WandImage(file=image) as img:
+                img.function("sinusoid", [1.5, -45, 0.2, 0.60])
+
+                buffer = BytesIO()
+                img.save(file=buffer)
+
+            buffer.seek(0)
+            return buffer
+
+
+    @commands.command()
+    @commands.cooldown(1, 3, commands.BucketType.member)
+    async def chroma(self, ctx: utils.CustomContext, what = None):
+        """Adds a chroma gamma affect to a given image."""
+
+        async with ctx.timeit:
+            async with ctx.typing():
+                image = await get_image(ctx, what)
+                buffer = BytesIO(image)
+                func = functools.partial(self.Manipulation.chroma, buffer)
+                buffer = await self.bot.loop.run_in_executor(None, func)
+
+                embed = KalDiscordUtils.Embed.default(ctx)
+
+                file = discord.File(fp=buffer, filename="chroma.png")
+                embed.set_image(url="attachment://chroma.png")
+
+                await ctx.send(
+                    file=file,
+                    embed=embed
+                )
+
+    @commands.command()
+    @commands.cooldown(1, 3, commands.BucketType.member)
+    async def floor(self, ctx: utils.CustomContext, what = None):
+        """Puts an image on a floor."""
+
+        async with ctx.timeit:
+            async with ctx.typing():
+                image = await get_image(ctx, what)
+                buffer = BytesIO(image)
+                func = functools.partial(self.Manipulation.floor, buffer)
+                buffer = await self.bot.loop.run_in_executor(None, func)
+
+                embed = KalDiscordUtils.Embed.default(ctx)
+
+                file = discord.File(fp=buffer, filename="floor.png")
+                embed.set_image(url="attachment://floor.png")
+
+                await ctx.send(
+                    file=file,
+                    embed=embed
+                )
 
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
