@@ -253,24 +253,6 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         else:
             pass
 
-    @dev.command()
-    async def add_premium(self, ctx: utils.CustomContext, guild_id: int, sub_time: TimeConverter):
-        """Adds premium to a guild for a given amount of time."""
-
-        prem_time = int((time.time() + sub_time))
-
-        async with self.bot.pool.acquire() as con:
-            await con.execute(
-                "INSERT INTO premium(guild_id, end_time) VALUES($1, $2)",
-                guild_id,
-                prem_time,
-            )
-
-        self.bot.cache["premium_guilds"][guild_id] = prem_time
-        await ctx.send(
-            f"Successfully added premium to {guild_id} for {sub_time} seconds."
-        )
-
     @dev.command(name="say")
     async def dev_say(self, ctx: utils.CustomContext, channel: typing.Optional[discord.TextChannel] = None, *, msg: str = None):
         """You can force the bot to say stuff, cool."""
