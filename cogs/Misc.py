@@ -83,7 +83,7 @@ class CommandCatList(menus.ListPageSource):
         self.cog_name = cog_name
 
     async def format_page(self, menu, cmds):
-        embed = KalDiscordUtils.KalDiscordUtils.Embed.default(
+        embed = KalDiscordUtils.Embed.default(
             self.ctx,
             title=self.cog_name,
             description="\n".join(cmds)
@@ -99,7 +99,7 @@ class CommandsList(menus.ListPageSource):
         self.ctx = ctx
 
     async def format_page(self, menu, cmds):
-        embed = KalDiscordUtils.KalDiscordUtils.Embed.default(
+        embed = KalDiscordUtils.Embed.default(
             self.ctx,
             title=cmds[0][0],
             description="\n".join([c[1] for c in cmds])
@@ -272,26 +272,19 @@ class Misc(utils.BaseCog, name="misc"):
     async def password(self, ctx: utils.CustomContext, length: typing.Optional[int] = 8):
         """Generates a password and sends it to you in DMs!"""
 
-        url = f"http://kal-byte.co.uk:4040/passwordgen/{length}"
-        async with self.bot.session.get(url) as r:
-            if r.status != 200:
-                return await ctx.send(f"The API returned a {r.status} status.")
-            data = await r.json()
-            password = discord.utils.escape_markdown(data["data"])
-            try:
-                if len(password) > 2000:
-                    return await ctx.send("That password is too long...")
+        url = f"https://www.kal-byte.co.uk/api/password_generator?length={length}"
+        async with self.bot.session.get(url) as response:
+            if response.status != 200:
+                return await ctx.send("Either you didn't get a correct input or something terrible just happened.")
 
-                await ctx.author.send(
-                    "Here is your newly generated password:\n"
-                    f"{password}"
-                )
-                await ctx.send("Check your DMs to get your generated password.")
-            except discord.Forbidden:
-                await ctx.send(
-                    "I could not send the password to you. "
-                    "Please make sure you can receive DMs from the bot."
-                )
+            data = await response.json()
+            password = discord.utils.escape_markdown(data["password"])
+
+            try:
+                await ctx.author.send(f"Here's your password:\n{password}")
+                await ctx.send("Check your DMs to receive your password.")
+            except (discord.Forbidden, discord.HTTPException):
+                await ctx.send("I couldn't send you a DM for you to receive your password.")
 
     @commands.command(hidden=True, aliases=["hello"])
     async def hey(self, ctx: utils.CustomContext):

@@ -74,30 +74,9 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
     def __init__(self, bot):
         self._last_result = None
         self.bot: utils.MyBot = bot
-        self.check_premium.start()
 
     async def cog_check(self, ctx: utils.CustomContext):
         return await self.bot.is_owner(ctx.author)
-
-    @tasks.loop(seconds=300.0)
-    async def check_premium(self):
-        await self.bot.wait_until_ready()
-        now = int(time.time())
-        to_remove = []
-        for guild_id, end_time in self.bot.cache["premium_guilds"].items():
-            if end_time - now <= 0:
-                await self.bot.pool.execute(
-                    "DELETE FROM premium WHERE guild_id = $1", guild_id
-                )
-                to_remove.append(guild_id)
-                logging.info(
-                    f"Successfully removed {guild_id} from the premium table.")
-            else:
-                continue
-        if len(to_remove) >= 1:
-            for guild_id in to_remove:
-                del self.bot.cache["premium_guilds"][guild_id]
-        to_remove.clear()
 
     @staticmethod
     def _cleanup_code(content):
@@ -263,12 +242,16 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         await menu.start(ctx)
 
     @dev.command(name="restart")
-    async def dev_restart(self, ctx: utils.CustomContext):
-        await ctx.send("⚠ Restarting now...")
-        if self.bot.user.id == 706530005169209386:
+    async def dev_restart(self, ctx: utils.CustomContext, what: str):
+        await ctx.send(f"⚠ Restarting {what.lower()} now...")
+        if what.lower() == "bot":
             os.system("systemctl restart travis")
+        elif what.lower() == "webserver":
+            os.system("systemctl restart webserver")
+        elif what.lower() == "server":
+            os.system("reboot")
         else:
-            os.system("systemctl restart mybot")
+            pass
 
     @dev.command()
     async def add_premium(self, ctx: utils.CustomContext, guild_id: int, sub_time: TimeConverter):

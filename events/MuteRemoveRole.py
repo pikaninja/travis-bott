@@ -26,10 +26,7 @@ class MuteRemove(Cog):
         if is_user_muted is None:
             return
 
-        role_id = await self.bot.pool.fetchval(
-            f"SELECT mute_role_id FROM guild_settings WHERE guild_id = $1",
-            before.guild.id,
-        )
+        role_id = self.bot.config[before.guild.id]["mute_role_id"]
         role = before.guild.get_role(role_id)
 
         if role in before.roles and role not in after.roles:

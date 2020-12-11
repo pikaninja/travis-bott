@@ -6,11 +6,44 @@ import utils
 from time import time as t
 
 from datetime import datetime as dt
+import humanize
 
 import asyncio
 import discord
 import uuid
 import re
+
+time_regex = re.compile("(?:(\d{1,5})\s?(h|s|m|d))+?")
+time_dict = {
+    "h":3600,
+    "hours":3600,
+    "hour":3600,
+    "s":1,
+    "sec":1,
+    "secs":1,
+    "seconds":1,
+    "m":60,
+    "mins":60,
+    "minutes":60,
+    "min":60,
+    "d":86400,
+    "day":86400,
+    "days":86400
+}
+
+class TimeConverter(commands.Converter):
+    async def convert(self, ctx, argument):
+        args = argument.lower()
+        matches = re.findall(time_regex, args)
+        _time = 0
+        for v, k in matches:
+            try:
+                _time += time_dict[k]*float(v)
+            except KeyError:
+                raise commands.BadArgument(f"{k} is an invalid time-key! h/m/s/d are valid!")
+            except ValueError:
+                raise commands.BadArgument(f"{v} is not a number!")
+        return _time
 
 
 def can_execute_action(ctx, user, target):
@@ -91,6 +124,19 @@ class WarnsMenu(menus.ListPageSource):
         return embed
 
 
+class NotStaffMember(commands.Converter):
+    async def convert(self, ctx, argument):
+        converter = commands.MemberConverter()
+        member = await converter.convert(ctx, argument)
+
+        permissions = ctx.channel.permissions_for(member)
+
+        if permissions.manage_messages:
+            raise utils.MemberIsStaff("That member is a staff member...")
+        else:
+            return member
+
+
 # noinspection PyUnresolvedReferences
 class Moderation(utils.BaseCog, name="moderation"):
     """Moderation Commands"""
@@ -98,31 +144,96 @@ class Moderation(utils.BaseCog, name="moderation"):
     def __init__(self, bot, show_name):
         self.bot: utils.MyBot = bot
         self.show_name = show_name
-        self.check_mutes.start()
 
-    @tasks.loop(seconds=30)
-    async def check_mutes(self):
-        await self.bot.wait_until_ready()
-        mutes = await self.bot.pool.fetch("SELECT * FROM guild_mutes")
-        for record in mutes:
-            guild_id = record["guild_id"]
-            member_id = record["member_id"]
-            ends_at = record["end_time"]
-            ends_in = int(ends_at - t())
-            guild = self.bot.get_guild(guild_id)
-            member = guild.get_member(member_id)
-            mute_role_id = await self.bot.pool.fetchval(
-                "SELECT mute_role_id FROM guild_settings WHERE guild_id = $1", guild.id
-            )
-            if ends_in <= 0:
-                await self.bot.pool.execute(
-                    "DELETE FROM guild_mutes WHERE member_id = $1 AND guild_id = $2",
-                    member.id,
-                    guild.id,
-                )
-                await member.remove_roles(guild.get_role(mute_role_id))
-            else:
-                pass
+    @commands.command()
+    @commands.guild_only()
+    @commands.has_permissions(manage_messages=True)
+    @commands.bot_has_permissions(manage_roles=True)
+    async def mute(self, ctx: utils.CustomContext,
+                   user: NotStaffMember, _time: TimeConverter,
+                   *, reason: str):
+        """Mutes a given user for an amount of time (e.g. 5s/5m/5h/5d)"""
+
+        if _time < 5:
+            return await ctx.send("You must provide a time that is 5 seconds or higher")
+
+        try:
+            mute_role_id = self.bot.config[ctx.guild.id]["mute_role_id"]
+            mute_role = ctx.guild.get_role(mute_role_id)
+        except KeyError:
+            predicate = lambda r: r.name.lower() == "muted"
+            mute_role = discord.utils.find(predicate=predicate, seq=ctx.guild.roles)
+
+            self.bot.config[ctx.guild.id]["mute_role_id"] = mute_role.id
+
+            await self.bot.pool.execute("UPDATE guild_settings SET mute_role_id = $1 WHERE guild_id = $2",
+                                        mute_role.id, ctx.guild.id)
+
+        if mute_role is None:
+            mute_role = await ctx.guild.create_role(name="Muted")
+
+            current_permissions = ctx.channel.overwrites
+            perms = discord.PermissionOverwrite()
+            perms.update(send_messages=False)
+            current_permissions[mute_role] = perms
+
+            await ctx.channel.set_permissions(current_permissions)
+            await self.bot.pool.execute("UPDATE guild_settings SET mute_role_id = $1 WHERE guild_id = $2",
+                                        mute_role.id, ctx.guild.id)
+
+            self.bot.config[ctx.guild.id]["mute_role_id"] = mute_role.id
+
+        await user.add_roles(mute_role, reason=f"Muted by: {ctx.author}")
+        await utils.set_mute(bot=self.bot,
+                             guild_id=ctx.guild.id,
+                             user_id=user.id,
+                             _time=_time)
+
+        end_time = int(t() + _time)
+        await self.bot.pool.execute("INSERT INTO guild_mutes VALUES($1, $2, $3)",
+                                    ctx.guild.id, user.id, end_time)
+
+        timestamp = t() + _time
+        dt_obj = dt.fromtimestamp(timestamp)
+        humanized = humanize.precisedelta(dt_obj, format="%0.0f")
+
+        embed = KalDiscordUtils.Embed.default(ctx)
+        embed.description = (
+                f"{ctx.author.mention} ({ctx.author}) has muted {user.mention} ({user}) for {humanized} for the reason: "
+                f"{reason}"
+        )
+
+        await ctx.send(embed=embed)
+        ctx.bot.dispatch("mod_cmd", "mute", ctx.author, user, reason)
+
+    @commands.command()
+    @commands.guild_only()
+    @commands.has_permissions(manage_messages=True)
+    @commands.bot_has_permissions(manage_roles=True)
+    async def unmute(self, ctx: utils.CustomContext, user: discord.Member):
+        """Unmutes a given user if they have the guilds set muted role."""
+
+        try:
+            mute_role_id = self.bot.config[ctx.guild.id]["mute_role_id"]
+            mute_role = ctx.guild.get_role(mute_role_id)
+        except KeyError:
+            predicate = lambda r: r.name.lower() == "muted"
+            mute_role = discord.utils.find(predicate=predicate, seq=ctx.guild.roles)
+
+            self.bot.config[ctx.guild.id]["mute_role_id"] = mute_role.id
+
+            await self.bot.pool.execute("UPDATE guild_settings SET mute_role_id = $1 WHERE guild_id = $2",
+                                        mute_role.id, ctx.guild.id)
+
+        if mute_role not in user.roles:
+            return await ctx.send("That user does not have the guilds set muted role.")
+
+        await user.remove_roles(mute_role, reason=f"Unmuted by: {ctx.author}")
+        embed = KalDiscordUtils.Embed.default(ctx)
+        embed.description = f"{ctx.author.mention} ({ctx.author}) unmuted {user.mention} ({user})"
+
+        await ctx.send(embed=embed)
+        ctx.bot.dispatch("mod_cmd", "unmute", ctx.author, user, None)
 
     # @commands.command()
     # @commands.guild_only()
@@ -271,113 +382,6 @@ class Moderation(utils.BaseCog, name="moderation"):
             description="\n".join(moderations)
         )
         await ctx.send(embed=embed)
-
-    @commands.command()
-    @commands.guild_only()
-    @commands.has_permissions(manage_messages=True)
-    @commands.bot_has_permissions(manage_roles=True)
-    async def mute(
-        self,
-        ctx: utils.CustomContext,
-        user: discord.Member,
-        time: str,
-        *,
-        reason: str = "No reason provided.",
-    ):
-        """Mutes someone for a given amount of time.
-        Permissions needed: `Manage Messages`
-        Example: `mute @kal#1806 5m Way too cool for me`"""
-
-        mute_role_id = await self.bot.pool.fetchval(
-            "SELECT mute_role_id FROM guild_settings WHERE guild_id = $1", ctx.guild.id
-        )
-        check_if_muted = await self.bot.pool.fetchval(
-            "SELECT member_id FROM guild_mutes WHERE guild_id = $1 AND member_id = $2",
-            ctx.guild.id,
-            user.id,
-        )
-
-        role = ctx.guild.get_role(mute_role_id)
-
-        if check_if_muted:
-            return await ctx.send("❌ That user is already muted.")
-
-        check_if_staff = await utils.is_target_staff(ctx, user)
-
-        if check_if_staff:
-            return await ctx.send("🤔 That user is a staff member hmmm")
-
-        if not role:
-            role = discord.utils.get(ctx.guild.roles, name="Muted")
-            if not role:
-                return await ctx.send("I was unable to find any role to mute with.")
-
-        if not time.startswith(
-            ("1", "2", "3", "4", "5", "6", "7", "8", "9")
-        ) and not time.endswith(("s", "m", "h")):
-            return await ctx.send(
-                "Time must be done in the format of [Amount of Unit][Unit (s, m, h)]"
-            )
-
-        raw_time = int(time[:-1])
-        if time.endswith("s"):
-            await self.bot.pool.execute(
-                "INSERT INTO guild_mutes(guild_id, member_id, end_time) VALUES($1, $2, $3)",
-                ctx.guild.id,
-                user.id,
-                int(t() + raw_time),
-            )
-        elif time.endswith("m"):
-            await self.bot.pool.execute(
-                "INSERT INTO guild_mutes(guild_id, member_id, end_time) VALUES($1, $2, $3)",
-                ctx.guild.id,
-                user.id,
-                int(t() + (raw_time * 60)),
-            )
-        elif time.endswith("h"):
-            await self.bot.pool.execute(
-                "INSERT INTO guild_mutes(guild_id, member_id, end_time) VALUES($1, $2, $3)",
-                ctx.guild.id,
-                user.id,
-                int(t() + ((raw_time * 60) * 60)),
-            )
-        else:
-            return await ctx.send(
-                "Time must be done in the format of [Amount of Unit][Unit (s, m, h)]"
-            )
-
-        await user.add_roles(role, reason=f"Muted by: {ctx.author}")
-        await ctx.send(
-            f"⚔ Successfully muted {user} for {time} with the reason: {reason}"
-        )
-
-        ctx.bot.dispatch("mod_cmd", "mute", ctx.author, user, reason)
-
-    @commands.command()
-    @commands.guild_only()
-    @commands.has_permissions(manage_messages=True)
-    @commands.bot_has_permissions(manage_roles=True)
-    async def unmute(self, ctx: utils.CustomContext, user: discord.Member):
-        """Unmutes a given user who has the servers muted role"""
-
-        mute_role_id = await self.bot.pool.fetchval(
-            "SELECT mute_role_id FROM guild_settings WHERE guild_id = $1", ctx.guild.id
-        )
-
-        if mute_role_id is None:
-            return await ctx.send(
-                f"There is no mute role set for this server, please run `{ctx.prefix}muterole [Role]` to set one up."
-            )
-
-        role = ctx.guild.get_role(mute_role_id)
-
-        if role in user.roles:
-            await user.remove_roles(role, reason=f"Unmuted by: {ctx.author}")
-            await ctx.thumbsup()
-        else:
-            await ctx.send("That user is not muted!")
-
-        ctx.bot.dispatch("mod_cmd", "unmute", ctx.author, user, None)
 
     @commands.command(aliases=["unbanall"])
     @commands.guild_only()

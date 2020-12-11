@@ -1,3 +1,4 @@
+import asyncio
 import datetime
 import re
 import time
@@ -19,6 +20,27 @@ from .CustomBot import MyBot
 UserObject = typing.Union[discord.Member, discord.User]
 UserSnowflake = typing.Union[UserObject, discord.Object]
 
+
+class MemberIsStaff(Exception):
+    pass
+
+
+async def set_mute(bot, guild_id, user_id, _time):
+    async def mute_task(bot, guild_id, user_id, _time):
+        await asyncio.sleep(_time)
+
+        try:
+            guild = await bot.fetch_guild(guild_id)
+            member = await guild.fetch_member(user_id)
+            mute_role = guild.get_role(bot.config[guild_id]["mute_role_id"])
+
+            await member.remove_roles(mute_role, reason="Mute time is over.")
+            await bot.pool.execute("DELETE FROM guild_mutes WHERE member_id = $1 AND guild_id = $2",
+                                   member.id, guild.id)
+        except:
+            pass
+
+    bot.loop.create_task(mute_task(bot, guild_id, user_id, _time))
 
 def log(*args):
     print(f"{time.strftime('%I:%M:%S')} | {' '.join(map(str, args))}")

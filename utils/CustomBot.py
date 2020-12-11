@@ -1,5 +1,6 @@
 import asyncio
 import json
+import time
 
 import asyncpg
 import discord
@@ -11,6 +12,7 @@ from datetime import timedelta
 import aiohttp
 
 from utils.CustomContext import CustomContext
+import utils
 
 import config as cfg
 
@@ -42,9 +44,7 @@ class MyBot(commands.AutoShardedBot):
         )
 
         self.session = aiohttp.ClientSession(loop=self.loop)
-        self.loop.create_task(self.cache_prefixes())
-        self.loop.create_task(self.cache_premiums())
-        self.loop.create_task(self.get_announcement())
+        self.loop.create_task(self.do_prep())
         self.loop.create_task(self.update_web_stats())
         self.announcement = {
             "title": None,
@@ -60,6 +60,37 @@ class MyBot(commands.AutoShardedBot):
         await self.session.close()
         await self.pool.close()
 
+    async def do_prep(self):
+        await self.wait_until_ready()
+        guild_configs = await self.pool.fetch("SELECT * FROM guild_settings")
+        for entry in guild_configs:
+            data = {
+                "guild_prefix": entry["guild_prefix"],
+                "mute_role_id": entry["mute_role_id"],
+                "log_channel": entry["log_channel"]
+            }
+
+            self.config[entry["guild_id"]] = data
+
+        mutes = await self.pool.fetch("SELECT * FROM guild_mutes")
+        for mute in mutes:
+            now = time.time()
+            seconds_left = mute["end_time"] - now
+            await utils.set_mute(bot=self,
+                                 guild_id=mute["guild_id"],
+                                 user_id=mute["member_id"],
+                                 _time=seconds_left)
+
+        updates_channel = await self.fetch_channel(711586681580552232)
+        last_update = await updates_channel.fetch_message(updates_channel.last_message_id)
+        cool = last_update.content.split("\n")
+        update = {
+            "title": cool[0],
+            "message": "\n".join(cool[1:])
+        }
+
+        self.announcement = update
+
     async def update_web_stats(self):
         await self.wait_until_ready()
         while True:
@@ -71,39 +102,6 @@ class MyBot(commands.AutoShardedBot):
                                     users, cmds, guilds)
 
             await asyncio.sleep(300)
-
-    async def get_announcement(self):
-        await self.wait_until_ready()
-        updates_channel = await self.fetch_channel(711586681580552232)
-        last_update = await updates_channel.fetch_message(updates_channel.last_message_id)
-        cool = last_update.content.split("\n")
-        update = {
-            "title": cool[0],
-            "message": "\n".join(cool[1:])
-        }
-
-        self.announcement = update
-
-    async def cache_prefixes(self):
-        configs = await self.pool.fetch(
-            "SELECT * FROM guild_settings"
-        )
-        for entry in configs:
-            data = {
-                "guild_prefix": entry["guild_prefix"],
-                "mute_role_id": entry["mute_role_id"],
-                "log_channel": entry["log_channel"]
-            }
-            self.config[entry["guild_id"]] = data
-
-    async def cache_premiums(self):
-        rows = await self.pool.fetch("SELECT * FROM premium")
-        premiums = {}
-        for row in rows:
-            guild_id = row["guild_id"]
-            end_time = row["end_time"]
-            premiums[guild_id] = end_time
-        self.cache["premium_guilds"] = premiums
 
     async def get_context(self, message, *, cls=CustomContext):
         return await super().get_context(message, cls=cls)

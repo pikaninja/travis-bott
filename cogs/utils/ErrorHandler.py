@@ -157,6 +157,15 @@ class ErrorHandler(Cog):
                 ),
             )
 
+        # Custom exception
+        elif isinstance(error, utils.MemberIsStaff):
+            return await self.send_to_ctx_or_author(
+                ctx,
+                embed=Embed.error(
+                    description=f"{error}"
+                ),
+            )
+
         await self.send_error(ctx, error)
         await self.send_to_ctx_or_author(ctx, embed=Embed.error(
             title="Uhoh an error has occurred...",
