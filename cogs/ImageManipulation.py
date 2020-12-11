@@ -169,6 +169,46 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
             buffer.seek(0)
             return buffer
 
+        @staticmethod
+        def swirl(image: BytesIO, degrees: int = 90):
+            with WandImage(file=image) as img:
+                if degrees > 360:
+                    degrees = 360
+                elif degrees < -360:
+                    degrees = -360
+                else:
+                    degrees = degrees
+
+                img.swirl(degree=degrees)
+
+                buffer = BytesIO()
+                img.save(file=buffer)
+
+            buffer.seek(0)
+            return buffer
+
+
+    @commands.command()
+    @commands.cooldown(1, 3, commands.BucketType.member)
+    async def swirl(self, ctx: utils.CustomContext, degrees: int = 90, what = None):
+        """Adds a swirl affect to a given image."""
+
+        async with ctx.timeit:
+            async with ctx.typing():
+                image = await get_image(ctx, what)
+                buffer = BytesIO(image)
+                func = functools.partial(self.Manipulation.swirl, buffer, degrees)
+                buffer = await self.bot.loop.run_in_executor(None, func)
+
+                embed = KalDiscordUtils.Embed.default(ctx)
+
+                file = discord.File(fp=buffer, filename="chroma.png")
+                embed.set_image(url="attachment://chroma.png")
+
+                await ctx.send(
+                    file=file,
+                    embed=embed
+                )
 
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
