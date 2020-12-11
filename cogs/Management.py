@@ -52,47 +52,19 @@ class Management(utils.BaseCog, name="management"):
     async def config(self, ctx: utils.CustomContext):
         """Shows you all of the configuration for the current server."""
 
-        current_mute_role_id = await self.bot.pool.fetchval(
-            "SELECT mute_role_id FROM guild_settings WHERE guild_id = $1", ctx.guild.id
-        )
-        verification_role_id = await self.bot.pool.fetchval(
-            "SELECT role_id FROM guild_verification WHERE guild_id = $1", ctx.guild.id
-        )
-        super_logs_channel_id = await self.bot.pool.fetchval(
-            "SELECT log_channel FROM guild_settings WHERE guild_id = $1", ctx.guild.id
-        )
-        prefix = self.bot.cache["prefixes"][ctx.guild.id]
+        embed = KalDiscordUtils.Embed.default(ctx)
 
-        fields = [
-            [
-                "Mute Role",
-                ctx.guild.get_role(current_mute_role_id).mention
-                if current_mute_role_id
-                else "No role set.",
-            ],
-            [
-                "Verification Role",
-                ctx.guild.get_role(verification_role_id).mention
-                if verification_role_id
-                else "No role set.",
-            ],
-            [
-                "Super Logging Channel",
-                ctx.guild.get_channel(super_logs_channel_id).mention
-                if super_logs_channel_id
-                else "No channel set.",
-            ],
-            ["Current prefix:", f"`{prefix}`"],
-        ]
+        mapped_names = {
+            "guild_prefix": "Current Prefix",
+            "mute_role_id": "Mute Role ID",
+            "log_channel": "Logging Channel ID",
+        }
 
-        embed = KalDiscordUtils.Embed.default(
-            ctx,
-            title=f"Configuration for {ctx.guild}"
-        )
-
-        for k, v in fields:
-            embed.add_field(
-                name=k, value=v if v else "None set.", inline=False)
+        for k, v in self.bot.config[ctx.guild.id].items():
+            name = mapped_names.get(k)
+            embed.add_field(name=name,
+                            value=f"`{v}`",
+                            inline=False)
 
         await ctx.send(embed=embed)
 
@@ -168,7 +140,7 @@ class Management(utils.BaseCog, name="management"):
     async def prefix(self, ctx: utils.CustomContext):
         """Gets the current prefix."""
 
-        prefix = self.bot.cache["prefixes"][ctx.guild.id]
+        prefix = self.bot.config[ctx.guild.id]["guild_prefix"]
         await ctx.send(f"The current prefix for this server is: `{prefix}`")
 
     @prefix.command(name="set")
@@ -193,7 +165,7 @@ class Management(utils.BaseCog, name="management"):
             prefix,
             ctx.guild.id,
         )
-        self.bot.cache["prefixes"][ctx.guild.id] = prefix
+        self.bot.config[ctx.guild.id]["guild_prefix"] = prefi
         await ctx.thumbsup()
 
     @commands.group(aliases=["verify"], invoke_without_command=True)

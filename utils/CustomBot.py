@@ -25,7 +25,7 @@ async def get_prefix(bot: commands.AutoShardedBot, message: discord.Message):
     if message.guild is None:
         return commands.when_mentioned_or("tb!")(bot, message)
     else:
-        prefix = bot.cache["prefixes"][message.guild.id]
+        prefix = bot.config[message.guild.id]["guild_prefix"]
         return commands.when_mentioned_or(prefix)(bot, message)
 
 
@@ -34,7 +34,7 @@ class MyBot(commands.AutoShardedBot):
         super().__init__(get_prefix, *args, **kwargs)
 
         self.start_time = dt.now()
-        self.cache = {}
+        self.config = {}
 
         self.loop = asyncio.get_event_loop()
         self.pool = self.loop.run_until_complete(
@@ -45,6 +45,7 @@ class MyBot(commands.AutoShardedBot):
         self.loop.create_task(self.cache_prefixes())
         self.loop.create_task(self.cache_premiums())
         self.loop.create_task(self.get_announcement())
+        self.loop.create_task(self.update_web_stats())
         self.announcement = {
             "title": None,
             "message": None
@@ -59,6 +60,18 @@ class MyBot(commands.AutoShardedBot):
         await self.session.close()
         await self.pool.close()
 
+    async def update_web_stats(self):
+        await self.wait_until_ready()
+        while True:
+            users = sum(g.member_count for g in self.guilds)
+            cmds = len([x for x in self.walk_commands()])
+            guilds = len(self.guilds)
+
+            await self.pool.execute("UPDATE web_stats SET users = $1, commands = $2, guilds = $3",
+                                    users, cmds, guilds)
+
+            await asyncio.sleep(300)
+
     async def get_announcement(self):
         await self.wait_until_ready()
         updates_channel = await self.fetch_channel(711586681580552232)
@@ -72,13 +85,16 @@ class MyBot(commands.AutoShardedBot):
         self.announcement = update
 
     async def cache_prefixes(self):
-        all_prefixes = await self.pool.fetch(
-            "SELECT guild_id, guild_prefix FROM guild_settings"
+        configs = await self.pool.fetch(
+            "SELECT * FROM guild_settings"
         )
-        prefixes = {}
-        for entry in all_prefixes:
-            prefixes[entry["guild_id"]] = entry["guild_prefix"]
-        self.cache["prefixes"] = prefixes
+        for entry in configs:
+            data = {
+                "guild_prefix": entry["guild_prefix"],
+                "mute_role_id": entry["mute_role_id"],
+                "log_channel": entry["log_channel"]
+            }
+            self.config[entry["guild_id"]] = data
 
     async def cache_premiums(self):
         rows = await self.pool.fetch("SELECT * FROM premium")

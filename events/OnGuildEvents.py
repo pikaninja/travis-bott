@@ -15,9 +15,7 @@ class OnGuildEvents(commands.Cog):
             guild.id,
             "tb!",
         )
-        self.bot.cache["prefixes"][guild.id] = "tb!"
-
-        await db.commit()
+        self.bot.cache[guild.id]["guild_prefix"] = "tb!"
 
     @commands.Cog.listener()
     async def on_guild_remove(self, guild: discord.Guild):
@@ -28,9 +26,7 @@ class OnGuildEvents(commands.Cog):
             "DELETE FROM guild_mutes WHERE guild_id = $1", guild.id
         )
 
-        del self.bot.cache["prefixes"][guild.id]
-
-        await db.commit()
+        del self.bot.config[guild.id]
 
 
 def setup(bot):

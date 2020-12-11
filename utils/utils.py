@@ -28,7 +28,7 @@ async def get_prefix(bot: MyBot, message: discord.Message):
     if message.guild is None:
         return "tb!"
     else:
-        return bot.cache["prefixes"][message.guild.id]
+        return bot.config[message.guild.id]["guild_prefix"]
 
 
 async def is_target_staff(ctx, user) -> str:

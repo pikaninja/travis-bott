@@ -18,7 +18,7 @@ class PersistentMutes(Cog):
             return
 
         check_if_user_muted_in_guild = await self.bot.pool.fetchval(
-            f"SELECT user_id FROM guild_mutes WHERE guild_id = $1 AND user_id = $2",
+            f"SELECT member_id FROM guild_mutes WHERE guild_id = $1 AND member_id = $2",
             member.guild.id,
             member.id,
         )
@@ -26,7 +26,7 @@ class PersistentMutes(Cog):
             return
 
         get_mute_id = await self.bot.pool.fetchval(
-            f"SELECT mute_role FROM guild_settings WHERE guild_id = $1", member.guild.id
+            f"SELECT mute_role_id FROM guild_settings WHERE guild_id = $1", member.guild.id
         )
         get_mute_role = member.guild.get_role(role_id=get_mute_id)
         await member.add_roles(get_mute_role, reason="Mute Role Persist")

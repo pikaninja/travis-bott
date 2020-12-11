@@ -56,7 +56,7 @@ class SQLCommandPages(menus.ListPageSource):
         self.ctx = ctx
 
     async def format_page(self, menu, page):
-        embed = KalDiscordUtils.KalDiscordUtils.Embed.default(
+        embed = KalDiscordUtils.Embed.default(
             self.ctx,
             title="SQL Result:",
             description=(

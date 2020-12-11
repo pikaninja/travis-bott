@@ -13,6 +13,7 @@ class AntiNuke(Cog, command_attrs=dict(hidden=True)):
             779233819923709963,
             530497097095446538,
             781859307100569631,
+            769432780278071296,
         ]
 
     @Cog.listener()

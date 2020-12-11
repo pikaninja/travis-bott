@@ -112,6 +112,15 @@ class Misc(utils.BaseCog, name="misc"):
     """Miscellaneous Commands"""
 
     def __init__(self, bot, show_name):
+        self.blacklist = [757796861980704880,
+                          466297117409804318,
+                          755096934707888219,
+                          671431400423030786,
+                          700745848119885845,
+                          742262208167280641,
+                          281111308844400660,
+                          510698308248010792,
+                          758861325039566868]
         self.bot: utils.MyBot = bot
         self.show_name = show_name
 
@@ -313,9 +322,12 @@ How to remove your data.
         await ctx.author.send(message)
 
     @commands.command()
+    @commands.cooldown(5, 60, commands.BucketType.user)
     async def suggest(self, ctx: utils.CustomContext, *, suggestion: str):
         """Send a suggestion to the bot developer."""
 
+        if ctx.author.id in self.blacklist:
+            return await ctx.send("It was fine for a while but I'm not allowing this, if you have a genuine suggestion feel free to contact kal#1806 :)")
         msg = f"**Suggestion from {ctx.author} ({ctx.author.id}) at {ctx.message.created_at}**\n{suggestion}"
         await ctx.bot.get_channel(710978375426244729).send(msg)
         await ctx.thumbsup()
