@@ -210,7 +210,7 @@ class Management(utils.BaseCog, name="management"):
             prefix,
             ctx.guild.id,
         )
-        self.bot.config[ctx.guild.id]["guild_prefix"] = prefi
+        self.bot.config[ctx.guild.id]["guild_prefix"] = prefix
         await ctx.thumbsup()
 
     @commands.group(aliases=["verify"], invoke_without_command=True)

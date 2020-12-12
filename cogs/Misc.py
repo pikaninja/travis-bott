@@ -1,3 +1,4 @@
+import io
 import json
 import time
 import typing
@@ -5,6 +6,8 @@ import re
 from decouple import config
 import discord
 from discord.ext import commands, menus
+from polaroid.polaroid import Image
+from selenium import webdriver
 
 import utils
 import KalDiscordUtils
@@ -108,6 +111,32 @@ class CommandsList(menus.ListPageSource):
         return embed
 
 
+class BlockingFunctions:
+
+    @staticmethod
+    def screenshot(web_url) -> io.BytesIO:
+        chrome_options = webdriver.ChromeOptions()
+        chrome_options.add_argument("--no-sandbox")
+        chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument("--disable-setuid-sandbox")
+        chrome_options.add_argument("start-maximized")
+        chrome_options.add_argument("disable-infobars")
+        chrome_options.headless = True
+
+        driver = webdriver.Chrome(executable_path='/root/chromedriver',
+                                  chrome_options=chrome_options)
+
+        driver.get(web_url)
+
+        el = driver.find_element_by_tag_name('body')
+        screenshot_bytes = el.screenshot_as_png
+
+        obj = io.BytesIO(screenshot_bytes)
+        driver.quit()
+
+        return obj
+
+
 class Misc(utils.BaseCog, name="misc"):
     """Miscellaneous Commands"""
 
@@ -129,6 +158,25 @@ class Misc(utils.BaseCog, name="misc"):
         if ctx.guild:
             if not ctx.guild.chunked:
                 await ctx.guild.chunk(cache=True)
+
+    @commands.command(aliases=["ss"])
+    @commands.is_nsfw()
+    @commands.is_owner()
+    async def screenshot(self, ctx: utils.CustomContext, url: str):
+        """Screenshots a given URL.
+        *Note: this is limited to NSFW channels.*"""
+
+        async with ctx.typing():
+            obj = await self.bot.loop.run_in_executor(None, BlockingFunctions.screenshot, url)
+            embed = KalDiscordUtils.Embed.default(ctx)
+
+            file = discord.File(obj, filename="scrape.png")
+            embed.set_image(url="attachment://scrape.png")
+
+            await ctx.send(
+                file=file,
+                embed=embed
+            )
 
     @commands.command(name="commands", aliases=["cmds"])
     async def _commands(self, ctx: utils.CustomContext, *, category: CogConverter = None):
