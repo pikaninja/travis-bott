@@ -236,12 +236,8 @@ class Moderation(utils.BaseCog, name="moderation"):
         if mute_role is None:
             mute_role = await ctx.guild.create_role(name="Muted")
 
-            current_permissions = ctx.channel.overwrites
-            perms = discord.PermissionOverwrite()
-            perms.update(send_messages=False)
-            current_permissions[mute_role] = perms
+            await ctx.channel.set_permissions(mute_role, send_messages=False)
 
-            await ctx.channel.set_permissions(current_permissions)
             await self.bot.pool.execute("UPDATE guild_settings SET mute_role_id = $1 WHERE guild_id = $2",
                                         mute_role.id, ctx.guild.id)
 

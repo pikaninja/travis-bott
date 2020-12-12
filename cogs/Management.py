@@ -91,7 +91,7 @@ class Management(utils.BaseCog, name="management"):
 
         await ctx.send(embed=embed)
 
-    @commands.command()
+    @commands.group(invoke_without_command=True)
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
     @commands.bot_has_permissions(manage_channels=True)
@@ -104,7 +104,29 @@ class Management(utils.BaseCog, name="management"):
             ctx.guild.id,
         )
 
+        self.bot.config[ctx.guild.id]["log_channel"] = channel.id
         await ctx.send(f"Successfully set {channel.mention} to the super-logs channel.")
+
+    @superlogs.command(name="off")
+    @commands.guild_only()
+    @commands.has_permissions(manage_guild=True)
+    @commands.bot_has_permissions(manage_channels=True)
+    async def superlogs_off(self, ctx: utils.CustomContext):
+        """Removes the superlog channel off Travis."""
+
+        try:
+            log_channel_id = self.bot.config[ctx.guild.id]["log_channel"]
+        except KeyError:
+            return await ctx.send("You do not have super-logging enabled in this guild.")
+
+        await self.bot.pool.execute(
+            "UPDATE guild_settings SET log_channel = $1 WHERE guild_id = $2",
+            None,
+            ctx.guild.id,
+        )
+
+        del self.bot.config[ctx.guild.id]["log_channel"]
+        await ctx.send(f"Successfully removed the logging channel for this guild.")
 
     @commands.command()
     @commands.guild_only()
