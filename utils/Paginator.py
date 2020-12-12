@@ -13,6 +13,17 @@ NEXT_PAGE = "\N{BLACK RIGHTWARDS ARROW}"
 PAGINATION_EMOJI = (LAST_PAGE, NEXT_PAGE, END_PAGE)
 
 
+class CommandsPaginator(menus.ListPageSource):
+    def __init__(self, data: commands.Paginator):
+        super().__init__(data.pages, per_page=1)
+
+    async def format_page(self, menu: menus.Menu, page):
+        embed = Embed.default(menu.ctx,
+                              description=page)
+
+        return embed
+
+
 class LPS(menus.ListPageSource):
     def __init__(self, ctx, data):
         super().__init__(data, per_page=10)
@@ -91,11 +102,9 @@ class GroupHelp(menus.ListPageSource):
         self.description = self.group.description
 
     async def format_page(self, menu, cmds):
-        embed = Embed.default(
-            self.ctx,
-            title=self.title,
-            description=self.description
-        )
+        embed = Embed.default(self.ctx)
+        embed.title = f"{self.group.name} {self.group.signature}"
+        embed.description = self.group.help.format(prefix=self.ctx.prefix)
 
         for cmd in cmds:
             signature = f"{cmd.qualified_name} {cmd.signature}"

@@ -173,56 +173,57 @@ class Fun(utils.BaseCog, name="fun"):
     async def cookieclick(self, ctx: utils.CustomContext):
         """First person to click on the cookie wins!"""
 
-        timer = 3
-        embed = KalDiscordUtils.Embed.default(
-            ctx,
-            description="First person to click wins..."
-        )
+        with contextlib.suppress(discord.NotFound):
+            timer = 3
+            embed = KalDiscordUtils.Embed.default(
+                ctx,
+                description="First person to click wins..."
+            )
 
-        msg = await ctx.send(embed=embed)
+            msg = await ctx.send(embed=embed)
 
-        await asyncio.sleep(3.0)
+            await asyncio.sleep(3.0)
 
-        for _ in range(timer):
-            embed.description = f"Starting in {3 - _} seconds..."
+            for _ in range(timer):
+                embed.description = f"Starting in {3 - _} seconds..."
+                await msg.edit(embed=embed)
+
+                with contextlib.suppress(discord.Forbidden):
+                    await msg.clear_reactions()
+
+                await asyncio.sleep(1)
+
+            embed.description = f"CLICK CLICK CLICK"
             await msg.edit(embed=embed)
+
+            def _check(r, u):
+                return all((
+                    u != ctx.bot.user,
+                    str(r.emoji) == "\N{COOKIE}",
+                    not u.bot,
+                    r.message.id == msg.id
+                ))
+
+            await asyncio.sleep(0.10)
 
             with contextlib.suppress(discord.Forbidden):
                 await msg.clear_reactions()
 
-            await asyncio.sleep(1)
+            start = time.perf_counter()
+            try:
+                await msg.add_reaction("\N{COOKIE}")
+                reaction, user = await self.bot.wait_for("reaction_add", timeout=10.0, check=_check)
+            except asyncio.TimeoutError:
+                return await ctx.send("Damn, no one wanted the cookie...")
 
-        embed.description = f"CLICK CLICK CLICK"
-        await msg.edit(embed=embed)
+            end = time.perf_counter()
 
-        def _check(r, u):
-            return all((
-                u != ctx.bot.user,
-                str(r.emoji) == "\N{COOKIE}",
-                not u.bot,
-                r.message.id == msg.id
-            ))
+            if end - start <= 0.10:
+                return await ctx.send("smh no cheating *tut* *tut* *tut*")
 
-        await asyncio.sleep(0.10)
-
-        with contextlib.suppress(discord.Forbidden):
-            await msg.clear_reactions()
-
-        start = time.perf_counter()
-        try:
-            await msg.add_reaction("\N{COOKIE}")
-            reaction, user = await self.bot.wait_for("reaction_add", timeout=10.0, check=_check)
-        except asyncio.TimeoutError:
-            return await ctx.send("Damn, no one wanted the cookie...")
-
-        end = time.perf_counter()
-
-        if end - start <= 0.10:
-            return await ctx.send("smh no cheating *tut* *tut* *tut*")
-
-        embed.description = f"{user.mention} got it first in `{end - start:,.2f}` seconds \N{EYES}"
-        await msg.edit(embed=embed)
-        await self.handle_cookies(user)
+            embed.description = f"{user.mention} got it first in `{end - start:,.2f}` seconds \N{EYES}"
+            await msg.edit(embed=embed)
+            await self.handle_cookies(user)
 
     @cookieclick.command(name="leaderboard", aliases=["lb"])
     async def cookieclick_leaderboard(self, ctx: utils.CustomContext):

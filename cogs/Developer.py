@@ -10,12 +10,13 @@ import re
 import typing
 
 import KalDiscordUtils
+from jishaku.codeblocks import codeblock_converter
 from polaroid import Image
 from PIL import Image as PILImage, ImageDraw, ImageFont
 import pytesseract
 
 import discord
-from discord.ext import tasks, menus
+from discord.ext import tasks, menus, commands
 from discord.ext.commands import (
     Cog, is_owner, BadArgument, group, Converter
 )
@@ -76,47 +77,6 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
     async def cog_check(self, ctx: utils.CustomContext):
         return await self.bot.is_owner(ctx.author)
-
-    @Cog.listener()
-    async def on_guild_join(self, guild: discord.Guild):
-        await self.bot.pool.execute(
-            "INSERT INTO guild_settings(guild_id, guild_prefix) VALUES($1, $2)",
-            guild.id,
-            "tb!",
-        )
-        self.bot.config[guild.id]["guild_prefix"] = "tb!"
-
-        message = [
-            f"I was just added to {guild.name} with {guild.member_count} members.",
-            f"Now in {len(self.bot.guilds)} guilds.",
-        ]
-        url = cfg.guild_log_webhook
-        data = {
-            "username": "Added to guild.",
-            "content": "\n".join(message)
-        }
-
-        await self.bot.session.post(url, data=data)
-
-    @Cog.listener()
-    async def on_guild_remove(self, guild: discord.Guild):
-        await self.bot.pool.execute(
-            "DELETE FROM guild_settings WHERE guild_id = $1", guild.id
-        )
-
-        del self.bot.config[guild.id]
-
-        message = [
-            f"I was just removed from {guild.name} with {guild.member_count} members.",
-            f"Now in {len(self.bot.guilds)} guilds.",
-        ]
-        url = cfg.guild_log_webhook
-        data = {
-            "username": "Removed from guild.",
-            "content": "\n".join(message)
-        }
-
-        await self.bot.session.post(url, data=data)
 
     @staticmethod
     def _cleanup_code(content):
@@ -261,25 +221,37 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         await ctx.guild.leave()
 
     @dev.command(name="sql")
-    async def dev_sql(self, ctx: utils.CustomContext, *, query: str):
+    async def dev_sql(self, ctx: utils.CustomContext, *, query: codeblock_converter):
         """Executes an SQL statement for the bot."""
 
-        if query.lower().startswith("select"):
-            stratergy = self.bot.pool.fetch
-        else:
-            stratergy = self.bot.pool.execute
+        async with ctx.timeit:
+            """Start timing how long it takes to process the query."""
+            query = query[1].split("\n")
 
-        results = await stratergy(query)
-        statements = []
+            if len(query) >= 3:
+                query.pop(0)
+                query.pop(len(query) - 1)
+                query = "".join(query)
+            else:
+                query = query[0]
 
-        if isinstance(results, list):
-            for result in results:
-                statements.append(repr(result))
-        elif isinstance(results, str):
-            statements.append(results)
+            if query.lower().startswith("select"):
+                strategy = ctx.db.fetch
+            else:
+                strategy = ctx.db.execute
 
-        menu = utils.KalPages(source=SQLCommandPages(ctx, statements))
-        await menu.start(ctx)
+            results = await strategy(query.format(author=ctx.author,
+                                                  guild=ctx.guild))
+
+            paginator = commands.Paginator()
+            if isinstance(results, list):
+                for result in results:
+                    paginator.add_line(repr(result))
+            else:
+                paginator.add_line(repr(results))
+
+            menu = utils.KalPages(utils.CommandsPaginator(paginator))
+            await menu.start(ctx)
 
     @dev.command(name="restart")
     async def dev_restart(self, ctx: utils.CustomContext, what: str):

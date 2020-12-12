@@ -114,13 +114,52 @@ class MyBot(commands.AutoShardedBot):
             message.content == f"<@!{self.user.id}>"
             or message.content == f"<@{self.user.id}>"
         ):
-            prefix = self.cache["prefixes"][message.guild.id]
+            prefix = self.config[message.guild.id]["guild_prefix"]
             await message.channel.send(
                 "Hey I saw you mentioned me, in case you didn't know my prefix "
                 f"here is `{prefix}`."
             )
 
         await self.process_commands(message)
+
+    async def on_guild_join(self, guild: discord.Guild):
+        await self.pool.execute(
+            "INSERT INTO guild_settings(guild_id, guild_prefix) VALUES($1, $2)",
+            guild.id,
+            "tb!",
+        )
+        self.config[guild.id]["guild_prefix"] = "tb!"
+
+        message = [
+            f"I was just added to {guild.name} with {guild.member_count} members.",
+            f"Now in {len(self.guilds)} guilds.",
+        ]
+        url = cfg.guild_log_webhook
+        data = {
+            "username": "Added to guild.",
+            "content": "\n".join(message)
+        }
+
+        await self.session.post(url, data=data)
+
+    async def on_guild_remove(self, guild: discord.Guild):
+        await self.pool.execute(
+            "DELETE FROM guild_settings WHERE guild_id = $1", guild.id
+        )
+
+        del self.config[guild.id]
+
+        message = [
+            f"I was just removed from {guild.name} with {guild.member_count} members.",
+            f"Now in {len(self.guilds)} guilds.",
+        ]
+        url = cfg.guild_log_webhook
+        data = {
+            "username": "Removed from guild.",
+            "content": "\n".join(message)
+        }
+
+        await self.session.post(url, data=data)
 
     async def on_message_edit(self, before, after):
         if before.content != after.content:
