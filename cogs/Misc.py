@@ -124,6 +124,12 @@ class Misc(utils.BaseCog, name="misc"):
         self.bot: utils.MyBot = bot
         self.show_name = show_name
 
+    @commands.Cog.listener()
+    async def on_command(self, ctx: utils.CustomContext):
+        if ctx.guild:
+            if not ctx.guild.chunked:
+                await ctx.guild.chunk(cache=True)
+
     @commands.command(name="commands", aliases=["cmds"])
     async def _commands(self, ctx: utils.CustomContext, *, category: CogConverter = None):
         """A compiled list of all commands."""

@@ -30,13 +30,13 @@ async def set_mute(bot, guild_id, user_id, _time):
         await asyncio.sleep(_time)
 
         try:
+            await bot.pool.execute("DELETE FROM guild_mutes WHERE member_id = $1 AND guild_id = $2",
+                                   user_id, guild_id)
             guild = await bot.fetch_guild(guild_id)
             member = await guild.fetch_member(user_id)
             mute_role = guild.get_role(bot.config[guild_id]["mute_role_id"])
 
             await member.remove_roles(mute_role, reason="Mute time is over.")
-            await bot.pool.execute("DELETE FROM guild_mutes WHERE member_id = $1 AND guild_id = $2",
-                                   member.id, guild.id)
         except:
             pass
 

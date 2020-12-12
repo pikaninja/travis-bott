@@ -27,6 +27,29 @@ class Management(utils.BaseCog, name="management"):
         self.bot: utils.MyBot = bot
         self.show_name = show_name
 
+    @commands.Cog.listener()
+    async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
+        if payload.member.bot:
+            return
+
+        guild_settings = await self.bot.pool.fetchrow(
+            "SELECT * FROM guild_verification WHERE guild_id = $1", payload.guild_id
+        )
+
+        if not guild_settings:
+            return
+
+        if payload.message_id != guild_settings["message_id"]:
+            return
+
+        if payload.emoji.name != "\N{WHITE HEAVY CHECK MARK}":
+            return
+
+        guild = await self.bot.fetch_guild(guild_settings["guild_id"])
+        role = guild.get_role(guild_settings["role_id"])
+
+        await payload.member.add_roles(role, reason="Reaction Verification")
+
     # @commands.group(invoke_without_command=True)
     # @commands.guild_only()
     # @commands.has_permissions(manage_guild=True)

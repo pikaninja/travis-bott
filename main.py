@@ -92,17 +92,6 @@ for file in os.listdir("./cogs/utils"):
         bot.load_extension(f"cogs.utils.{file[:-3]}")
         log.info(f"-> [MODULE] {file[:-3]} loaded.")
 
-"""
-Y'know if you have a lot of cogs, it's just easier loading them this way.
-"""
-
-# Events, I keep them in a separate folder because well, it's just personal preference
-for file in os.listdir("./events"):
-    if file.endswith(".py"):
-        bot.load_extension(f"events.{file[:-3]}")
-        log.info(f"-> [EVENT] {file[:-3]} loaded.")
-
-
 @bot.event
 async def on_ready():
     global new_guilds

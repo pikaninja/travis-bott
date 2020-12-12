@@ -7,8 +7,6 @@ import json
 import textwrap
 import traceback
 import re
-import time
-import logging
 import typing
 
 import KalDiscordUtils
@@ -23,6 +21,7 @@ from discord.ext.commands import (
 )
 
 import utils
+import config as cfg
 
 time_regex = re.compile("(?:(\d{1,5})(h|s|m|d))+?")
 time_dict = {"h": 3600, "s": 1, "m": 60, "d": 86400}
@@ -77,6 +76,47 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
     async def cog_check(self, ctx: utils.CustomContext):
         return await self.bot.is_owner(ctx.author)
+
+    @Cog.listener()
+    async def on_guild_join(self, guild: discord.Guild):
+        await self.bot.pool.execute(
+            "INSERT INTO guild_settings(guild_id, guild_prefix) VALUES($1, $2)",
+            guild.id,
+            "tb!",
+        )
+        self.bot.config[guild.id]["guild_prefix"] = "tb!"
+
+        message = [
+            f"I was just added to {guild.name} with {guild.member_count} members.",
+            f"Now in {len(self.bot.guilds)} guilds.",
+        ]
+        url = cfg.guild_log_webhook
+        data = {
+            "username": "Added to guild.",
+            "content": "\n".join(message)
+        }
+
+        await self.bot.session.post(url, data=data)
+
+    @Cog.listener()
+    async def on_guild_remove(self, guild: discord.Guild):
+        await self.bot.pool.execute(
+            "DELETE FROM guild_settings WHERE guild_id = $1", guild.id
+        )
+
+        del self.bot.config[guild.id]
+
+        message = [
+            f"I was just removed from {guild.name} with {guild.member_count} members.",
+            f"Now in {len(self.bot.guilds)} guilds.",
+        ]
+        url = cfg.guild_log_webhook
+        data = {
+            "username": "Removed from guild.",
+            "content": "\n".join(message)
+        }
+
+        await self.bot.session.post(url, data=data)
 
     @staticmethod
     def _cleanup_code(content):

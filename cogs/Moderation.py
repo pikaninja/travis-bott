@@ -157,6 +157,58 @@ class Moderation(utils.BaseCog, name="moderation"):
         self.bot: utils.MyBot = bot
         self.show_name = show_name
 
+    @commands.Cog.listener()
+    async def on_mod_cmd(
+            self,
+            ctx: utils.CustomContext,
+            action_type: str,
+            moderator: discord.Member,
+            user_affected: discord.Member,
+            reason: str = None,
+    ):
+        """Dispatched manually by the Client.
+        Contains:
+        Action_type: Which is the type of action was done. This will be a string.
+        Moderator: The moderator who carried out the actions, this will be of discord.Member.
+        User_affected: The person who was affected within the actions, this will also be discord.Member.
+        Reason: The reason provided in the action, if any. This will be a string."""
+
+        try:
+            log_channel_id = self.bot.config[ctx.guild.id]["log_channel"]
+        except KeyError:
+            return
+
+        log_channel = await self.bot.fetch_channel(log_channel_id)
+
+        if log_channel is None:
+            del self.bot.config[ctx.guild.id]["log_channel"]
+            await self.bot.pool.execute("UPDATE guild_settings SET log_channel = $1 WHERE guild_id = $2",
+                                        None, ctx.guild.id)
+
+        embed = KalDiscordUtils.Embed.default(
+            ctx,
+            title=f"Super Log",
+            message=f"{moderator.mention} ({moderator}) to {user_affected.mention} ({user_affected})\n"
+                    f"Command: {action_type}\n"
+                    f"Reason: {reason or 'None'}",
+        )
+
+        embed.set_author(name=moderator.name, icon_url=moderator.avatar_url)
+
+        await log_channel.send(embed=embed)
+
+    @commands.Cog.listener("on_member_join")
+    async def persistent_mutes(self, member: discord.Member):
+        is_user_muted = await self.bot.pool.fetchrow("SELECT * FROM guild_mutes WHERE member_id = $1 AND guild_id = $2",
+                                                     member.id, member.guild.id)
+
+        if not is_user_muted:
+            return
+
+        mute_role_id = self.bot.config[member.guild.id]["guild_prefix"]
+        mute_role = member.guild.get_role(role_id=mute_role_id)
+        await member.add_roles(mute_role, reason="Mute Role Persist")
+
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
@@ -216,7 +268,7 @@ class Moderation(utils.BaseCog, name="moderation"):
         )
 
         await ctx.send(embed=embed)
-        ctx.bot.dispatch("mod_cmd", "mute", ctx.author, user, reason)
+        ctx.bot.dispatch("mod_cmd", ctx, "mute", ctx.author, user, reason)
 
     @commands.command()
     @commands.guild_only()
@@ -245,7 +297,7 @@ class Moderation(utils.BaseCog, name="moderation"):
         embed.description = f"{ctx.author.mention} ({ctx.author}) unmuted {user.mention} ({user})"
 
         await ctx.send(embed=embed)
-        ctx.bot.dispatch("mod_cmd", "unmute", ctx.author, user, None)
+        ctx.bot.dispatch("mod_cmd", ctx, "unmute", ctx.author, user, None)
 
     @commands.command()
     @commands.has_permissions(manage_messages=True)
@@ -331,7 +383,7 @@ class Moderation(utils.BaseCog, name="moderation"):
                 f"I couldn't DM {user.mention} but they were warned anyways."
             )
 
-        ctx.bot.dispatch("mod_cmd", "warn", ctx.author, user, reason)
+        ctx.bot.dispatch("mod_cmd", ctx, "warn", ctx.author, user, reason)
 
     @commands.command()
     @commands.guild_only()
@@ -415,7 +467,7 @@ class Moderation(utils.BaseCog, name="moderation"):
                     )
                 await ctx.send(f"Successfully unbanned {sum(1 for ban in bans)} people")
 
-        ctx.bot.dispatch("mod_cmd", "mass unban", ctx.author, "N/A", None)
+        ctx.bot.dispatch("mod_cmd", ctx, "mass unban", ctx.author, "N/A", None)
 
     @commands.command(aliases=["barn", "banish"])
     @commands.guild_only()
@@ -435,7 +487,7 @@ class Moderation(utils.BaseCog, name="moderation"):
         except discord.NotFound:
             raise commands.BadArgument("Couldn't find that user.")
         await ctx.thumbsup()
-        ctx.bot.dispatch("mod_cmd", "ban", ctx.author, user, reason)
+        ctx.bot.dispatch("mod_cmd", ctx, "ban", ctx.author, user, reason)
 
     @commands.command(aliases=["unbarn", "unbanish"])
     @commands.has_permissions(ban_members=True)
@@ -449,7 +501,7 @@ class Moderation(utils.BaseCog, name="moderation"):
             reason=f"Responsible User: {ctx.author}",
         )
         await ctx.thumbsup()
-        ctx.bot.dispatch("mod_cmd", "unban", ctx.author, user, None)
+        ctx.bot.dispatch("mod_cmd", ctx, "unban", ctx.author, user, None)
 
     @commands.command()
     @commands.guild_only()
@@ -466,7 +518,7 @@ class Moderation(utils.BaseCog, name="moderation"):
 
         await user.kick(reason=f"{reason} | Responsible User: {ctx.author}")
         await ctx.thumbsup()
-        ctx.bot.dispatch("mod_cmd", "kick", ctx.author, user, reason)
+        ctx.bot.dispatch("mod_cmd", ctx, "kick", ctx.author, user, reason)
 
     @commands.command()
     @commands.guild_only()
@@ -484,7 +536,7 @@ class Moderation(utils.BaseCog, name="moderation"):
             return await ctx.send("I was unable to change the nickname for that user.")
 
         await ctx.thumbsup()
-        ctx.bot.dispatch("mod_cmd", "setnick", ctx.author, user, None)
+        ctx.bot.dispatch("mod_cmd", ctx, "setnick", ctx.author, user, None)
 
     @commands.command()
     @commands.guild_only()
