@@ -84,7 +84,7 @@ class MainHelp(menus.ListPageSource):
             )
         )
         embed.set_footer(
-            text=f"Use {self.ctx.prefix}help command for more info on a command.")
+            text=f"Do \"{self.ctx.prefix}help [command|category]\" for more info on a command.")
 
         for k, v in category:
             embed.add_field(name=k, value=v, inline=False)
@@ -103,11 +103,11 @@ class GroupHelp(menus.ListPageSource):
 
     async def format_page(self, menu, cmds):
         embed = Embed.default(self.ctx)
-        embed.title = f"{self.group.name} {self.group.signature}"
+        embed.title = f"{self.prefix}{self.group.name} {self.group.signature}"
         embed.description = self.group.help.format(prefix=self.ctx.prefix)
 
         for cmd in cmds:
-            signature = f"{cmd.qualified_name} {cmd.signature}"
+            signature = f"{self.prefix}{cmd.qualified_name} {cmd.signature}"
             embed.add_field(
                 name=signature, value=cmd.help.format(prefix=self.ctx.prefix) or "No help given...", inline=False)
 
@@ -117,7 +117,7 @@ class GroupHelp(menus.ListPageSource):
                 name=f"Page {menu.current_page + 1}/{maximum} ({len(self.entries)} commands)")
 
         embed.set_footer(
-            text=f"Use {self.prefix}help command for more info on a command.")
+            text=f"Do \"{self.prefix}help [command|category]\" for more info on a command.")
         return embed
 
 

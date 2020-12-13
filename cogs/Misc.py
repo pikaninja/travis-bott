@@ -3,6 +3,8 @@ import json
 import time
 import typing
 import re
+
+import asynckapi
 from decouple import config
 import discord
 from discord.ext import commands, menus
@@ -326,19 +328,23 @@ class Misc(utils.BaseCog, name="misc"):
     async def password(self, ctx: utils.CustomContext, length: typing.Optional[int] = 8):
         """Generates a password and sends it to you in DMs!"""
 
-        url = f"https://www.kal-byte.co.uk/api/password_generator?length={length}"
-        async with self.bot.session.get(url) as response:
-            if response.status != 200:
-                return await ctx.send("Either you didn't get a correct input or something terrible just happened.")
+        client = asynckapi.Client()
+        password = await client.password(length=length)
+        password = discord.utils.escape_markdown(password)
 
-            data = await response.json()
-            password = discord.utils.escape_markdown(data["password"])
+        try:
+            fmt = (
+                "Here's your freshly baked password:\n"
+                f"{password}"
+            )
+            await ctx.author.send(fmt)
+            await ctx.send("Check your DMs to receive your freshly generated password.")
 
-            try:
-                await ctx.author.send(f"Here's your password:\n{password}")
-                await ctx.send("Check your DMs to receive your password.")
-            except (discord.Forbidden, discord.HTTPException):
-                await ctx.send("I couldn't send you a DM for you to receive your password.")
+        except (discord.HTTPException, discord.Forbidden):
+            await ctx.send("I couldn't DM you your password, sorry.")
+
+        finally:
+            await client.close()
 
     @commands.command(hidden=True, aliases=["hello"])
     async def hey(self, ctx: utils.CustomContext):
