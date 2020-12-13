@@ -15,21 +15,22 @@ import re
 
 time_regex = re.compile("(?:(\d{1,5})\s?(h|s|m|d))+?")
 time_dict = {
-    "h":3600,
-    "hours":3600,
-    "hour":3600,
-    "s":1,
-    "sec":1,
-    "secs":1,
-    "seconds":1,
-    "m":60,
-    "mins":60,
-    "minutes":60,
-    "min":60,
-    "d":86400,
-    "day":86400,
-    "days":86400
+    "h": 3600,
+    "hours": 3600,
+    "hour": 3600,
+    "s": 1,
+    "sec": 1,
+    "secs": 1,
+    "seconds": 1,
+    "m": 60,
+    "mins": 60,
+    "minutes": 60,
+    "min": 60,
+    "d": 86400,
+    "day": 86400,
+    "days": 86400
 }
+
 
 class TimeConverter(commands.Converter):
     async def convert(self, ctx, argument):
@@ -40,7 +41,8 @@ class TimeConverter(commands.Converter):
             try:
                 _time += time_dict[k]*float(v)
             except KeyError:
-                raise commands.BadArgument(f"{k} is an invalid time-key! h/m/s/d are valid!")
+                raise commands.BadArgument(
+                    f"{k} is an invalid time-key! h/m/s/d are valid!")
             except ValueError:
                 raise commands.BadArgument(f"{v} is not a number!")
         return _time
@@ -225,8 +227,9 @@ class Moderation(utils.BaseCog, name="moderation"):
             mute_role_id = self.bot.config[ctx.guild.id]["mute_role_id"]
             mute_role = ctx.guild.get_role(mute_role_id)
         except KeyError:
-            predicate = lambda r: r.name.lower() == "muted"
-            mute_role = discord.utils.find(predicate=predicate, seq=ctx.guild.roles)
+            def predicate(r): return r.name.lower() == "muted"
+            mute_role = discord.utils.find(
+                predicate=predicate, seq=ctx.guild.roles)
 
             self.bot.config[ctx.guild.id]["mute_role_id"] = mute_role.id
 
@@ -259,8 +262,8 @@ class Moderation(utils.BaseCog, name="moderation"):
 
         embed = KalDiscordUtils.Embed.default(ctx)
         embed.description = (
-                f"{ctx.author.mention} ({ctx.author}) has muted {user.mention} ({user}) for {humanized} for the reason: "
-                f"{reason}"
+            f"{ctx.author.mention} ({ctx.author}) has muted {user.mention} ({user}) for {humanized} for the reason: "
+            f"{reason}"
         )
 
         await ctx.send(embed=embed)
@@ -277,8 +280,9 @@ class Moderation(utils.BaseCog, name="moderation"):
             mute_role_id = self.bot.config[ctx.guild.id]["mute_role_id"]
             mute_role = ctx.guild.get_role(mute_role_id)
         except KeyError:
-            predicate = lambda r: r.name.lower() == "muted"
-            mute_role = discord.utils.find(predicate=predicate, seq=ctx.guild.roles)
+            def predicate(r): return r.name.lower() == "muted"
+            mute_role = discord.utils.find(
+                predicate=predicate, seq=ctx.guild.roles)
 
             self.bot.config[ctx.guild.id]["mute_role_id"] = mute_role.id
 

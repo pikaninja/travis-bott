@@ -28,6 +28,7 @@ from typing import Union
 
 EmojiSettings = namedtuple('EmojiSettings', 'start back forward end close')
 
+
 class FakeEmote(discord.PartialEmoji):
 
     @classmethod
@@ -66,7 +67,6 @@ async def attempt_add_reaction(msg: discord.Message, reaction: Union[str, discor
 
 
 jishaku.exception_handling.attempt_add_reaction = attempt_add_reaction
-
 
 
 class CogConverter(commands.Converter):
@@ -262,7 +262,8 @@ class Misc(utils.BaseCog, name="misc"):
             try:
                 current = data["months"][0]["incidents"][0]
             except IndexError:
-                embed = KalDiscordUtils.Embed.warning(description="There are no incidents reported this month as of yet.")
+                embed = KalDiscordUtils.Embed.warning(
+                    description="There are no incidents reported this month as of yet.")
                 return await ctx.send(embed=embed)
             components = data["components"]
 
@@ -270,7 +271,8 @@ class Misc(utils.BaseCog, name="misc"):
                 r"<var data-var='date'>|</var>|<var data-var='time'>", "", current["timestamp"])
 
             if len(timestamp) > 17:
-                embed = KalDiscordUtils.Embed.warning(title="No issues with discord report as of yet.")
+                embed = KalDiscordUtils.Embed.warning(
+                    title="No issues with discord report as of yet.")
                 return await ctx.send(embed=embed)
 
             main_embed = KalDiscordUtils.Embed.default(

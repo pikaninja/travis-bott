@@ -16,7 +16,7 @@ logging.basicConfig(
 
 log = logging.getLogger(__name__)
 handler = RotatingFileHandler("./logs/discord.log",
-                              maxBytes=5242880, # 5 Megabytes
+                              maxBytes=5242880,  # 5 Megabytes
                               backupCount=1)
 log.addHandler(handler)
 
@@ -91,6 +91,7 @@ for file in os.listdir("./cogs/utils"):
     if file.endswith(".py"):
         bot.load_extension(f"cogs.utils.{file[:-3]}")
         log.info(f"-> [MODULE] {file[:-3]} loaded.")
+
 
 @bot.event
 async def on_ready():

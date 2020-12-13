@@ -1,3 +1,4 @@
+import cse
 import contextlib
 from contextlib import asynccontextmanager
 
@@ -28,7 +29,6 @@ status_icons = {
 
 # Testing python-cse
 
-import cse
 
 @asynccontextmanager
 async def google_search(query: str):
@@ -46,6 +46,7 @@ async def google_search(query: str):
         finally:
             await engine.close()
             yield results
+
 
 class Meta(utils.BaseCog, name="meta"):
     """General and utility commands"""
@@ -87,13 +88,14 @@ class Meta(utils.BaseCog, name="meta"):
                 embed.description = result.snippet
                 embed.url = result.link
                 embed.set_image(url=result.image if result.image is not None
-                                    and result.image.startswith(("https://", "http://"))
-                                    else discord.Embed.Empty)
+                                and result.image.startswith(("https://", "http://"))
+                                else discord.Embed.Empty)
                 print(result.link)
 
                 embeds.append(embed)
 
-            menu = menus.MenuPages(utils.EmbedMenu(embeds), clear_reactions_after=True)
+            menu = menus.MenuPages(utils.EmbedMenu(
+                embeds), clear_reactions_after=True)
             await menu.start(ctx)
 
     @commands.command(aliases=["randomcolor", "rcolour", "rcolor"])
@@ -662,8 +664,8 @@ class Meta(utils.BaseCog, name="meta"):
                 "🔟",
             ]
             embed = KalDiscordUtils.Embed.default(ctx,
-                                  title=multi[0],
-                                  description="")
+                                                  title=multi[0],
+                                                  description="")
             choices = multi[1].split(", ")
             for i in range(len(choices)):
                 embed.description += f"{emojis[i]} {choices[i]}\n"
@@ -678,7 +680,7 @@ class Meta(utils.BaseCog, name="meta"):
                 "\N{THUMBS DOWN SIGN}"
             ]
             embed = KalDiscordUtils.Embed.default(ctx,
-                                  title=query)
+                                                  title=query)
 
             msg = await ctx.send(embed=embed)
 

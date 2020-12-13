@@ -163,7 +163,8 @@ class Fun(utils.BaseCog, name="fun"):
 
                 embed.set_image(url=url)
                 embed.set_author(name=f"Poster: {author}")
-                embed.set_footer(text=f"Subreddit Subs: {subs} | Post score: {score} | Posted at")
+                embed.set_footer(
+                    text=f"Subreddit Subs: {subs} | Post score: {score} | Posted at")
                 embed.timestamp = datetime.datetime.fromtimestamp(created_at)
 
                 await ctx.send(embed=embed)

@@ -16,6 +16,7 @@ from wand.image import Image as WandImage
 
 import utils
 
+
 async def do_dagpi_stuff(user, feature) -> discord.File:
     dagpi = asyncdagpi.Client(config("DAGPI"))
     url = str(user.avatar_url_as(static_format="png"))
@@ -144,7 +145,7 @@ class Manipulation:
         return buffer
 
     @staticmethod
-    def floor(image: BytesIO): # https://github.com/linKhehe/Zane fank u link
+    def floor(image: BytesIO):  # https://github.com/linKhehe/Zane fank u link
         with WandImage(file=image) as img:
             img.resize(256, 256)
             img.matte_color = Color("BLACK")
@@ -190,6 +191,7 @@ class Manipulation:
         buffer.seek(0)
         return buffer
 
+
 class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
     """Image Manipulation"""
 
@@ -199,7 +201,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
 
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
-    async def swirl(self, ctx: utils.CustomContext, degrees: int = 90, what = None):
+    async def swirl(self, ctx: utils.CustomContext, degrees: int = 90, what=None):
         """Adds a swirl affect to a given image."""
 
         async with ctx.timeit:
@@ -221,7 +223,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
 
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
-    async def chroma(self, ctx: utils.CustomContext, what = None):
+    async def chroma(self, ctx: utils.CustomContext, what=None):
         """Adds a chroma gamma affect to a given image."""
 
         async with ctx.timeit:
@@ -242,7 +244,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
 
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
-    async def floor(self, ctx: utils.CustomContext, what = None):
+    async def floor(self, ctx: utils.CustomContext, what=None):
         """Puts an image on a floor."""
 
         async with ctx.timeit:
@@ -292,7 +294,8 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
                 author_image = await ctx.author.avatar_url_as(static_format="png", size=1024).read()
                 what = await get_image(ctx, what)
 
-                func = functools.partial(Manipulation.facetime, what, author_image)
+                func = functools.partial(
+                    Manipulation.facetime, what, author_image)
                 image_bytes = await self.bot.loop.run_in_executor(None, func)
 
                 embed = KalDiscordUtils.Embed.default(ctx)
@@ -313,7 +316,8 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
             async with ctx.typing():
                 what = await get_image(ctx, what)
 
-                func = functools.partial(Manipulation.brighten_image, what, amount)
+                func = functools.partial(
+                    Manipulation.brighten_image, what, amount)
                 image_bytes = await self.bot.loop.run_in_executor(None, func)
 
                 embed = KalDiscordUtils.Embed.default(ctx)

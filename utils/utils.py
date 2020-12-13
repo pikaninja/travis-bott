@@ -42,6 +42,7 @@ async def set_mute(bot, guild_id, user_id, _time):
 
     bot.loop.create_task(mute_task(bot, guild_id, user_id, _time))
 
+
 def log(*args):
     print(f"{time.strftime('%I:%M:%S')} | {' '.join(map(str, args))}")
 
