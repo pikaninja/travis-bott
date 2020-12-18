@@ -93,26 +93,19 @@ class MemberID(commands.Converter):
 
 class Role(commands.Converter):
     async def convert(self, ctx, argument):
-        found = None
+        try:
+            role_converter = commands.RoleConverter()
+            role = await role_converter.convert(ctx, argument)
+        except commands.RoleNotFound:
+            role = discord.utils.find(
+                lambda r: r.name.lower().startswith(argument),
+                ctx.guild.roles
+            )
 
-        if re.fullmatch("<@&[0-9]{15,}>", argument) is not None:
-            found = ctx.guild.get_role(int(argument[3:-1]))
+        if role is None:
+            raise commands.RoleNotFound(f"Role \"{argument}\" not found.")
 
-        if argument.isnumeric():
-            if re.fullmatch("[0-9]{15,}", argument) is not None:
-                return ctx.guild.get_role(int(argument))
-
-        for role in ctx.guild.roles:
-            if found is not None:
-                break
-            if role.name.lower().startswith(argument.lower()):
-                found = role
-            else:
-                continue
-
-        if found is None:
-            raise commands.BadArgument("Could not find that role.")
-        return found
+        return role
 
 
 class WarnsMenu(menus.ListPageSource):
@@ -228,6 +221,7 @@ class Moderation(utils.BaseCog, name="moderation"):
             mute_role = ctx.guild.get_role(mute_role_id)
         except KeyError:
             def predicate(r): return r.name.lower() == "muted"
+
             mute_role = discord.utils.find(
                 predicate=predicate, seq=ctx.guild.roles)
 

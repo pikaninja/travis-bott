@@ -1,16 +1,14 @@
-import Levenshtein
 import discord
-from jishaku import paginators
+import prettify_exceptions
+from decouple import config
 from discord.ext import commands
 from discord.ext.commands import Cog
 
 from utils import utils
-from utils.CustomBot import MyBot
-from utils.Embed import Embed
+from utils.custombot import MyBot
+from utils.embed import Embed
 
 import typing
-import aiohttp
-import config as cfg
 
 """Pretty much from here:
     https://github.com/4Kaylum/DiscordpyBotBase/blob/master/cogs/error_handler.py"""
@@ -57,8 +55,8 @@ class ErrorHandler(Cog):
             embed.set_thumbnail(url=ctx.guild.icon_url_as(size=512))
             embed.add_field(
                 name="Key Information:",
-                value=f"Channel: {ctx.channel.id}\n"
-                f"Guild: {ctx.guild.id}\n"
+                value=f"Channel: {ctx.channel} {ctx.channel.id}\n"
+                f"Guild: {ctx.guild} {ctx.guild.id}\n"
                 f"Command: {cmd}\n"
                 f"Message Content: {ctx.message.content}",
             )
@@ -69,7 +67,6 @@ class ErrorHandler(Cog):
     async def on_command_error(self, ctx, error):
         ignored_errors = (
             commands.CommandNotFound,
-            commands.PartialEmojiConversionFailure,
         )
 
         error = getattr(error, "original", error)
@@ -94,13 +91,44 @@ class ErrorHandler(Cog):
         ):
             return await ctx.reinvoke()
 
+        elif isinstance(error, commands.MaxConcurrencyReached):
+            return await self.send_to_ctx_or_author(
+                ctx,
+                embed=Embed.error(ctx,
+                                  description=f"{error}"),
+                delete_after=5.0,
+            )
+
         # Command failed global check
         elif isinstance(error, commands.CheckFailure):
+            if self.bot.maintenance_mode:
+                fmt = ("The developer has currently put the bot into maintenance mode, this could be due to a severe "
+                       "bug or something that requires the bot to be contained. The bots functionality "
+                       "outside of commands will still work though, sorry for the inconvenience.\n"
+                       f"For more updates you may join the support server: {config('SUPPORT_LINK')}")
+                embed = Embed.default(ctx,
+                                      title="\N{WARNING SIGN} | Maintenance Mode",
+                                      description=fmt)
+                return await ctx.send(embed=embed)
+
             return await self.send_to_ctx_or_author(
                 ctx,
                 embed=Embed.error(
                     description=f"{error}"
                 )
+            )
+
+        # If the emoji couldn't be converted
+        elif isinstance(error, commands.PartialEmojiConversionFailure):
+            if ctx.command.name == "emoji":
+                return
+
+            return await self.send_to_ctx_or_author(
+                ctx,
+                embed=Embed.error(
+                    description=f"{error}"
+                ),
+                delete_after=5.0,
             )
 
         # Command is on Cooldown
@@ -115,10 +143,6 @@ class ErrorHandler(Cog):
 
         # Missing argument
         elif isinstance(error, commands.MissingRequiredArgument):
-            # message = utils.embed_message(title="Missing Argument.",
-            #                               message=f"You're missing the required argument: `{error.param.name}`",
-            #                               footer_icon=self.bot.user.avatar_url)
-            # return await ctx.send(embed=message, delete_after=2)
             return await ctx.send_help(ctx.command)
 
         # Missing Permissions
@@ -157,6 +181,15 @@ class ErrorHandler(Cog):
                 ),
             )
 
+        # Role was not found
+        elif isinstance(error, commands.RoleNotFound):
+            return await self.send_to_ctx_or_author(
+                ctx,
+                embed=Embed.error(
+                    description=f"{error}"
+                ),
+            )
+
         # Custom exception
         elif isinstance(error, utils.MemberIsStaff):
             return await self.send_to_ctx_or_author(
@@ -166,13 +199,17 @@ class ErrorHandler(Cog):
                 ),
             )
 
-        await self.send_error(ctx, error)
+        prettify_exceptions.DefaultFormatter().theme['_ansi_enabled'] = False
+        tb =  (
+            ''.join(prettify_exceptions.DefaultFormatter().format_exception(type(error), error, error.__traceback__))
+        )
+
+        await self.send_error(ctx, tb)
         await self.send_to_ctx_or_author(ctx, embed=Embed.error(
             title="Uhoh an error has occurred...",
             description=(
-                "Here's some details on it:\n"
-                "```py\n"
-                f"{error}```"
+                "Here's some details on it: ```py\n"
+                f"{tb}```"
             )
         ))
         raise error

@@ -1,6 +1,6 @@
 import datetime
 
-from utils.CustomBot import MyBot
+from utils.custombot import MyBot
 from discord import Game, Status, AllowedMentions, Intents
 from decouple import config
 from discord.flags import MemberCacheFlags
@@ -48,17 +48,17 @@ bot.owner_ids = {671777334906454026,
                  200301688056315911}
 
 bot.exts = [
-    "cogs.Developer",
-    "cogs.Meta",
-    "cogs.Management",
-    "cogs.Moderation",
-    "cogs.Fun",
-    "cogs.ImageManipulation",
-    "cogs.Misc",
+    "cogs.developer",
+    "cogs.meta",
+    "cogs.management",
+    "cogs.moderation",
+    "cogs.fun",
+    "cogs.imagemanipulation",
+    "cogs.misc",
 ]
 
 if datetime.datetime.utcnow().month == 11 or datetime.datetime.utcnow().month == 12:
-    bot.exts.append("cogs.Christmas")
+    bot.exts.append("cogs.christmas")
 
 os.environ["JISHAKU_HIDE"] = "True"
 os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
@@ -71,10 +71,10 @@ os.environ["JISHAKU_NO_DM_TRACEBACK"] = "True"
 #         logging.info(f"-> [MODULE] {file[:-3]} loaded.")
 
 cogs = [
-    "cogs.custom.MotherRussia",
-    "cogs.custom.SCrib",
+    "cogs.custom.motherrussia",
+    "cogs.custom.scrib",
     "cogs.custom.antinuke",
-    "cogs.custom.UserRequests",
+    "cogs.custom.userrequests",
     "jishaku",
 ]
 

@@ -32,21 +32,21 @@ class Management(utils.BaseCog, name="management"):
         if payload.member.bot:
             return
 
-        guild_settings = await self.bot.pool.fetchrow(
-            "SELECT * FROM guild_verification WHERE guild_id = $1", payload.guild_id
-        )
-
-        if not guild_settings:
+        if payload.emoji.name != "✅":
             return
 
-        if payload.message_id != guild_settings["message_id"]:
+        try:
+            role_id = self.bot.verification_config[payload.message_id]
+        except KeyError:
             return
 
-        if payload.emoji.name != "\N{WHITE HEAVY CHECK MARK}":
-            return
+        guild = await self.bot.fetch_guild(payload.guild_id)
+        role = guild.get_role(role_id)
 
-        guild = await self.bot.fetch_guild(guild_settings["guild_id"])
-        role = guild.get_role(guild_settings["role_id"])
+        if role is None:
+            del self.bot.verification_config[payload.message_id]
+            await self.bot.pool.execute("DELETE FROM guild_verification WHERE message_id = $1",
+                                        payload.message_id)
 
         await payload.member.add_roles(role, reason="Reaction Verification")
 
@@ -245,6 +245,7 @@ class Management(utils.BaseCog, name="management"):
         )
 
         embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
+        embed.timestamp = discord.Embed.Empty
 
         role = await utils.find_roles(ctx.guild, role)
         msg = await channel.send(embed=embed)
@@ -255,6 +256,8 @@ class Management(utils.BaseCog, name="management"):
             msg.id,
             role.id,
         )
+        self.bot.verification_config[msg.id] = role.id
+
         await ctx.thumbsup()
 
     @verification.command(name="reset")
@@ -270,9 +273,14 @@ class Management(utils.BaseCog, name="management"):
         if not check_guild:
             return await ctx.send("❌ You do not have verification set up.")
 
+        msg_id = await self.bot.pool.fetchval("SELECT message_id FROM guild_verification WHERE guild_id = $1",
+                                              ctx.guild.id)
+
         await self.bot.pool.execute(
             "DELETE FROM guild_verification WHERE guild_id = $1", ctx.guild.id
         )
+        del self.bot.verification_config[msg_id]
+
         await ctx.thumbsup()
 
 

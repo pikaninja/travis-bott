@@ -8,13 +8,16 @@ import asynckapi
 from decouple import config
 import discord
 from discord.ext import commands, menus
+from jishaku.codeblocks import codeblock_converter
 from polaroid.polaroid import Image
 from selenium import webdriver
 
 import utils
 import KalDiscordUtils
 
-from utils.Paginator import KalPages
+from utils.paginator import KalPages
+
+from jishaku import codeblocks
 
 """
 This Jishaku stuff was gracefully stolen from Stella
@@ -161,6 +164,37 @@ class Misc(utils.BaseCog, name="misc"):
             if not ctx.guild.chunked:
                 await ctx.guild.chunk(cache=True)
 
+    @commands.command()
+    async def script(self, ctx: utils.CustomContext, *, script: codeblock_converter):
+        """Heavily work in progress."""
+
+        import scripting
+
+        script = script[1].split("\n")[1:-1] if len(script[1].split("\n")) > 3 else script[1]
+        script = "".join(script) if isinstance(script, list) else script
+
+        lexer = scripting.LeLexer()
+        parser = scripting.LeParser()
+        env = {}
+
+        tree = parser.parse(lexer.tokenize(script))
+        process = scripting.LeExecute(tree, env)
+
+        if process.result is None:
+            return await ctx.send("Placeholder text as this command is far from complete.")
+
+        await ctx.send(process.result)
+
+    @commands.command()
+    async def vote(self, ctx: utils.CustomContext):
+        """Gives the link to vote for Travis"""
+
+        fmt = f"[Click here to vote for Travis Bott :)](https://top.gg/bot/706530005169209386)"
+        embed = KalDiscordUtils.Embed.default(ctx)
+        embed.description = fmt
+
+        await ctx.send(embed=embed)
+
     @commands.command(aliases=["ss"])
     @commands.is_nsfw()
     @commands.is_owner()
@@ -250,8 +284,9 @@ class Misc(utils.BaseCog, name="misc"):
             message = await ctx.send(f"```json\n{msg}```")
             await self.bot.add_delete_reaction(ctx.channel.id, message.id)
         else:
-            menu = KalDiscordUtils.Menu(paginator.pages, embed=False)
-            start_menu = await menu.start(ctx)
+            source = utils.CommandsPaginator(paginator)
+            menu = utils.KalPages(source)
+            await menu.start(ctx)
 
     @commands.command(aliases=["dstatus"])
     async def discordstatus(self, ctx: utils.CustomContext):
@@ -270,26 +305,25 @@ class Misc(utils.BaseCog, name="misc"):
             timestamp = re.sub(
                 r"<var data-var='date'>|</var>|<var data-var='time'>", "", current["timestamp"])
 
-            if len(timestamp) > 17:
-                embed = KalDiscordUtils.Embed.warning(
-                    title="No issues with discord report as of yet.")
-                return await ctx.send(embed=embed)
+            embeds = []
 
-            main_embed = KalDiscordUtils.Embed.default(
-                ctx,
-                title="Current Status for Discord.",
-                description=(
-                    "```\n" +
-                    f"Code: {current['code']}\n" +
-                    f"Name: {current['name']}\n" +
-                    f"Message: {current['message']}\n" +
-                    f"Impact: {current['impact']}\n" +
-                    f"Timestamp: {timestamp}\n" +
-                    "```"
+            if len(timestamp) < 17:
+                main_embed = KalDiscordUtils.Embed.default(
+                    ctx,
+                    title="Current Status for Discord.",
+                    description=(
+                        "```\n" +
+                        f"Code: {current['code']}\n" +
+                        f"Name: {current['name']}\n" +
+                        f"Message: {current['message']}\n" +
+                        f"Impact: {current['impact']}\n" +
+                        f"Timestamp: {timestamp}\n" +
+                        "```"
+                    )
                 )
-            )
 
-            main_embed.url = "https://discordstatus.com/"
+                main_embed.url = "https://discordstatus.com/"
+                embeds.append(main_embed)
 
             comp_list = []
 
@@ -303,10 +337,11 @@ class Misc(utils.BaseCog, name="misc"):
                 title="Components",
                 description="\n".join(comp_list)
             )
+            embeds.append(components_embed)
 
-            p = KalDiscordUtils.Menu([main_embed, components_embed],
-                                     clear_reactions_after=True)
-            await p.start(ctx)
+            source = utils.EmbedMenu(embeds)
+            menu = utils.KalPages(source)
+            await menu.start(ctx)
 
     @commands.command(aliases=["latency"])
     async def ping(self, ctx: utils.CustomContext):

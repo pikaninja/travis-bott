@@ -11,6 +11,7 @@ from asyncdagpi import ImageFeatures
 from decouple import config
 from discord.ext import commands
 from polaroid.polaroid import Image
+from PIL import Image as PILImage
 from wand.color import Color
 from wand.image import Image as WandImage
 
@@ -88,7 +89,14 @@ class Manipulation:
 
     @staticmethod
     def solarize_image(b: bytes):
+        with WandImage(file=BytesIO(b)) as img:
+            if (img.width * img.height) >= (1200 * 1000):
+                raise commands.BadArgument("That image is a little too large and may crashy washy my botty wotty 🥺")
+
         image = Image(b)
+        if (image.width * image.height) >= (1200 * 1000):
+            raise commands.BadArgument("That image is a little too large and may crashy washy my botty wotty 🥺")
+
         image.solarize()
         save_bytes = image.save_bytes()
         io_bytes = BytesIO(save_bytes)
@@ -97,7 +105,14 @@ class Manipulation:
 
     @staticmethod
     def brighten_image(b: bytes, amount: int):
+        with WandImage(file=BytesIO(b)) as img:
+            if (img.width * img.height) >= (1200 * 1000):
+                raise commands.BadArgument("That image is a little too large and may crashy washy my botty wotty 🥺")
+
         image = Image(b)
+        if (image.width * image.height) >= (1200 * 1000):
+            raise commands.BadArgument("That image is a little too large and may crashy washy my botty wotty 🥺")
+
         image.brighten(amount)
         save_bytes = image.save_bytes()
         io_bytes = BytesIO(save_bytes)
@@ -108,7 +123,12 @@ class Manipulation:
     def facetime(image_one_bytes: bytes,
                  image_two_bytes: bytes):
 
+        with WandImage(file=BytesIO(image_one_bytes)) as img:
+            if (img.width * img.height) >= (1200 * 1000):
+                raise commands.BadArgument("That image is a little too large and may crashy washy my botty wotty 🥺")
+
         image_one = Image(image_one_bytes)
+
         if image_one.size != (1024, 1024):
             image_one.resize(1024, 1024, 5)
 
@@ -128,6 +148,9 @@ class Manipulation:
     @staticmethod
     def magik(image: BytesIO):
         with WandImage(file=image) as img:
+            if (img.width * img.height) >= (1200 * 1000):
+                raise commands.BadArgument("That image is a little too large and may crashy washy my botty wotty 🥺")
+
             img.liquid_rescale(width=int(img.width * 0.5),
                                height=int(img.height * 0.5),
                                delta_x=random.randint(1, 2),
@@ -147,6 +170,9 @@ class Manipulation:
     @staticmethod
     def floor(image: BytesIO):  # https://github.com/linKhehe/Zane fank u link
         with WandImage(file=image) as img:
+            if (img.width * img.height) >= (1200 * 1000):
+                raise commands.BadArgument("That image is a little too large and may crashy washy my botty wotty 🥺")
+
             img.resize(256, 256)
             img.matte_color = Color("BLACK")
             img.virtual_pixel = "tile"
@@ -165,6 +191,9 @@ class Manipulation:
     @staticmethod
     def chroma(image: BytesIO):
         with WandImage(file=image) as img:
+            if (img.width * img.height) >= (1200 * 1000):
+                raise commands.BadArgument("That image is a little too large and may crashy washy my botty wotty 🥺")
+
             img.function("sinusoid", [1.5, -45, 0.2, 0.60])
 
             buffer = BytesIO()
@@ -176,6 +205,9 @@ class Manipulation:
     @staticmethod
     def swirl(image: BytesIO, degrees: int = 90):
         with WandImage(file=image) as img:
+            if (img.width * img.height) >= (1200 * 1000):
+                raise commands.BadArgument("That image is a little too large and may crashy washy my botty wotty 🥺")
+
             if degrees > 360:
                 degrees = 360
             elif degrees < -360:
@@ -201,7 +233,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
 
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
-    async def swirl(self, ctx: utils.CustomContext, degrees: int = 90, what=None):
+    async def swirl(self, ctx: utils.CustomContext, what: typing.Optional[str], degrees: int = 90):
         """Adds a swirl affect to a given image."""
 
         async with ctx.timeit:
@@ -213,8 +245,8 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
                 buffer = await self.bot.loop.run_in_executor(None, func)
 
                 embed = KalDiscordUtils.Embed.default(ctx)
-                file = discord.File(fp=buffer, filename="chroma.png")
-                embed.set_image(url="attachment://chroma.png")
+                file = discord.File(fp=buffer, filename="swirl.png")
+                embed.set_image(url="attachment://swirl.png")
 
                 await ctx.send(
                     file=file,

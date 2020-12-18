@@ -3,7 +3,7 @@ import discord
 from discord import embeds
 from discord.ext import commands, menus
 from utils import utils
-from utils.Embed import Embed
+from utils.embed import Embed
 import asyncio
 
 LAST_PAGE = "\N{LEFTWARDS BLACK ARROW}"
@@ -20,6 +20,7 @@ class CommandsPaginator(menus.ListPageSource):
     async def format_page(self, menu: menus.Menu, page):
         embed = Embed.default(menu.ctx,
                               description=page)
+        embed.set_footer(text=f"Page {menu.current_page + 1}/{self.get_max_pages()}")
 
         return embed
 
@@ -68,9 +69,10 @@ class KalPages(menus.MenuPages):
 
 
 class MainHelp(menus.ListPageSource):
-    def __init__(self, ctx, categories: list):
+    def __init__(self, ctx, categories: list, *, prefix):
         super().__init__(entries=categories, per_page=4)
         self.ctx = ctx
+        self.prefix = prefix
 
     async def format_page(self, menu, category):
         embed = Embed.default(
@@ -84,7 +86,7 @@ class MainHelp(menus.ListPageSource):
             )
         )
         embed.set_footer(
-            text=f"Do \"{self.ctx.prefix}help [command|category]\" for more info on a command.")
+            text=f"Do \"{self.prefix}help [command|category]\" for more info on a command.")
 
         for k, v in category:
             embed.add_field(name=k, value=v, inline=False)
@@ -103,13 +105,43 @@ class GroupHelp(menus.ListPageSource):
 
     async def format_page(self, menu, cmds):
         embed = Embed.default(self.ctx)
-        embed.title = f"{self.prefix}{self.group.name} {self.group.signature}"
+        embed.title = f"{self.prefix}{self.group.qualified_name} {self.group.signature}"
         embed.description = self.group.help.format(prefix=self.ctx.prefix)
 
         for cmd in cmds:
             signature = f"{self.prefix}{cmd.qualified_name} {cmd.signature}"
             embed.add_field(
                 name=signature, value=cmd.help.format(prefix=self.ctx.prefix) or "No help given...", inline=False)
+
+        maximum = self.get_max_pages()
+        if maximum > 1:
+            embed.set_author(
+                name=f"Page {menu.current_page + 1}/{maximum} ({len(self.entries)} commands)")
+
+        embed.set_footer(
+            text=f"Do \"{self.prefix}help [command|category]\" for more info on a command.")
+        return embed
+
+
+class CogHelp(menus.ListPageSource):
+    def __init__(self, ctx, cog, cmds, *, prefix):
+        super().__init__(entries=cmds, per_page=4)
+        self.ctx = ctx
+        self.cog = cog
+        self.prefix = prefix
+        self.title = f"{self.cog.show_name} Commands"
+
+    async def format_page(self, menu, cmds):
+        embed = Embed.default(self.ctx)
+        embed.title = self.title
+
+        for cmd in cmds:
+            signature = f"{self.prefix}{cmd.name} {cmd.signature}"
+            embed.add_field(
+                name=signature,
+                value=cmd.help.format(prefix=self.prefix),
+                inline=False
+            )
 
         maximum = self.get_max_pages()
         if maximum > 1:

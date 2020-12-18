@@ -90,7 +90,6 @@ class Meta(utils.BaseCog, name="meta"):
                 embed.set_image(url=result.image if result.image is not None
                                 and result.image.startswith(("https://", "http://"))
                                 else discord.Embed.Empty)
-                print(result.link)
 
                 embeds.append(embed)
 
@@ -102,55 +101,48 @@ class Meta(utils.BaseCog, name="meta"):
     async def randomcolour(self, ctx: utils.CustomContext):
         """Gives a random colour."""
 
-        r_colour = (
-            random.randint(0, 255),
-            random.randint(0, 255),
-            random.randint(0, 255),
-        )
-        rgb_to_hex = "#%02x%02x%02x" % r_colour
+        colour = discord.Colour.random()
+        rgb = colour.to_rgb()
+
         colour_representation = (
-            f"https://some-random-api.ml/canvas/colorviewer?hex={rgb_to_hex[1:]}"
+            f"https://some-random-api.ml/canvas/colorviewer?hex={str(colour)[1:]}"
         )
         embed = KalDiscordUtils.Embed.default(
             ctx,
             title="Generated Colour",
-            colour=discord.Colour.from_rgb(*r_colour),
-        )
-        embed.set_thumbnail(url=colour_representation)
-        embed.add_field(name="Hex", value=f"{rgb_to_hex}", inline=False)
-        embed.add_field(name="RGB", value=f"{r_colour}", inline=False)
-        await ctx.send(embed=embed)
-
-    @commands.command(aliases=["color"])
-    async def colour(self, ctx: utils.CustomContext, colour: str):
-        """Shows a representation of a given colour"""
-
-        hex_regex = r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
-
-        if not re.match(hex_regex, colour):
-            return await ctx.send(
-                "The colour must be a properly formed **hex** colour."
-            )
-
-        colour_representation = (
-            f"https://some-random-api.ml/canvas/colorviewer?hex={colour[1:]}"
-        )
-        hex_to_rgb = utils.hex_to_rgb(colour[1:])
-        embed = KalDiscordUtils.Embed.default(
-            ctx,
-            colour=discord.Colour.from_rgb(*hex_to_rgb)
+            colour=colour,
         )
         embed.set_thumbnail(url=colour_representation)
         embed.add_field(name="Hex", value=f"{colour}", inline=False)
-        embed.add_field(name="RGB", value=f"{hex_to_rgb}", inline=False)
+        embed.add_field(name="RGB", value=f"{rgb}", inline=False)
+        await ctx.send(embed=embed)
+
+    # noinspection PyUnresolvedReferences
+    @commands.command(aliases=["color"])
+    async def colour(self, ctx: utils.CustomContext, colour: commands.ColourConverter):
+        """Shows a representation of a given colour"""
+
+        colour_representation = (
+            f"https://some-random-api.ml/canvas/colorviewer?hex={str(colour)[1:]}"
+        )
+
+        rgb = colour.to_rgb()
+
+        embed = KalDiscordUtils.Embed.default(
+            ctx,
+            colour=discord.Colour.from_rgb(*rgb)
+        )
+
+        embed.set_thumbnail(url=colour_representation)
+        embed.add_field(name="Hex", value=f"{colour}", inline=False)
+        embed.add_field(name="RGB", value=f"{rgb}", inline=False)
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["av"])
     async def avatar(self, ctx: utils.CustomContext, member: typing.Optional[discord.Member]):
         """Get your own or another persons avatar."""
 
-        if not member:
-            member = ctx.author
+        member = member or ctx.author
 
         embed = KalDiscordUtils.Embed.default(ctx)
         embed.set_author(name=member, icon_url=member.avatar_url)
@@ -199,29 +191,7 @@ class Meta(utils.BaseCog, name="meta"):
         )
         embed.add_field(name="Current prefix", value=f"`{(await self.bot.get_prefix(ctx.message))[2]}`")
 
-        await ctx.send(embed=embed)
-
-    @commands.command()
-    async def translate(self, ctx: utils.CustomContext, *, text: str):
-        """Automatically translates a given text to English"""
-
-        translate_api = translator.Translator()
-        try:
-            translation = await translate_api.translate(str(text), dest="en")
-        except IndexError:
-            return await ctx.send(
-                embed=KalDiscordUtils.Embed.error(
-                    description=f"`{text}` could not be translated.")
-            )
-        print(translation)
-        embed = KalDiscordUtils.Embed.default(
-            ctx,
-            title="Translation",
-            description=str(translation.text)
-        )
-
-        embed.set_footer(
-            text=f"Translated to English from {translation.src} - Confidence: {translation.confidence}")
+        embed.set_image(url="https://kallum.pls-finger.me/rTZv0o.png")
 
         await ctx.send(embed=embed)
 
@@ -233,7 +203,7 @@ class Meta(utils.BaseCog, name="meta"):
         embed_list = []
 
         if len(emojis) == 0:
-            raise BadArgument("You didn't give me any emojis to show you!")
+            return await ctx.send_help(ctx.command)
 
         for _ in range(len(emojis)):
             emoji = emojis[_]
@@ -244,14 +214,13 @@ class Meta(utils.BaseCog, name="meta"):
             )
 
             embed.url = str(emoji.url)
-            embed.set_footer(text=f"Page {_ + 1}/{len(emojis)}")
 
             embed.set_image(url=emoji.url)
             embed.add_field(name="Animated", value=emoji.animated)
 
             embed_list.append(embed)
 
-        embed_pages = utils.EmbedMenu(ctx, embed_list)
+        embed_pages = utils.EmbedMenu(embed_list)
 
         menu = utils.KalPages(embed_pages)
         await menu.start(ctx)
@@ -266,15 +235,14 @@ class Meta(utils.BaseCog, name="meta"):
 
         emoji_bytes = await emoji.url.read()
 
-        if len(ctx.guild.emojis) == ctx.guild.emoji_limit:
-            return await ctx.send(
-                "I can't add that as the server has reached its emoji limit, "
-                "try getting it increased somehow."
+        try:
+            new_emoji = await ctx.guild.create_custom_emoji(
+                name=emoji_name, image=emoji_bytes, reason=f"Responsible user: {ctx.author}"
             )
-
-        new_emoji = await ctx.guild.create_custom_emoji(
-            name=emoji_name, image=emoji_bytes, reason=f"Responsible user: {ctx.author}"
-        )
+        except discord.Forbidden:
+            return await ctx.send(
+                "I could not add that emoji due to the server being at its emoji limit."
+            )
 
         await ctx.send(
             f"Successfully stolen {new_emoji} with the name `{new_emoji.name}`"
@@ -578,40 +546,6 @@ class Meta(utils.BaseCog, name="meta"):
             embed.set_thumbnail(url=icon)
             [embed.add_field(name=n, value=v, inline=False) for n, v in fields]
             await ctx.send(embed=embed)
-
-    # @commands.command()
-    # async def steam(self, ctx, profile: str):
-    #     """Gets a users steam profile and puts it in an embed."""
-
-    #     complete_api_url = f"https://api.alexflipnote.dev/steam/user/{profile}"
-    #     async with request("GET", complete_api_url, headers={}) as r:
-    #         if r.status != 200:
-    #             return await ctx.send("I could not find that profile.")
-    #         data = await r.json()
-    #         url = data["profile"]["url"]
-    #         background = data["profile"]["background"]
-    #         avatar = data["avatars"]["avatarfull"]
-    #         steam_id = data["id"]["steamid32"]
-
-    #         fields = [
-    #             ["Username", data["profile"]["username"], True],
-    #             ["Real Name", data["profile"]["realname"], True],
-    #             ["Location", data["profile"]["location"], True],
-    #             ["State", data["profile"]["state"], True],
-    #             ["Date Created", data["profile"]["timecreated"], True],
-    #             ["Vac Banned", data["profile"]["vacbanned"], True],
-    #             ["Summary", "```\n" + data["profile"]["summary"] + "```", False],
-    #         ]
-
-    #         embed = utils.embed_message(title=f"Profile of {profile}",
-    #                                     footer_text=f"Steam ID: {steam_id}",
-    #                                     thumbnail=avatar,
-    #                                     url=url)
-    #         embed.set_image(url=background)
-
-    #         [embed.add_field(name=n, value=str(v), inline=il) for n, v, il in fields]
-
-    #         await ctx.send(embed=embed)
 
     @commands.command()
     async def country(self, ctx: utils.CustomContext, *, country: str):

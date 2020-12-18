@@ -1,5 +1,6 @@
 import asyncio
 import json
+import re
 import time
 
 import asyncpg
@@ -11,8 +12,7 @@ from datetime import timedelta
 
 import aiohttp
 
-from utils.CustomContext import CustomContext
-import utils
+from .customcontext import CustomContext
 
 import config as cfg
 
@@ -37,6 +37,7 @@ class MyBot(commands.AutoShardedBot):
 
         self.start_time = dt.now()
         self.config = {}
+        self.verification_config = {}
 
         self.loop = asyncio.get_event_loop()
         self.pool = self.loop.run_until_complete(
@@ -50,6 +51,8 @@ class MyBot(commands.AutoShardedBot):
             "title": None,
             "message": None
         }
+        self.maintenance_mode = False
+        self.add_check(self.command_check)
 
     @property
     async def kal(self):
@@ -62,7 +65,12 @@ class MyBot(commands.AutoShardedBot):
 
     async def do_prep(self):
         await self.wait_until_ready()
+        verification_config = await self.pool.fetch("SELECT message_id, role_id FROM guild_verification")
         guild_configs = await self.pool.fetch("SELECT * FROM guild_settings")
+
+        for entry in verification_config:
+            self.verification_config[entry["message_id"]] = entry["role_id"]
+
         for entry in guild_configs:
             data = {
                 "guild_prefix": entry["guild_prefix"],
@@ -110,10 +118,9 @@ class MyBot(commands.AutoShardedBot):
         if not self.is_ready():
             return
 
-        if (
-            message.content == f"<@!{self.user.id}>"
-            or message.content == f"<@{self.user.id}>"
-        ):
+        BOT_MENTION_REGEX = f"<@(!)?{self.user.id}>"
+
+        if re.fullmatch(BOT_MENTION_REGEX, message.content):
             prefix = self.config[message.guild.id]["guild_prefix"]
             await message.channel.send(
                 "Hey I saw you mentioned me, in case you didn't know my prefix "
@@ -128,7 +135,11 @@ class MyBot(commands.AutoShardedBot):
             guild.id,
             "tb!",
         )
-        self.config[guild.id]["guild_prefix"] = "tb!"
+        self.config[guild.id] = {
+            "guild_prefix": "tb!",
+            "mute_role_id": None,
+            "log_channel": None
+        }
 
         message = [
             f"I was just added to {guild.name} with {guild.member_count} members.",
@@ -147,6 +158,10 @@ class MyBot(commands.AutoShardedBot):
             "DELETE FROM guild_settings WHERE guild_id = $1", guild.id
         )
 
+        await self.pool.execute(
+            "DELETE FROM guild_verification WHERE guild_id = $1", guild.id
+        )
+
         del self.config[guild.id]
 
         message = [
@@ -162,9 +177,13 @@ class MyBot(commands.AutoShardedBot):
         await self.session.post(url, data=data)
 
     async def on_message_edit(self, before, after):
-        if before.content != after.content:
-            ctx = await self.get_context(after)
-            await self.invoke(ctx)
+        await self.process_commands(after)
+
+    async def command_check(self, ctx: CustomContext):
+        if ctx.author.id in self.owner_ids:
+            return True
+
+        return not ctx.bot.maintenance_mode
 
     def get_uptime(self) -> timedelta:
         """Gets the uptime of the bot"""

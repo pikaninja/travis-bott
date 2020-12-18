@@ -14,8 +14,7 @@ from discord import Embed
 from discord.ext.commands import when_mentioned_or
 from discord.ext import commands
 
-from . import db
-from .CustomBot import MyBot
+from .custombot import MyBot
 
 UserObject = typing.Union[discord.Member, discord.User]
 UserSnowflake = typing.Union[UserObject, discord.Object]

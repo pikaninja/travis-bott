@@ -4,6 +4,7 @@ import glob
 import io
 import os
 import json
+import random
 import textwrap
 import traceback
 import re
@@ -206,7 +207,9 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             results = await strategy(query.format(author=ctx.author,
                                                   guild=ctx.guild))
 
-            paginator = commands.Paginator()
+            paginator = commands.Paginator(prefix="```py",
+                                           suffix="```",
+                                           max_size=500)
             if isinstance(results, list):
                 for result in results:
                     paginator.add_line(repr(result))
@@ -324,7 +327,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
         # Make the environment
         env = {
-            "client": self.bot,
+            "bot": self.bot,
             "ctx": ctx,
             "channel": ctx.channel,
             "author": ctx.author,

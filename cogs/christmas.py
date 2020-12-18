@@ -20,7 +20,8 @@ class Christmas(utils.BaseCog, name="christmas"):
     async def howlong(self, ctx: utils.CustomContext):
         """Gives you how long it is until Christmas."""
 
-        time = datetime.datetime(year=2020, month=12, day=25)
+        current_year = datetime.datetime.utcnow().year
+        time = datetime.datetime(year=current_year, month=12, day=25)
         formatted_time = KalDiscordUtils.format_time(time)
         embed = KalDiscordUtils.Embed.default(
             ctx,
@@ -29,6 +30,7 @@ class Christmas(utils.BaseCog, name="christmas"):
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["sbf"])
+    @commands.max_concurrency(1, commands.BucketType.channel)
     async def snowballfight(self, ctx: utils.CustomContext, user: discord.Member):
         """Starts a snowball fight with someone!"""
 

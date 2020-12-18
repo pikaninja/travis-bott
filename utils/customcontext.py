@@ -22,16 +22,6 @@ class CustomContext(commands.Context):
 
         return self.bot.pool
 
-    # @asynccontextmanager
-    # async def timeit(self, command: commands.Command, *args, **kwargs):
-    #     """Times how long it takes to finish a command."""
-    #
-    #     command = self.bot.get_command(command)
-    #     start = time.perf_counter()
-    #     await self.invoke(command, *args, **kwargs)
-    #     end = time.perf_counter()
-    #     yield end - start
-
     async def thumbsup(self):
         """Adds a thumbs up emoji to a message"""
 

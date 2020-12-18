@@ -1,8 +1,8 @@
 from discord.ext import commands
-from utils.Embed import Embed
+from utils.embed import Embed
 from utils import CustomContext
-from utils.CustomCog import BaseCog
-from utils.Paginator import GroupHelp, KalPages, MainHelp
+from utils.customcog import BaseCog
+from utils.paginator import GroupHelp, KalPages, MainHelp, CogHelp
 
 
 class CustomHelp(commands.HelpCommand):
@@ -53,7 +53,7 @@ class CustomHelp(commands.HelpCommand):
                 if cog and cog.description:
                     cats.append([name, f">>> {all_cmds}\n"])
 
-        menu = KalPages(source=MainHelp(self.context, cats))
+        menu = KalPages(source=MainHelp(self.context, cats, prefix=self.clean_prefix))
         await menu.start(self.context)
 
     async def send_cog_help(self, cog: BaseCog):
@@ -62,7 +62,7 @@ class CustomHelp(commands.HelpCommand):
 
         entries = await self.filter_commands(cog.get_commands(), sort=True)
         menu = KalPages(
-            GroupHelp(self.context, cog, entries, prefix=self.clean_prefix),
+            CogHelp(self.context, cog, entries, prefix=self.clean_prefix),
             clear_reactions_after=True
         )
         await menu.start(self.context)

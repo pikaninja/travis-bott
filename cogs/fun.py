@@ -247,6 +247,9 @@ class Fun(utils.BaseCog, name="fun"):
     async def fakeban(self, ctx: utils.CustomContext, member: discord.Member, *, reason: str = "No Reason Provided."):
         """Fakes banning someone because that's funny, I think."""
 
+        with contextlib.suppress(discord.Forbidden, discord.HTTPException):
+            await ctx.message.delete()
+
         allowed_mentions = discord.AllowedMentions.none()
         await ctx.send(
             f"{member.mention} has been banned by {ctx.author} for: **{reason}**",

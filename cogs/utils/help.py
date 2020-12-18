@@ -1,7 +1,5 @@
 from discord.ext import commands
-from utils.CustomHelp import CustomHelp
-from utils.CustomContext import CustomContext
-from utils.PaginatedHelp import PaginatedHelp
+from utils.customhelp import CustomHelp
 
 
 class Help(commands.Cog, command_attrs=dict(hidden=True)):
