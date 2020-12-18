@@ -91,11 +91,13 @@ class Manipulation:
     def solarize_image(b: bytes):
         with WandImage(file=BytesIO(b)) as img:
             if (img.width * img.height) >= (1200 * 1000):
-                raise commands.BadArgument("That image is a little too large and may crashy washy my botty wotty 🥺")
+                raise commands.BadArgument(
+                    "That image is a little too large and may crashy washy my botty wotty 🥺")
 
         image = Image(b)
         if (image.width * image.height) >= (1200 * 1000):
-            raise commands.BadArgument("That image is a little too large and may crashy washy my botty wotty 🥺")
+            raise commands.BadArgument(
+                "That image is a little too large and may crashy washy my botty wotty 🥺")
 
         image.solarize()
         save_bytes = image.save_bytes()
@@ -107,11 +109,13 @@ class Manipulation:
     def brighten_image(b: bytes, amount: int):
         with WandImage(file=BytesIO(b)) as img:
             if (img.width * img.height) >= (1200 * 1000):
-                raise commands.BadArgument("That image is a little too large and may crashy washy my botty wotty 🥺")
+                raise commands.BadArgument(
+                    "That image is a little too large and may crashy washy my botty wotty 🥺")
 
         image = Image(b)
         if (image.width * image.height) >= (1200 * 1000):
-            raise commands.BadArgument("That image is a little too large and may crashy washy my botty wotty 🥺")
+            raise commands.BadArgument(
+                "That image is a little too large and may crashy washy my botty wotty 🥺")
 
         image.brighten(amount)
         save_bytes = image.save_bytes()
@@ -125,7 +129,8 @@ class Manipulation:
 
         with WandImage(file=BytesIO(image_one_bytes)) as img:
             if (img.width * img.height) >= (1200 * 1000):
-                raise commands.BadArgument("That image is a little too large and may crashy washy my botty wotty 🥺")
+                raise commands.BadArgument(
+                    "That image is a little too large and may crashy washy my botty wotty 🥺")
 
         image_one = Image(image_one_bytes)
 
@@ -149,7 +154,8 @@ class Manipulation:
     def magik(image: BytesIO):
         with WandImage(file=image) as img:
             if (img.width * img.height) >= (1200 * 1000):
-                raise commands.BadArgument("That image is a little too large and may crashy washy my botty wotty 🥺")
+                raise commands.BadArgument(
+                    "That image is a little too large and may crashy washy my botty wotty 🥺")
 
             img.liquid_rescale(width=int(img.width * 0.5),
                                height=int(img.height * 0.5),
@@ -171,7 +177,8 @@ class Manipulation:
     def floor(image: BytesIO):  # https://github.com/linKhehe/Zane fank u link
         with WandImage(file=image) as img:
             if (img.width * img.height) >= (1200 * 1000):
-                raise commands.BadArgument("That image is a little too large and may crashy washy my botty wotty 🥺")
+                raise commands.BadArgument(
+                    "That image is a little too large and may crashy washy my botty wotty 🥺")
 
             img.resize(256, 256)
             img.matte_color = Color("BLACK")
@@ -192,7 +199,8 @@ class Manipulation:
     def chroma(image: BytesIO):
         with WandImage(file=image) as img:
             if (img.width * img.height) >= (1200 * 1000):
-                raise commands.BadArgument("That image is a little too large and may crashy washy my botty wotty 🥺")
+                raise commands.BadArgument(
+                    "That image is a little too large and may crashy washy my botty wotty 🥺")
 
             img.function("sinusoid", [1.5, -45, 0.2, 0.60])
 
@@ -206,7 +214,8 @@ class Manipulation:
     def swirl(image: BytesIO, degrees: int = 90):
         with WandImage(file=image) as img:
             if (img.width * img.height) >= (1200 * 1000):
-                raise commands.BadArgument("That image is a little too large and may crashy washy my botty wotty 🥺")
+                raise commands.BadArgument(
+                    "That image is a little too large and may crashy washy my botty wotty 🥺")
 
             if degrees > 360:
                 degrees = 360

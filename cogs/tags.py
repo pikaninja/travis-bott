@@ -10,7 +10,7 @@ import utils
 
 
 class TagsListPageSource(menus.ListPageSource):
-    def __init__(self, username: str, all_tags: list, *, per_page: int =10):
+    def __init__(self, username: str, all_tags: list, *, per_page: int = 10):
         super().__init__(all_tags, per_page=per_page)
 
         self.username: str = username
@@ -31,7 +31,8 @@ class TagContent(commands.Converter):
         if self.tag_type == 'title':
             reserved_names: list = ['create', 'make', 'add', 'list', 'delete']
             if len(argument) > 32:
-                raise commands.BadArgument('The title must not be longer than 32 characters.')
+                raise commands.BadArgument(
+                    'The title must not be longer than 32 characters.')
             if argument in reserved_names:
                 raise commands.BadArgument('That tag name is reserved.')
             else:
@@ -39,11 +40,13 @@ class TagContent(commands.Converter):
 
         if self.tag_type == 'content':
             if len(argument) > 2016:
-                raise commands.BadArgument('The content must not be longer than 2016 characters.')
+                raise commands.BadArgument(
+                    'The content must not be longer than 2016 characters.')
             else:
                 return argument
         else:
-            raise Exception('How the fuck did you fuck up this bad and not get "title" or "content"?')
+            raise Exception(
+                'How the fuck did you fuck up this bad and not get "title" or "content"?')
 
 
 class Tags(utils.BaseCog, name="tags"):

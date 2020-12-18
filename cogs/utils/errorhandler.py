@@ -200,8 +200,9 @@ class ErrorHandler(Cog):
             )
 
         prettify_exceptions.DefaultFormatter().theme['_ansi_enabled'] = False
-        tb =  (
-            ''.join(prettify_exceptions.DefaultFormatter().format_exception(type(error), error, error.__traceback__))
+        tb = (
+            ''.join(prettify_exceptions.DefaultFormatter().format_exception(
+                type(error), error, error.__traceback__))
         )
 
         await self.send_error(ctx, tb)

@@ -20,7 +20,8 @@ class CommandsPaginator(menus.ListPageSource):
     async def format_page(self, menu: menus.Menu, page):
         embed = Embed.default(menu.ctx,
                               description=page)
-        embed.set_footer(text=f"Page {menu.current_page + 1}/{self.get_max_pages()}")
+        embed.set_footer(
+            text=f"Page {menu.current_page + 1}/{self.get_max_pages()}")
 
         return embed
 

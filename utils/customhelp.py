@@ -53,7 +53,8 @@ class CustomHelp(commands.HelpCommand):
                 if cog and cog.description:
                     cats.append([name, f">>> {all_cmds}\n"])
 
-        menu = KalPages(source=MainHelp(self.context, cats, prefix=self.clean_prefix))
+        menu = KalPages(source=MainHelp(
+            self.context, cats, prefix=self.clean_prefix))
         await menu.start(self.context)
 
     async def send_cog_help(self, cog: BaseCog):

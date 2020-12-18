@@ -1,5 +1,4 @@
 import asyncio
-import json
 import re
 import time
 
@@ -13,6 +12,7 @@ from datetime import timedelta
 import aiohttp
 
 from .customcontext import CustomContext
+from .utils import set_mute
 
 import config as cfg
 
@@ -54,6 +54,11 @@ class MyBot(commands.AutoShardedBot):
         self.maintenance_mode = False
         self.add_check(self.command_check)
 
+        self.support_url = "https://discord.gg/tKZbxAF"
+        self.invite_url = discord.utils.oauth_url(
+            "706530005169209386", discord.Permissions(2080763126))
+        self.github_url = "https://github.com/platform-discord/travis-bott"
+
     @property
     async def kal(self):
         return self.get_user(self.owner_id)
@@ -84,10 +89,10 @@ class MyBot(commands.AutoShardedBot):
         for mute in mutes:
             now = time.time()
             seconds_left = mute["end_time"] - now
-            await utils.set_mute(bot=self,
-                                 guild_id=mute["guild_id"],
-                                 user_id=mute["member_id"],
-                                 _time=seconds_left)
+            await set_mute(bot=self,
+                           guild_id=mute["guild_id"],
+                           user_id=mute["member_id"],
+                           _time=seconds_left)
 
         updates_channel = await self.fetch_channel(711586681580552232)
         last_update = await updates_channel.fetch_message(updates_channel.last_message_id)

@@ -146,8 +146,7 @@ class Misc(utils.BaseCog, name="misc"):
     """Miscellaneous Commands"""
 
     def __init__(self, bot, show_name):
-        self.blacklist = [757796861980704880,
-                          466297117409804318,
+        self.blacklist = [466297117409804318,
                           755096934707888219,
                           671431400423030786,
                           700745848119885845,
@@ -170,7 +169,8 @@ class Misc(utils.BaseCog, name="misc"):
 
         import scripting
 
-        script = script[1].split("\n")[1:-1] if len(script[1].split("\n")) > 3 else script[1]
+        script = script[1].split(
+            "\n")[1:-1] if len(script[1].split("\n")) > 3 else script[1]
         script = "".join(script) if isinstance(script, list) else script
 
         lexer = scripting.LeLexer()

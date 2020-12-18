@@ -3,18 +3,14 @@ import datetime
 import re
 import time
 import typing
-from typing import Optional
 
 import Levenshtein
 import humanize
-from decouple import config
 
 import discord
 from discord import Embed
-from discord.ext.commands import when_mentioned_or
 from discord.ext import commands
 
-from .custombot import MyBot
 
 UserObject = typing.Union[discord.Member, discord.User]
 UserSnowflake = typing.Union[UserObject, discord.Object]
@@ -44,13 +40,6 @@ async def set_mute(bot, guild_id, user_id, _time):
 
 def log(*args):
     print(f"{time.strftime('%I:%M:%S')} | {' '.join(map(str, args))}")
-
-
-async def get_prefix(bot: MyBot, message: discord.Message):
-    if message.guild is None:
-        return "tb!"
-    else:
-        return bot.config[message.guild.id]["guild_prefix"]
 
 
 async def is_target_staff(ctx, user) -> str:

@@ -2,10 +2,10 @@ from sly import Lexer
 
 
 class LeLexer(Lexer):
-    tokens = { NAME, NUMBER, STRING }
+    tokens = {NAME, NUMBER, STRING}
     ignore = '\t '
-    literals = { '=', '+', '-', '/',
-                 '*', '(', ')', ',', ';'}
+    literals = {'=', '+', '-', '/',
+                '*', '(', ')', ',', ';'}
 
     NAME = r'[a-zA-Z_][a-zA-Z0-9_]*'
     STRING = r'\".*?\"'

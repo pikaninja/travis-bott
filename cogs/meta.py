@@ -1,3 +1,5 @@
+import os
+
 import cse
 import contextlib
 from contextlib import asynccontextmanager
@@ -154,45 +156,38 @@ class Meta(utils.BaseCog, name="meta"):
     async def info(self, ctx: utils.CustomContext):
         """Get basic info on the bot."""
 
-        invite_link = f"https://discord.com/api/oauth2/authorize?client_id={self.bot.user.id}&permissions=8&scope=bot"
+        embed = KalDiscordUtils.Embed.default(ctx)
 
-        astro_user = await self.bot.fetch_user(285506580919877633)
+        embed.set_thumbnail(url=str(self.bot.user.avatar_url_as(
+            format="png",
+            static_format="png",
+            size=1024)))
+
+        developer = [str(self.bot.get_user(x)) for x in self.bot.owner_ids][0]
+
+        guild_count = len(self.bot.guilds)
+        member_count = sum(g.member_count for g in self.bot.guilds)
+        process = psutil.Process(os.getpid())
+        memory_used = process.memory_info().rss / 1024 ** 2
+        memory_info = psutil.virtual_memory()
 
         cpu_percentage = psutil.cpu_percent()
-        mem_used = (
-            psutil.virtual_memory().total - psutil.virtual_memory().available
-        ) / 1000000
-        total_mem = psutil.virtual_memory().total / 1000000
+        fields = [
 
-        embed = KalDiscordUtils.Embed.default(
-            ctx,
-            title=f"Info about {self.bot.user.name}",
-            description=f"Thank you to {astro_user} for making the avatar."
-        )
-
-        embed.set_footer(
-            text=f"Bot Version: {self.bot.version} | D.py Version: {discord.__version__}")
-
-        embed.add_field(name="Invite the bot", value=f"[Here]({invite_link})")
-        embed.add_field(
-            name="GitHub", value=f"[Here]({config('GITHUB_LINK')})")
-        embed.add_field(
-            name="Support server", value=f"[Here]({config('SUPPORT_LINK')})"
-        )
-        embed.add_field(
-            name="Ping", value=f"{round(self.bot.latency * 1000)} ms")
-        embed.add_field(
-            name="Memory", value=f"{round(mem_used)} MB / {round(total_mem)} MB"
-        )
-        embed.add_field(name="CPU", value=f"{cpu_percentage}%")
-        embed.add_field(name="Creator", value=f"{config('DEVELOPER')}")
-        embed.add_field(
-            name="Currently in", value=f"{sum(1 for g in self.bot.guilds)} servers"
-        )
-        embed.add_field(name="Current prefix", value=f"`{(await self.bot.get_prefix(ctx.message))[2]}`")
-
-        embed.set_image(url="https://kallum.pls-finger.me/rTZv0o.png")
-
+            ["Invite", f"[Invite the bot here!]({self.bot.invite_url})", True],
+            ["Need Support?",
+                f"[Join the support server here]({self.bot.support_url})", True],
+            ["Want to see the source?",
+                f"[Click here to view it]({self.bot.github_url})", True],
+            ["Current Ping", f"{(self.bot.latency * 1000):,.2f} ms", True],
+            ["Developer", f"{developer}", True],
+            ["Guild Count", f"{guild_count}", True],
+            ["User Count", f"{member_count:,}", True],
+            ["Memory usage",
+                f"{int(memory_used):,}/{int(memory_info.total / 1024 ** 2):,} MB", True],
+            ["CPU usage", f"{cpu_percentage}%", True],
+        ]
+        [embed.add_field(name=n, value=v, inline=i) for n, v, i in fields]
         await ctx.send(embed=embed)
 
     @commands.group(invoke_without_command=True)
