@@ -199,20 +199,35 @@ class ErrorHandler(Cog):
                 ),
             )
 
+            # Custom exception
+        elif isinstance(error, utils.UserNotVoted):
+            return await self.send_to_ctx_or_author(
+                ctx,
+                embed=Embed.error(
+                    description=f"{error}"
+                ),
+            )
+
         prettify_exceptions.DefaultFormatter().theme['_ansi_enabled'] = False
         tb = (
             ''.join(prettify_exceptions.DefaultFormatter().format_exception(
                 type(error), error, error.__traceback__))
         )
 
-        await self.send_error(ctx, tb)
-        await self.send_to_ctx_or_author(ctx, embed=Embed.error(
-            title="Uhoh an error has occurred...",
-            description=(
-                "Here's some details on it: ```py\n"
-                f"{tb}```"
-            )
-        ))
+
+        if len(tb) > 500:
+            await ctx.send("The error message is too big so I sent it just to the developer.")
+            await self.send_error(ctx, error)
+        else:
+            await self.send_to_ctx_or_author(ctx, embed=Embed.error(
+                title="Uhoh an error has occurred...",
+                description=(
+                    "Here's some details on it: ```py\n"
+                    f"{tb}```"
+                )
+            ))
+            await self.send_error(ctx, tb)
+
         raise error
 
 
