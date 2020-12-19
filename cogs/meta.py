@@ -5,6 +5,7 @@ import contextlib
 from contextlib import asynccontextmanager
 
 import KalDiscordUtils
+import dbl
 from decouple import config
 from discord.ext import commands, menus
 from discord.ext.commands.errors import BadArgument
@@ -220,8 +221,10 @@ class Meta(utils.BaseCog, name="meta"):
         menu = utils.KalPages(embed_pages)
         await menu.start(ctx)
 
+    @utils.has_voted()
     @emoji.command(name="steal")
     @commands.has_permissions(manage_emojis=True)
+    @commands.bot_has_permissions(manage_emojis=True)
     async def steal_emoji(self, ctx: utils.CustomContext, emoji: discord.PartialEmoji, *, name: str = None):
         """Steals a given emoji and you're able to give it a new name.
         Permissions needed: `Manage Emojis`"""
