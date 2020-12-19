@@ -8,12 +8,36 @@ import Levenshtein
 import humanize
 
 import discord
+from decouple import config
 from discord import Embed
 from discord.ext import commands
 
+from .customcontext import CustomContext
 
 UserObject = typing.Union[discord.Member, discord.User]
 UserSnowflake = typing.Union[UserObject, discord.Object]
+
+
+def has_voted():
+    async def predicate(ctx: CustomContext):
+        hdrs = {"Authorization": config("TOP_GG_API")}
+        url = f"https://top.gg/api/bots/{ctx.bot.user.id}/check?userId={ctx.author.id}"
+
+        async with ctx.bot.session.get(url, headers=hdrs) as response:
+            data = await response.json()
+            has_user_voted = bool(data["voted"])
+
+        if not has_user_voted:
+            raise UserNotVoted()
+
+        return has_user_voted
+
+    return commands.check(predicate=predicate)
+
+
+class UserNotVoted(Exception):
+    def __init__(self, msg="You must vote for the bot via the vote command to use this command.", *args, **kwargs):
+        super().__init__(msg, *args, **kwargs)
 
 
 class MemberIsStaff(Exception):
