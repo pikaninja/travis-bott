@@ -255,7 +255,7 @@ class Misc(utils.BaseCog, name="misc"):
             allowed_mentions=allowed_mentions
         )
 
-    @commands.command()
+    @commands.command(cooldown_after_parsing=True)
     @commands.cooldown(1, 5, commands.BucketType.user)
     async def rawmsg(self, ctx: utils.CustomContext, message: discord.Message):
         """Gets the raw JSON data of a message, if you don't know what that is, this command probably isn't for you."""
@@ -411,7 +411,7 @@ How to remove your data.
 
         await ctx.author.send(message)
 
-    @commands.command()
+    @commands.command(cooldown_after_parsing=True)
     @commands.cooldown(5, 60, commands.BucketType.user)
     async def suggest(self, ctx: utils.CustomContext, *, suggestion: str):
         """Send a suggestion to the bot developer."""

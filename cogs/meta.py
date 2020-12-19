@@ -74,7 +74,7 @@ class Meta(utils.BaseCog, name="meta"):
 
         await ctx.send(f"{amount} {cur_from} -> {cur_to} = {conversion:,.2f}")
 
-    @commands.command(aliases=["g"])
+    @commands.command(aliases=["g"], cooldown_after_parsing=True)
     @commands.cooldown(5, 5, commands.BucketType.user)
     async def google(self, ctx: utils.CustomContext, *, query: str):
         """Searches google for a given query."""

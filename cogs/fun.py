@@ -201,7 +201,7 @@ class Fun(utils.BaseCog, name="fun"):
 
                 await ctx.send(embed=embed)
 
-    @commands.group(aliases=["cc"], invoke_without_command=True)
+    @commands.group(aliases=["cc"], invoke_without_command=True, cooldown_after_parsing=True)
     @commands.cooldown(1, 60, commands.BucketType.member)
     async def cookieclick(self, ctx: utils.CustomContext):
         """First person to click on the cookie wins!"""
