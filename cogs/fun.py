@@ -3,6 +3,8 @@ import datetime
 import time
 
 import KalDiscordUtils
+import async_cleverbot
+from decouple import config
 from discord.ext import commands, menus
 
 import utils
@@ -30,6 +32,26 @@ class CookiesLBPage(menus.ListPageSource):
         )
         return embed
 
+
+class EmotionConverter(commands.Converter):
+    async def convert(self, ctx: utils.CustomContext, argument: str):
+        available_emotions = {
+            "neutral": async_cleverbot.Emotion.neutral,
+            "sad": async_cleverbot.Emotion.sad,
+            "fear": async_cleverbot.Emotion.fear,
+            "joy": async_cleverbot.Emotion.joy,
+            "anger": async_cleverbot.Emotion.anger,
+            "normal": async_cleverbot.Emotion.normal,
+            "sadness": async_cleverbot.Emotion.sadness,
+            "scared": async_cleverbot.Emotion.scared,
+            "happy": async_cleverbot.Emotion.happy,
+            "angry": async_cleverbot.Emotion.angry,
+        }
+
+        if argument.lower() not in available_emotions.keys():
+            raise commands.BadArgument(f"Please pick one of these available emotions: {', '.join(available_emotions)}")
+
+        return available_emotions.get(argument)
 
 class Fun(utils.BaseCog, name="fun"):
     """Fun Commands"""
@@ -76,8 +98,6 @@ class Fun(utils.BaseCog, name="fun"):
             "red",
         ]
 
-        self.tetris_games = {}
-
     async def handle_cookies(self, user: discord.Member):
         """Handles added cookies to user"""
 
@@ -94,22 +114,34 @@ class Fun(utils.BaseCog, name="fun"):
                 user.id
             )
 
-    # @commands.command()
-    # @commands.is_owner()
-    # async def tetris(self, ctx):
-    #     """A game of tetris"""
-    #
-    #     width, height = (12, 22)
-    #
-    #     red, black, blue, green, purple, yellow, orange = (
-    #         "\N{LARGE RED SQUARE}",
-    #         "\N{BLACK LARGE SQUARE}",
-    #         "\N{LARGE BLUE SQUARE}",
-    #         "\N{LARGE GREEN SQUARE}",
-    #         "\N{LARGE PURPLE SQUARE}",
-    #         "\N{LARGE YELLOW SQUARE}",
-    #         "\N{LARGE ORANGE SQUARE}"
-    #     )
+    @commands.command(aliases=["cb"])
+    @commands.max_concurrency(1, commands.BucketType.channel)
+    async def chatbot(self, ctx: utils.CustomContext, emotion: EmotionConverter = None):
+        """Starts an interactive session with the chat bot.
+        Type `cancel` to quit talking to the bot."""
+
+        cb = async_cleverbot.Cleverbot(config("CHATBOT_API"))
+        not_ended = True
+
+        emotion = emotion or async_cleverbot.Emotion.neutral
+
+        await ctx.send("I have started a chat bot session for you, type away! Type `cancel` to end the session.")
+
+        while not_ended:
+            try:
+                message = await self.bot.wait_for("message",
+                                                  timeout=30.0,
+                                                  check=lambda m: m.author == ctx.author and m.channel == ctx.channel)
+            except asyncio.TimeoutError:
+                await cb.close()
+                return await ctx.send("You took a very long time to talk to the bot, so I ended the session.")
+            else:
+                async with ctx.typing():
+                    if message.content.lower() == "cancel":
+                        await cb.close()
+                        return await ctx.send("Good bye! \N{SLIGHTLY SMILING FACE}")
+                    response = await cb.ask(message.content, ctx.author.id, emotion=emotion)
+                    await message.reply(response.text)
 
     @commands.command()
     async def chimprate(self, ctx: utils.CustomContext, user: discord.Member = None):
