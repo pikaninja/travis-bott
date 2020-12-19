@@ -458,7 +458,7 @@ How to remove your data.
 
         await ctx.send(
             "Here's my source code, if you decide to use my code please star my repo :}:\n"
-            f"{config('GITHUB_LINK')}"
+            f"<{self.bot.github_url}>"
         )
 
 
