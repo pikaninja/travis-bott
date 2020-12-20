@@ -12,7 +12,7 @@ from datetime import timedelta
 import aiohttp
 
 from .customcontext import CustomContext
-from .utils import set_mute
+from .utils import set_mute, set_giveaway
 
 import config as cfg
 
@@ -36,8 +36,10 @@ class MyBot(commands.AutoShardedBot):
         super().__init__(get_prefix, *args, **kwargs)
 
         self.start_time = dt.now()
+
         self.config = {}
         self.verification_config = {}
+        self.giveaway_roles = {}
 
         self.loop = asyncio.get_event_loop()
         self.pool = self.loop.run_until_complete(
@@ -76,6 +78,7 @@ class MyBot(commands.AutoShardedBot):
         verification_config = await self.pool.fetch("SELECT message_id, role_id FROM guild_verification")
         guild_configs = await self.pool.fetch("SELECT * FROM guild_settings")
         blacklist = await self.pool.fetch("SELECT * FROM blacklist")
+        giveaways = await self.pool.fetch("SELECT * FROM giveaways")
 
         for entry in verification_config:
             self.verification_config[entry["message_id"]] = entry["role_id"]
@@ -91,6 +94,12 @@ class MyBot(commands.AutoShardedBot):
 
         for entry in blacklist:
             self.blacklist[entry["id"]] = entry["reason"]
+
+        for entry in giveaways:
+            if entry["role_id"]:
+                self.giveaway_roles[entry["message_id"]] = entry["role_id"]
+
+            await set_giveaway(self, entry["ends_at"], entry["channel_id"], entry["message_id"])
 
         mutes = await self.pool.fetch("SELECT * FROM guild_mutes")
         for mute in mutes:

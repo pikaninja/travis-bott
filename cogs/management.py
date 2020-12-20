@@ -1,4 +1,8 @@
+import random
+
 import KalDiscordUtils
+import dateparser
+import pytz
 from discord.ext import commands
 
 import discord
@@ -20,12 +24,98 @@ class Prefix(commands.Converter):
             return argument
 
 
+class GiveawayQuestions:
+
+    @staticmethod
+    async def what_channel(ctx: utils.CustomContext, name_or_id: str):
+        converter = commands.TextChannelConverter()
+
+        try:
+            channel = await converter.convert(ctx, name_or_id)
+        except commands.ChannelNotFound:
+            raise commands.BadArgument("I couldn't find that channel! You must restart the interactive giveaway.")
+
+        return channel, "channel"
+
+    @staticmethod
+    async def time_end(ctx: utils.CustomContext, time_end: str):
+        if not time_end.startswith("in "):
+            time_end = f"in {time_end}"
+
+        if not time_end.endswith(" UTC"):
+            time_end = f"{time_end} UTC"
+
+        parsed_time = dateparser.parse(time_end)
+
+        if parsed_time is None:
+            raise commands.BadArgument("You did not input a valid time.")
+
+        return parsed_time, "time_end"
+
+    @staticmethod
+    async def get_prize(ctx: utils.CustomContext, what_prize: str):
+
+        return what_prize, "prize"
+
+    @staticmethod
+    async def get_role_needed(ctx: utils.CustomContext, what_role: str):
+        if what_role.lower() == "none":
+            return "None", "role_needed"
+
+        converter = utils.RoleConverter()
+        role = await converter.convert(ctx, what_role)
+
+        return role, "role_needed"
+
+
 class Management(utils.BaseCog, name="management"):
     """Management Commands"""
 
     def __init__(self, bot, show_name):
         self.bot: utils.MyBot = bot
         self.show_name = show_name
+
+    @commands.Cog.listener()
+    async def on_giveaway_end(self, message: discord.PartialMessage):
+        message: discord.Message = await message.fetch()
+
+        reaction: discord.Reaction = message.reactions[0]
+        try:
+            users = [user async for user in reaction.users().filter(lambda u: not u.bot)]
+            random_user = random.choice(users)
+        except IndexError:
+            fmt = f"No one entered into [this]({message.jump_url}) giveaway :("
+            embed = discord.Embed()
+            embed.description = fmt
+
+            return await message.channel.send(embed=embed)
+
+        fmt = f"The winner of [this]({message.jump_url}) giveaway is: {random_user}"
+        embed = discord.Embed()
+        embed.description = fmt
+
+        await message.channel.send(embed=embed)
+
+    @commands.Cog.listener("on_raw_reaction_add")
+    async def check_if_has_role(self, payload: discord.RawReactionActionEvent):
+        if payload.member.bot:
+            return
+
+        if payload.event_type == "REACTION_REMOVE":
+            return
+
+        try:
+            role_id = self.bot.giveaway_roles[payload.message_id]
+        except KeyError:
+            return
+
+        if role_id not in payload.member._roles:
+            channel = await self.bot.fetch_channel(payload.channel_id)
+
+            message = await (discord.PartialMessage(channel=channel, id=payload.message_id)).fetch()
+            reaction = message.reactions[0]
+
+            await reaction.remove(payload.member)
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
@@ -59,6 +149,68 @@ class Management(utils.BaseCog, name="management"):
 
     #     instance = AutoReactMenu()
     #     await instance.paginate(ctx)
+
+    @commands.command(aliases=["sgw"])
+    async def startgiveaway(self, ctx: utils.CustomContext):
+        """Starts an interactive giveaway message."""
+
+        questions = {
+            "What channel would you like the giveaway to be in?": GiveawayQuestions.what_channel,
+            "When will the giveaway end?": GiveawayQuestions.time_end,
+            "What will the prize be?": GiveawayQuestions.get_prize,
+            "What role will be required? Type `none` if one isn't required.": GiveawayQuestions.get_role_needed,
+        }
+
+        what_is_needed = {
+            "channel": None,
+            "time_end": None,
+            "prize": None,
+            "role_needed": None
+        }
+
+        for question, func in questions.items():
+            await ctx.send(question)
+            try:
+                response = await self.bot.wait_for("message",
+                                                   timeout=30.0,
+                                                   check=lambda m: m.author == ctx.author and m.channel == ctx.channel)
+            except asyncio.TimeoutError:
+                return await ctx.send("You did not reply in time!")
+            else:
+                get_thing, what_thing = await func(ctx, response.content)
+                what_is_needed[what_thing] = get_thing
+
+        time_end = what_is_needed['time_end']
+        role_needed = what_is_needed['role_needed']
+        channel = what_is_needed['channel']
+
+        embed = KalDiscordUtils.Embed.default(ctx)
+        embed.title = f"Giveaway for {what_is_needed['prize']}"
+
+        fmt = f"React to \N{PARTY POPPER} to be entered into the giveaway."
+        fmt += f"\nRole needed: {role_needed.mention}" if role_needed != "None" else ''
+
+        embed.description = fmt
+
+        embed.set_footer(text="Ends at:", icon_url=ctx.guild.icon_url)
+        embed.timestamp = time_end
+
+        message = await channel.send(embed=embed)
+        await message.add_reaction("\N{PARTY POPPER}")
+
+        if role_needed == "None":
+            query = "INSERT INTO giveaways VALUES($1, $2, $3)"
+            values = message.id, ctx.channel.id, time_end.replace(tzinfo=None)
+        else:
+            query = "INSERT INTO giveaways VALUES($1, $2, $3, $4)"
+            values = message.id, ctx.channel.id, time_end.replace(tzinfo=None), role_needed.id
+
+        await self.bot.pool.execute(query, *values)
+
+        if role_needed != "None":
+            self.bot.giveaway_roles[message.id] = role_needed.id
+
+        await utils.set_giveaway(self.bot, time_end, ctx.channel.id, message.id)
 
     @commands.group(invoke_without_command=True)
     @commands.guild_only()

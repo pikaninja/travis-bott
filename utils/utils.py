@@ -8,6 +8,7 @@ import Levenshtein
 import humanize
 
 import discord
+import pytz
 from decouple import config
 from discord import Embed
 from discord.ext import commands
@@ -16,6 +17,23 @@ from .customcontext import CustomContext
 
 UserObject = typing.Union[discord.Member, discord.User]
 UserSnowflake = typing.Union[UserObject, discord.Object]
+
+
+class RoleConverter(commands.Converter):
+    async def convert(self, ctx, argument):
+        try:
+            role_converter = commands.RoleConverter()
+            role = await role_converter.convert(ctx, argument)
+        except commands.RoleNotFound:
+            role = discord.utils.find(
+                lambda r: r.name.lower().startswith(argument),
+                ctx.guild.roles
+            )
+
+        if role is None:
+            raise commands.RoleNotFound(f"Role \"{argument}\" not found.")
+
+        return role
 
 
 def has_voted():
@@ -42,6 +60,24 @@ class UserNotVoted(Exception):
 
 class MemberIsStaff(Exception):
     pass
+
+
+async def set_giveaway(bot, end_time, channel_id, message_id):
+    async def giveaway_task(bot, end_time, channel_id, message_id):
+        now = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)
+        seconds_until = (end_time - now).total_seconds()
+        await asyncio.sleep(seconds_until)
+
+        try:
+            await bot.pool.execute("DELETE FROM giveaways WHERE message_id = $1",
+                                   message_id)
+            channel = await bot.fetch_channel(channel_id)
+            message = discord.PartialMessage(channel=channel, id=message_id)
+            bot.dispatch("giveaway_end", message)
+        except:
+            pass
+
+    bot.loop.create_task(giveaway_task(bot, end_time, channel_id, message_id))
 
 
 async def set_mute(bot, guild_id, user_id, _time):
