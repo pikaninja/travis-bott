@@ -189,7 +189,10 @@ class Misc(utils.BaseCog, name="misc"):
     async def vote(self, ctx: utils.CustomContext):
         """Gives the link to vote for Travis"""
 
-        fmt = f"[Click here to vote for Travis Bott :)](https://top.gg/bot/706530005169209386)"
+        fmt = (
+            f"[Click here to vote for Travis Bott :)](https://top.gg/bot/706530005169209386)\n"
+            "If you genuinely enjoy the bot make sure to leave an honest review, thank you for using Travis Bott."
+        )
         embed = KalDiscordUtils.Embed.default(ctx)
         embed.description = fmt
 
