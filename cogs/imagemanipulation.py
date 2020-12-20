@@ -1,6 +1,7 @@
 import functools
 import random
 import re
+import textwrap
 import typing
 from io import BytesIO
 
@@ -11,7 +12,7 @@ from asyncdagpi import ImageFeatures
 from decouple import config
 from discord.ext import commands
 from polaroid.polaroid import Image
-from PIL import Image as PILImage
+from PIL import Image as PILImage, ImageDraw, ImageFont
 from wand.color import Color
 from wand.image import Image as WandImage
 
@@ -232,6 +233,28 @@ class Manipulation:
         buffer.seek(0)
         return buffer
 
+    @staticmethod
+    def alwayshasbeen(txt: str):
+        PILImage.MAX_IMAGE_PIXELS = (1200 * 1000)
+
+        with PILImage.open("./data/ahb.png") as img:
+            wrapped = textwrap.wrap(txt, 20)
+
+            set_back = sum(12 for char in txt) if len(wrapped) == 1 else sum(6 for char in txt)
+            up_amount = sum(35 for newline in wrapped)
+            coords = (700 - set_back, 300 - up_amount)
+
+            font = ImageFont.truetype("./data/JetBrainsMono-Regular.ttf", 48)
+            draw = ImageDraw.Draw(img)
+
+            draw.text(coords, "\n".join(wrapped), (255, 255, 255), font=font)
+
+            buffer = BytesIO()
+            img.save(buffer, "png")
+
+        buffer.seek(0)
+        return buffer
+
 
 class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
     """Image Manipulation"""
@@ -239,6 +262,32 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
     def __init__(self, bot, show_name):
         self.bot: utils.MyBot = bot
         self.show_name = show_name
+
+    @commands.command(aliases=["ahb"])
+    @commands.cooldown(1, 3, commands.BucketType.member)
+    async def alwayshasbeen(self, ctx: utils.CustomContext, *, text: commands.clean_content = None):
+        """Always has been meme."""
+
+        text = text or "I'm dumb and didn't put any text"
+
+        if len(text) > 50:
+            fmt = "<:smh:789142899290931241> it can't be any longer than 50 characters!"
+            return await ctx.send(fmt)
+
+        async with ctx.timeit:
+            async with ctx.typing():
+                func = functools.partial(Manipulation.alwayshasbeen, text)
+                buffer = await self.bot.loop.run_in_executor(None, func)
+
+                embed = KalDiscordUtils.Embed.default(ctx)
+
+                file = discord.File(fp=buffer, filename="ahb.png")
+                embed.set_image(url="attachment://ahb.png")
+
+                await ctx.send(
+                    file=file,
+                    embed=embed
+                )
 
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
@@ -325,6 +374,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
                 await ctx.send(file=file,
                                embed=embed)
 
+    @utils.has_voted()
     @commands.command(aliases=["ft"])
     @commands.cooldown(1, 3, commands.BucketType.member)
     async def facetime(self, ctx: utils.CustomContext, what: str):

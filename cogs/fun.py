@@ -114,6 +114,7 @@ class Fun(utils.BaseCog, name="fun"):
                 user.id
             )
 
+    @utils.has_voted()
     @commands.command(aliases=["cb"])
     @commands.max_concurrency(1, commands.BucketType.channel)
     async def chatbot(self, ctx: utils.CustomContext, emotion: EmotionConverter = None):
@@ -134,11 +135,13 @@ class Fun(utils.BaseCog, name="fun"):
                                                   check=lambda m: m.author == ctx.author and m.channel == ctx.channel)
             except asyncio.TimeoutError:
                 await cb.close()
+                not_ended = False
                 return await ctx.send("You took a very long time to talk to the bot, so I ended the session.")
             else:
                 async with ctx.typing():
                     if message.content.lower() == "cancel":
                         await cb.close()
+                        not_ended = False
                         return await ctx.send("Good bye! \N{SLIGHTLY SMILING FACE}")
                     response = await cb.ask(message.content, ctx.author.id, emotion=emotion)
                     await message.reply(response.text)

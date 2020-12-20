@@ -53,11 +53,14 @@ class MyBot(commands.AutoShardedBot):
         }
         self.maintenance_mode = False
         self.add_check(self.command_check)
+        self.add_check(self.blacklist_check)
 
         self.support_url = "https://discord.gg/tKZbxAF"
         self.invite_url = discord.utils.oauth_url(
             "706530005169209386", discord.Permissions(2080763126))
         self.github_url = "https://github.com/platform-discord/travis-bott"
+
+        self.blacklist = {}
 
     @property
     async def kal(self):
@@ -72,6 +75,7 @@ class MyBot(commands.AutoShardedBot):
         await self.wait_until_ready()
         verification_config = await self.pool.fetch("SELECT message_id, role_id FROM guild_verification")
         guild_configs = await self.pool.fetch("SELECT * FROM guild_settings")
+        blacklist = await self.pool.fetch("SELECT * FROM blacklist")
 
         for entry in verification_config:
             self.verification_config[entry["message_id"]] = entry["role_id"]
@@ -84,6 +88,9 @@ class MyBot(commands.AutoShardedBot):
             }
 
             self.config[entry["guild_id"]] = data
+
+        for entry in blacklist:
+            self.blacklist[entry["id"]] = entry["reason"]
 
         mutes = await self.pool.fetch("SELECT * FROM guild_mutes")
         for mute in mutes:
@@ -126,11 +133,10 @@ class MyBot(commands.AutoShardedBot):
         BOT_MENTION_REGEX = f"<@(!)?{self.user.id}>"
 
         if re.fullmatch(BOT_MENTION_REGEX, message.content):
-            prefix = self.config[message.guild.id]["guild_prefix"]
-            await message.channel.send(
-                "Hey I saw you mentioned me, in case you didn't know my prefix "
-                f"here is `{prefix}`."
-            )
+            ctx = await self.get_context(message)
+            cmd = self.get_command("prefix")
+
+            await cmd(ctx)
 
         await self.process_commands(message)
 
@@ -189,6 +195,14 @@ class MyBot(commands.AutoShardedBot):
             return True
 
         return not ctx.bot.maintenance_mode
+
+    async def blacklist_check(self, ctx: CustomContext):
+        try:
+            reason = ctx.bot.blacklist[ctx.author.id]
+        except KeyError:
+            return True
+
+        return False
 
     def get_uptime(self) -> timedelta:
         """Gets the uptime of the bot"""

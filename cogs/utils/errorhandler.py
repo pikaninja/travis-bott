@@ -94,8 +94,9 @@ class ErrorHandler(Cog):
         elif isinstance(error, commands.MaxConcurrencyReached):
             return await self.send_to_ctx_or_author(
                 ctx,
-                embed=Embed.error(ctx,
-                                  description=f"{error}"),
+                embed=Embed.error(
+                    description=f"{error}"
+                ),
                 delete_after=5.0,
             )
 
@@ -105,18 +106,23 @@ class ErrorHandler(Cog):
                 fmt = ("The developer has currently put the bot into maintenance mode, this could be due to a severe "
                        "bug or something that requires the bot to be contained. The bots functionality "
                        "outside of commands will still work though, sorry for the inconvenience.\n"
-                       f"For more updates you may join the support server: {config('SUPPORT_LINK')}")
+                       f"For more updates you may join the support server: {self.bot.support_url}")
                 embed = Embed.default(ctx,
                                       title="\N{WARNING SIGN} | Maintenance Mode",
                                       description=fmt)
                 return await ctx.send(embed=embed)
 
-            return await self.send_to_ctx_or_author(
-                ctx,
-                embed=Embed.error(
-                    description=f"{error}"
+            try:
+                reason = self.bot.blacklist[ctx.author.id]
+            except KeyError:
+                return await self.send_to_ctx_or_author(
+                    ctx,
+                    embed=Embed.error(
+                        description=f"{error}"
+                    )
                 )
-            )
+
+            return await ctx.send(f"You are blacklisted from using this bot globally for *{reason}*")
 
         # If the emoji couldn't be converted
         elif isinstance(error, commands.PartialEmojiConversionFailure):

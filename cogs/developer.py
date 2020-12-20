@@ -98,6 +98,21 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
     async def dev(self, ctx: utils.CustomContext):
         pass
 
+    @dev.command(name="blacklist")
+    async def dev_blacklist(self, ctx: utils.CustomContext, user: discord.Member, *, reason: str = "None"):
+        """Blacklists a user from using the bot globally."""
+
+        if user.id in self.bot.blacklist.keys():
+            return await ctx.send("That user is already blacklisted.")
+
+        await self.bot.pool.execute("INSERT INTO blacklist VALUES($1, $2)",
+                                    user.id, reason)
+        self.bot.blacklist[user.id] = reason
+
+        await ctx.send(
+            "\N{OK HAND SIGN} Successfully blacklisted that user."
+        )
+
     @dev.command(name="test")
     async def dev_test(self, ctx: utils.CustomContext):
         """Testing PIL"""

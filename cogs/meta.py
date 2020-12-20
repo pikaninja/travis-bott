@@ -51,6 +51,25 @@ async def google_search(query: str):
             yield results
 
 
+class AllConverter(commands.Converter):
+    async def convert(self, ctx: utils.CustomContext, argument: str):
+
+        converters = [
+            commands.TextChannelConverter(),
+            commands.VoiceChannelConverter(),
+            commands.MemberConverter(),
+            commands.UserConverter()
+        ]
+
+        for converter in converters:
+            try:
+                convert = await converter.convert(ctx, argument)
+            except:
+                continue
+
+            return convert.id
+
+
 class Meta(utils.BaseCog, name="meta"):
     """General and utility commands"""
 
@@ -58,6 +77,15 @@ class Meta(utils.BaseCog, name="meta"):
         self.bot: utils.MyBot = bot
         self.show_name = show_name
         self.weather_api_key = config("WEATHER_API_KEY")
+
+    @commands.command(name="id", aliases=["idof"])
+    async def _id(self, ctx: utils.CustomContext, thing: AllConverter):
+        """Gets the ID of a given user, text channel or voice channel."""
+
+        try:
+            await ctx.send(thing)
+        except discord.HTTPException:
+            return await ctx.send("I couldn't find the ID to that.")
 
     @commands.command()
     async def convert(self, ctx: utils.CustomContext, amount: float, cur_from: str, cur_to: str):
