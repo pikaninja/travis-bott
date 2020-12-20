@@ -5,22 +5,17 @@ import contextlib
 from contextlib import asynccontextmanager
 
 import KalDiscordUtils
-import dbl
 from decouple import config
 from discord.ext import commands, menus
-from discord.ext.commands.errors import BadArgument
 
 import utils
 
 from currency_converter import CurrencyConverter
-import aiogoogletrans as translator
 
 import psutil
 import discord
 import typing
-import random
 import numexpr
-import re
 import humanize
 
 status_icons = {

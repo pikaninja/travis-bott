@@ -4,7 +4,6 @@ import glob
 import io
 import os
 import json
-import random
 import textwrap
 import traceback
 import re
@@ -12,12 +11,11 @@ import typing
 
 import KalDiscordUtils
 from jishaku.codeblocks import codeblock_converter
-from polaroid import Image
 from PIL import Image as PILImage, ImageDraw, ImageFont
 import pytesseract
 
 import discord
-from discord.ext import tasks, menus, commands
+from discord.ext import menus, commands
 from discord.ext.commands import (
     Cog, is_owner, BadArgument, group, Converter
 )

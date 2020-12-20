@@ -9,7 +9,6 @@ from decouple import config
 import discord
 from discord.ext import commands, menus
 from jishaku.codeblocks import codeblock_converter
-from polaroid.polaroid import Image
 from selenium import webdriver
 
 import utils
@@ -17,7 +16,6 @@ import KalDiscordUtils
 
 from utils.paginator import KalPages
 
-from jishaku import codeblocks
 
 """
 This Jishaku stuff was gracefully stolen from Stella

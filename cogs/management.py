@@ -2,7 +2,6 @@ import random
 
 import KalDiscordUtils
 import dateparser
-import pytz
 from discord.ext import commands
 
 import discord
@@ -33,7 +32,8 @@ class GiveawayQuestions:
         try:
             channel = await converter.convert(ctx, name_or_id)
         except commands.ChannelNotFound:
-            raise commands.BadArgument("I couldn't find that channel! You must restart the interactive giveaway.")
+            raise commands.BadArgument(
+                "I couldn't find that channel! You must restart the interactive giveaway.")
 
         return channel, "channel"
 
@@ -207,7 +207,8 @@ class Management(utils.BaseCog, name="management"):
             values = message.id, ctx.channel.id, time_end.replace(tzinfo=None)
         else:
             query = "INSERT INTO giveaways VALUES($1, $2, $3, $4)"
-            values = message.id, ctx.channel.id, time_end.replace(tzinfo=None), role_needed.id
+            values = message.id, ctx.channel.id, time_end.replace(
+                tzinfo=None), role_needed.id
 
         await self.bot.pool.execute(query, *values)
 

@@ -8,7 +8,6 @@ from decouple import config
 from discord.ext import commands, menus
 
 import utils
-from utils import Embed
 
 import asyncio
 import discord
@@ -49,9 +48,11 @@ class EmotionConverter(commands.Converter):
         }
 
         if argument.lower() not in available_emotions.keys():
-            raise commands.BadArgument(f"Please pick one of these available emotions: {', '.join(available_emotions)}")
+            raise commands.BadArgument(
+                f"Please pick one of these available emotions: {', '.join(available_emotions)}")
 
         return available_emotions.get(argument)
+
 
 class Fun(utils.BaseCog, name="fun"):
     """Fun Commands"""

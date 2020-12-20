@@ -1,9 +1,3 @@
-import asyncio
-import random
-
-import KalDiscordUtils
-import dateparser
-import discord
 from discord.ext import commands
 
 import utils

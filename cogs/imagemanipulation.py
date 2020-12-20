@@ -240,7 +240,8 @@ class Manipulation:
         with PILImage.open("./data/ahb.png") as img:
             wrapped = textwrap.wrap(txt, 20)
 
-            set_back = sum(12 for char in txt) if len(wrapped) == 1 else sum(6 for char in txt)
+            set_back = sum(12 for char in txt) if len(
+                wrapped) == 1 else sum(6 for char in txt)
             up_amount = sum(35 for newline in wrapped)
             coords = (700 - set_back, 300 - up_amount)
 

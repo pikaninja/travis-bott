@@ -1,6 +1,4 @@
-import typing
 import discord
-from discord import embeds
 from discord.ext import commands, menus
 from utils import utils
 from utils.embed import Embed

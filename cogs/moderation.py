@@ -1,5 +1,5 @@
 import KalDiscordUtils
-from discord.ext import commands, tasks, menus
+from discord.ext import commands, menus
 
 import utils
 

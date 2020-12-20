@@ -1,6 +1,5 @@
 import discord
 from discord.ext.commands import Cog, command
-from discord.utils import get
 
 
 class AntiNuke(Cog, command_attrs=dict(hidden=True)):

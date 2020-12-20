@@ -1,5 +1,5 @@
 import discord
-from discord.ext.commands import Cog, command, cooldown, BucketType
+from discord.ext.commands import Cog, command
 from discord.utils import get
 
 

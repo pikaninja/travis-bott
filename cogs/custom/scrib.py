@@ -1,7 +1,5 @@
 import discord
 from discord.ext import commands
-import json
-import sqlite3
 
 s_crib = 692603241665527838
 chnl_id = 693201108893433976

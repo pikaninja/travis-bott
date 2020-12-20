@@ -1,6 +1,5 @@
 import discord
 import prettify_exceptions
-from decouple import config
 from discord.ext import commands
 from discord.ext.commands import Cog
 
@@ -219,7 +218,6 @@ class ErrorHandler(Cog):
             ''.join(prettify_exceptions.DefaultFormatter().format_exception(
                 type(error), error, error.__traceback__))
         )
-
 
         if len(tb) > 500:
             await ctx.send("The error message is too big so I sent it just to the developer.")
