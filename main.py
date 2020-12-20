@@ -55,6 +55,7 @@ bot.exts = [
     "cogs.fun",
     "cogs.imagemanipulation",
     "cogs.misc",
+    "cogs.beta",
 ]
 
 if datetime.datetime.utcnow().month == 11 or datetime.datetime.utcnow().month == 12:
