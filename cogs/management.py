@@ -90,11 +90,14 @@ class Management(utils.BaseCog, name="management"):
 
             return await message.channel.send(embed=embed)
 
-        fmt = f"The winner of [this]({message.jump_url}) giveaway is: {random_user}"
+        fmt = f"The winner of [this]({message.jump_url}) giveaway is: {random_user.mention}"
         embed = discord.Embed()
         embed.description = fmt
 
-        await message.channel.send(embed=embed)
+        await message.channel.send(
+            f"Congratulations to {random_user.mention}",
+            embed=embed
+        )
 
     @commands.Cog.listener("on_raw_reaction_add")
     async def check_if_has_role(self, payload: discord.RawReactionActionEvent):
@@ -151,6 +154,7 @@ class Management(utils.BaseCog, name="management"):
     #     await instance.paginate(ctx)
 
     @commands.command(aliases=["sgw"])
+    @commands.has_permissions(manage_guild=True)
     async def startgiveaway(self, ctx: utils.CustomContext):
         """Starts an interactive giveaway message."""
 
