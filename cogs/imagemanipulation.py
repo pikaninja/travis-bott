@@ -375,9 +375,9 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
                 await ctx.send(file=file,
                                embed=embed)
 
-    @utils.has_voted()
     @commands.command(aliases=["ft"])
     @commands.cooldown(1, 3, commands.BucketType.member)
+    @utils.has_voted()
     async def facetime(self, ctx: utils.CustomContext, what: str):
         """Facetime with another user or even an image if you're really that lonely, I guess."""
 

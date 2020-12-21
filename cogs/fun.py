@@ -115,9 +115,9 @@ class Fun(utils.BaseCog, name="fun"):
                 user.id
             )
 
-    @utils.has_voted()
     @commands.command(aliases=["cb"])
     @commands.max_concurrency(1, commands.BucketType.channel)
+    @utils.has_voted()
     async def chatbot(self, ctx: utils.CustomContext, emotion: EmotionConverter = None):
         """Starts an interactive session with the chat bot.
         Type `cancel` to quit talking to the bot."""

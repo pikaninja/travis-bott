@@ -13,6 +13,7 @@ from decouple import config
 from discord import Embed
 from discord.ext import commands
 
+import utils
 from .customcontext import CustomContext
 
 UserObject = typing.Union[discord.Member, discord.User]
@@ -46,19 +47,18 @@ def has_voted():
             has_user_voted = bool(data["voted"])
 
         if not has_user_voted:
-            raise UserNotVoted()
+            raise UserNotVoted("You must vote for the bot via the vote command to use this command.")
 
-        return has_user_voted
+        return True
 
     return commands.check(predicate=predicate)
 
 
-class UserNotVoted(Exception):
-    def __init__(self, msg="You must vote for the bot via the vote command to use this command.", *args, **kwargs):
-        super().__init__(msg, *args, **kwargs)
+class UserNotVoted(commands.CheckFailure):
+    pass
 
 
-class MemberIsStaff(Exception):
+class MemberIsStaff(commands.CheckFailure):
     pass
 
 

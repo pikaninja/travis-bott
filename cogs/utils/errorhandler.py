@@ -3,7 +3,7 @@ import prettify_exceptions
 from discord.ext import commands
 from discord.ext.commands import Cog
 
-from utils import utils
+from utils import utils, UserNotVoted
 from utils.custombot import MyBot
 from utils.embed import Embed
 
@@ -204,7 +204,7 @@ class ErrorHandler(Cog):
                 ),
             )
 
-            # Custom exception
+        # Custom exception
         elif isinstance(error, utils.UserNotVoted):
             return await self.send_to_ctx_or_author(
                 ctx,
