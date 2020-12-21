@@ -99,8 +99,6 @@ class GroupHelp(menus.ListPageSource):
         self.ctx = ctx
         self.group = group
         self.prefix = prefix
-        self.title = f"{self.group.qualified_name} Commands"
-        self.description = self.group.description
 
     async def format_page(self, menu, cmds):
         embed = Embed.default(self.ctx)

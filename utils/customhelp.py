@@ -70,7 +70,7 @@ class CustomHelp(commands.HelpCommand):
 
     async def send_group_help(self, group: commands.Group):
         if not hasattr(group.cog, "show_name"):
-            pass
+            return
 
         subcommands = group.commands
         if len(subcommands) == 0:

@@ -75,6 +75,29 @@ class Management(utils.BaseCog, name="management"):
         self.bot: utils.MyBot = bot
         self.show_name = show_name
 
+    # noinspection PyUnresolvedReferences
+    @commands.Cog.listener("on_guild_channel_create")
+    async def add_mute_new_channel(self, channel: discord.abc.GuildChannel):
+        """Updated the new channels mute perms once created if the guild has a mute role set."""
+
+        try:
+            mute_role_id = self.bot.config[channel.guild.id]["mute_role_id"]
+        except KeyError:
+            return
+
+        role = channel.guild.get_role(mute_role_id)
+        role_overwrites = channel.overwrites_for(role)
+        role_overwrites.update(send_messages=False)
+
+        try:
+            await channel.set_permissions(
+                target=role,
+                overwrite=role_overwrites,
+                reason="Disable mute role permissions to talk in this channel."
+            )
+        except:
+            pass
+
     @commands.Cog.listener()
     async def on_giveaway_end(self, message: discord.PartialMessage):
         message: discord.Message = await message.fetch()
@@ -226,7 +249,7 @@ class Management(utils.BaseCog, name="management"):
 
         await ctx.send_help(ctx.command)
 
-    @commands.command()
+    @commands.command(aliases=["cfg"])
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
     async def config(self, ctx: utils.CustomContext):
@@ -289,52 +312,57 @@ class Management(utils.BaseCog, name="management"):
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
     @commands.bot_has_permissions(manage_channels=True)
-    async def muterole(self, ctx: utils.CustomContext, role: str = None):
+    async def muterole(self, ctx: utils.CustomContext, role: utils.RoleConverter = None):
         """Sets the mute role for the server."""
 
         if role is None:
-            current_mute_role = await self.bot.pool.fetchval(
-                "SELECT mute_role_id FROM guild_settings WHERE guild_id = $1",
-                ctx.guild.id,
-            )
-            if current_mute_role is None:
-                return await ctx.send_help(ctx.command)
-            role = ctx.guild.get_role(current_mute_role)
-            fmt = f"Your current mute role is: {role.name}, ID: {role.id}.\nYou can set a new mute role using {ctx.prefix}muterole <Role>"
+            try:
+                mute_role_id = self.bot.config[ctx.guild.id]["mute_role_id"]
+            except KeyError:
+                fmt = (
+                    f"There is no mute role set for this server... set one using "
+                    "`{ctx.prefix}muterole [Role Name Here]`"
+                )
+                return await ctx.send(fmt)
+
+            role = ctx.guild.get_role(mute_role_id)
+            fmt = f"Your current mute role is: {role} (ID: {role.id})"
             return await ctx.send(fmt)
 
         await ctx.send(
-            "This will deny this role from being able to speak in all channels, are you sure you want this to be your mute role?"
+            f"You chose `{role}` to be set as your mute role, by typing `yes` this will make it so that the role "
+            "can *not* type in any channel and this action can not be reversed. Please type `yes` or `no`"
         )
 
-        def check(m):
-            return m.author == ctx.author and m.channel == ctx.channel
-
         try:
-            user_input = await ctx.bot.wait_for("message", timeout=10.0, check=check)
+            message = await self.bot.wait_for(
+                "message",
+                timeout=30.0,
+                check=lambda m: m.author == ctx.author and m.channel == ctx.channel
+            )
         except asyncio.TimeoutError:
-            return await ctx.send(f"You ran out of time to answer {ctx.author.mention}")
+            return await ctx.send("You did not reply in time.")
         else:
-            user_reply = user_input.content.lower()
-            if not user_reply == "yes":
-                return await ctx.send("Ok backing out.")
+            content = message.content.lower()
+            if content == "yes":
+                await self.bot.pool.execute("UPDATE guild_settings SET mute_role_id = $1 WHERE guild_id = $2",
+                                            role.id, ctx.guild.id)
+                self.bot.config[ctx.guild.id]["mute_role_id"] = role.id
 
-            role = await utils.find_roles(ctx.guild, role)
-            if not role:
-                return await ctx.send("I could not find that role.")
-            await ctx.send("Ok this may take a few.")
-            count = 0
-            for c in ctx.guild.text_channels:
-                await c.set_permissions(role, send_messages=False)
-                count += 1
-            await self.bot.pool.execute(
-                "UPDATE guild_settings SET mute_role_id = $1 WHERE guild_id = $2",
-                role.id,
-                ctx.guild.id,
-            )
-            await ctx.send(
-                f"Mute role has been set up and permissions have been changed in {count} channels."
-            )
+                await ctx.send("Alright, this may take a while.")
+
+                for channel in ctx.guild.channels:
+                    perms = channel.overwrites_for(role)
+                    perms.update(send_messages=False)
+                    await channel.set_permissions(
+                        target=role,
+                        overwrite=perms,
+                        reason=f"Mute role set by: {ctx.author}"
+                    )
+
+                return await ctx.reply("Finished updating all channel permissions for that role.")
+            else:
+                return await ctx.send("Alright, backing out.")
 
     @commands.group(invoke_without_command=True)
     @commands.guild_only()
