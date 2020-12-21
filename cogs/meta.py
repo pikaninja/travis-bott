@@ -75,7 +75,7 @@ class Meta(utils.BaseCog, name="meta"):
         self.weather_api_key = config("WEATHER_API_KEY")
 
     @commands.command(name="id", aliases=["idof"])
-    async def _id(self, ctx: utils.CustomContext, thing: AllConverter):
+    async def _id(self, ctx: utils.CustomContext, *, thing: AllConverter):
         """Gets the ID of a given user, role, text channel or voice channel."""
 
         if thing is None:
