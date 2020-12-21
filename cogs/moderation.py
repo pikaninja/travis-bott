@@ -48,47 +48,49 @@ class TimeConverter(commands.Converter):
         return _time
 
 
-def can_execute_action(ctx, user, target):
-    return user.id == ctx.bot.owner_id or \
-        user == ctx.guild.owner or \
-        user.top_role > target.top_role
+class MemberOrID(commands.Converter):
+    """Allows me to do some cool stuff with banning id's and such"""
 
-
-class MemberNotFound(Exception):
-    pass
-
-
-async def resolve_member(guild, member_id):
-    member = guild.get_member(member_id)
-    if member is None:
-        if guild.chunked:
-            raise MemberNotFound()
+    async def convert(self, ctx: utils.CustomContext, argument: str):
         try:
-            member = await guild.fetch_member(member_id)
-        except discord.NotFound:
-            raise MemberNotFound() from None
-    return member
+            member = await commands.MemberConverter().convert(ctx, argument)
+        except commands.MemberNotFound:
+            member = await commands.UserConverter().convert(ctx, argument)
+
+            if member is None:
+                raise commands.BadArgument("I couldn't find that user at all.")
+
+        if isinstance(member, discord.Member):
+            perms = ctx.channel.permissions_for(member)
+            if perms.manage_messages:
+                raise commands.BadArgument("That user is a staff member.")
+
+        return member
 
 
-class MemberID(commands.Converter):
-    async def convert(self, ctx, argument):
+class BannedUser(commands.Converter):
+    """Gets a given banned user."""
+
+    async def convert(self, ctx: utils.CustomContext, argument: str):
         try:
-            m = await commands.MemberConverter().convert(ctx, argument)
-        except commands.BadArgument:
+            user = await commands.UserConverter().convert(ctx, argument)
             try:
-                member_id = int(argument, base=10)
-                m = await resolve_member(ctx.guild, member_id)
-            except ValueError:
-                raise commands.BadArgument(
-                    f"{argument} is not a valid member or member ID.") from None
-            except MemberNotFound:
-                # hackban case
-                return type('_Hackban', (), {'id': member_id, '__str__': lambda s: f'Member ID {s.id}'})()
+                await ctx.guild.fetch_ban(user)
+            except discord.Forbidden:
+                raise commands.BadArgument("I can't view that ban, this is probably due to my permissions.")
+            except discord.NotFound:
+                raise commands.BadArgument("That user is not banned.")
+            except discord.HTTPException:
+                raise commands.BadArgument("Discord messed up somewhere and I couldn't retrieve that ban.")
 
-        if not can_execute_action(ctx, ctx.author, m):
-            raise commands.BadArgument(
-                'You cannot do this action on this user due to role hierarchy.')
-        return m
+            return user
+        except commands.UserNotFound:
+            bans = await ctx.guild.bans()
+            for ban in bans:
+                if str(ban[1]).startswith(argument):
+                    return ban[1]
+
+        raise commands.BadArgument("Couldn't find that ban, sorry.")
 
 
 class Role(commands.Converter):
@@ -183,9 +185,9 @@ class Moderation(utils.BaseCog, name="moderation"):
         embed = KalDiscordUtils.Embed.default(
             ctx,
             title=f"Super Log",
-            message=f"{moderator.mention} ({moderator}) to {user_affected.mention} ({user_affected})\n"
-                    f"Command: {action_type}\n"
-                    f"Reason: {reason or 'None'}",
+            description=f"{moderator} to {user_affected}\n"
+                        f"Command: {action_type}\n"
+                        f"Reason: {reason or 'None'}",
         )
 
         embed.set_author(name=moderator.name, icon_url=moderator.avatar_url)
@@ -467,31 +469,23 @@ class Moderation(utils.BaseCog, name="moderation"):
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
-    async def ban(self, ctx: utils.CustomContext, user: MemberID, *, reason: str = "No reason provided."):
+    async def ban(self, ctx: utils.CustomContext, user: MemberOrID, *, reason: str = "No reason provided."):
         """Bans someone for a given reason.
         Permissions needed: `Ban Members`"""
 
-        if isinstance(user, discord.Member):
-            staff_check = await utils.is_target_staff(ctx, user)
-            if staff_check:
-                return await ctx.send("You can't ban them!")
-
-        try:
-            await ctx.guild.ban(user, reason=f"{reason} | Responsible User: {ctx.author}")
-        except discord.NotFound:
-            raise commands.BadArgument("Couldn't find that user.")
+        await ctx.guild.ban(user, reason=f"{reason} | Responsible User: {ctx.author}")
         await ctx.thumbsup()
         ctx.bot.dispatch("mod_cmd", ctx, "ban", ctx.author, user, reason)
 
     @commands.command(aliases=["unbarn", "unbanish"])
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
-    async def unban(self, ctx: utils.CustomContext, user: str):
+    async def unban(self, ctx: utils.CustomContext, user: BannedUser):
         """Unbans a given user.
         Permissions needed: `Ban Members`"""
 
         await ctx.guild.unban(
-            await utils.get_user_banned(ctx.guild, user),
+            user,
             reason=f"Responsible User: {ctx.author}",
         )
         await ctx.thumbsup()
@@ -502,13 +496,10 @@ class Moderation(utils.BaseCog, name="moderation"):
     @commands.has_permissions(kick_members=True)
     @commands.bot_has_permissions(kick_members=True)
     async def kick(
-        self, ctx: utils.CustomContext, user: discord.Member, *, reason: str = "No reason provided."
+        self, ctx: utils.CustomContext, user: NotStaffMember, *, reason: str = "No reason provided."
     ):
         """Kicks a user for a given reason.
         Permissions needed: `Kick Members`"""
-
-        if await utils.is_target_staff(ctx, user):
-            return await ctx.send("😕 That user is a staff member...")
 
         await user.kick(reason=f"{reason} | Responsible User: {ctx.author}")
         await ctx.thumbsup()
