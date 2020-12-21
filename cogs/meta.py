@@ -53,7 +53,8 @@ class AllConverter(commands.Converter):
             commands.TextChannelConverter(),
             commands.VoiceChannelConverter(),
             commands.MemberConverter(),
-            commands.UserConverter()
+            commands.UserConverter(),
+            utils.RoleConverter(),
         ]
 
         for converter in converters:
@@ -75,12 +76,13 @@ class Meta(utils.BaseCog, name="meta"):
 
     @commands.command(name="id", aliases=["idof"])
     async def _id(self, ctx: utils.CustomContext, thing: AllConverter):
-        """Gets the ID of a given user, text channel or voice channel."""
+        """Gets the ID of a given user, role, text channel or voice channel."""
 
-        try:
-            await ctx.send(thing)
-        except discord.HTTPException:
-            return await ctx.send("I couldn't find the ID to that.")
+        if thing is None:
+            fmt = f"I couldn't find the ID of that"
+            return await ctx.send(fmt)
+
+        await ctx.send(f"The ID of that is: {thing}")
 
     @commands.command()
     async def convert(self, ctx: utils.CustomContext, amount: float, cur_from: str, cur_to: str):
