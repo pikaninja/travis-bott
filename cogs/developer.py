@@ -290,27 +290,31 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             await ctx.send("**`SUCCESS`**")
 
     @dev.command(name="reload", aliases=["r"])
-    async def dev_reload(self, ctx: utils.CustomContext, cog: str = None):
-        # Reloads a given Cog
+    async def dev_reload(self, ctx: utils.CustomContext):
+        """Reloads all cogs"""
 
-        if cog is None:
-            for ext in self.bot.exts:
-                try:
-                    self.bot.reload_extension(ext)
-                except Exception as e:
-                    await ctx.send(f"**`ERROR:`** {type(e).__name__} - {e}")
-            embed = KalDiscordUtils.Embed.default(
-                ctx,
-                description=f"Successfully reloaded:\n{', '.join([f'`{ext[5:]}`' for ext in self.bot.exts])}"
-            )
-            await ctx.send(embed=embed)
-        else:
+        successful = []
+        unsuccessful = {}
+        exts = [x for x in self.bot.extensions.keys()]
+        current_cogs = [[exts[index], cog] for index, cog in enumerate(self.bot.cogs.values())]
+        for cog_name, cog in current_cogs:
             try:
-                self.bot.reload_extension(cog)
+                self.bot.reload_extension(cog_name)
+                if hasattr(cog, "show_name"):
+                    successful.append(f"`{cog_name[5:]}`")
             except Exception as e:
-                await ctx.send(f"**`ERROR:`** {type(e).__name__} - {e}")
-            else:
-                await ctx.send("**`SUCCESS`**")
+                unsuccessful[cog_name] = f"{type(e).__name__} - {e}"
+
+        if unsuccessful:
+            fmt = ["I caught some errors:"]
+            for key, value in unsuccessful.items():
+                error = f"{key} - {value}"
+                fmt.append(error)
+
+            await ctx.send("\n".join(fmt))
+
+        await ctx.send(f"Successfully reloaded:\n{', '.join(successful)}")
+
 
     @dev.command(name="load")
     async def dev_load(self, ctx: utils.CustomContext, cog: str):
