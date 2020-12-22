@@ -176,7 +176,7 @@ class Management(utils.BaseCog, name="management"):
     #     instance = AutoReactMenu()
     #     await instance.paginate(ctx)
 
-    @commands.command(aliases=["sgw"])
+    @commands.command(aliases=["sgw"], enabled=False)
     @commands.has_permissions(manage_guild=True)
     async def startgiveaway(self, ctx: utils.CustomContext):
         """Starts an interactive giveaway message."""
