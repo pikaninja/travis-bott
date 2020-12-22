@@ -326,17 +326,27 @@ class Misc(utils.BaseCog, name="misc"):
                 main_embed.url = "https://discordstatus.com/"
                 embeds.append(main_embed)
 
-            comp_list = []
+            # Thank you to Cyrus#8315 for this.
+            def format_comp(mapping):
+                msg = "```py\n"
+                longest = None
 
-            for _set in components:
-                comp_list.append(
-                    f"Name: {_set['name']} -> **{_set['status'].title()}**"
-                )
+                for key in mapping:
+                    length = len(key["name"])
+
+                    if longest is None or length > longest:
+                        longest = length
+
+                for key in mapping:
+                    msg += key["name"].rjust(longest, " ") + " → " + key["status"].title() + "\n"
+
+                msg += "```"
+                return msg
 
             components_embed = KalDiscordUtils.Embed.default(
                 ctx,
                 title="Components",
-                description="\n".join(comp_list)
+                description=format_comp(components)
             )
             embeds.append(components_embed)
 
@@ -348,19 +358,28 @@ class Misc(utils.BaseCog, name="misc"):
     async def ping(self, ctx: utils.CustomContext):
         """Get the bots ping."""
 
+        response_start = time.perf_counter()
+        message = await ctx.send("Pinging...")
+        response_end = time.perf_counter()
+        response_fmt = f"{(response_end - response_start) * 1000:,.2f}"
+
+        db_start = time.perf_counter()
+        call = await ctx.db.fetch("SELECT 1;")
+        db_end = time.perf_counter()
+        db_fmt = f"{(db_end - db_start) * 1000:,.2f}"
+
+        hb_fmt = f"{self.bot.latency * 1000:,.2f}"
+
+        pings = [
+            ["Heartbeat Latency", f"{hb_fmt} ms"],
+            ["Response Latency", f"{response_fmt} ms"],
+            ["Database Latency", f"{db_fmt} ms"]
+        ]
+
         embed = KalDiscordUtils.Embed.default(ctx)
-        embed.add_field(
-            name="Heartbeat Latency",
-            value=f"{(ctx.bot.latency * 1000):,.2f} ms"
-        )
-        start = time.perf_counter()
-        msg = await ctx.send(embed=embed)
-        end = time.perf_counter()
-        embed.add_field(
-            name="Response Latency",
-            value=f"{((end - start) * 1000):,.2f} ms"
-        )
-        await msg.edit(embed=embed)
+        [embed.add_field(name=k, value=v) for k, v in pings]
+
+        await message.edit(embed=embed)
 
     @commands.command()
     async def password(self, ctx: utils.CustomContext, length: typing.Optional[int] = 8):
@@ -391,26 +410,6 @@ class Misc(utils.BaseCog, name="misc"):
         await ctx.send(
             f"Hello {ctx.author.mention} I am a bot created by kal#1806 made for general purpose, utilities and moderation."
         )
-
-    @commands.command()
-    async def privacy(self, ctx: utils.CustomContext):
-        """Sends the bots privacy policy via dms."""
-
-        message = """What information is stored?
-- Server ID's, Channel ID's, User ID's will be saved for the use of features such as Mutes, verification etc.
-
-Why this information is stored and how we use it.
-- This information is stored to keep the bot with the most up to date info that allows it to keep running it's correct service.
-- The mute data is stored temporarily and is used to check when the mute is supposed to end, or if you're supposed to be muted if you join or leave.
-
-Who gets this data?
-- The bot developer(s).
-- If you're muted then your mute data will be formed into something readable by the `Moderations` command and this can be seen by any server staff member.
-
-How to remove your data.
-- If you'd like to get your servers data out of the bot then please either use the correct commands if given an option or contact the bot developer (kal#1806) for more information."""
-
-        await ctx.author.send(message)
 
     @commands.command(cooldown_after_parsing=True)
     @commands.cooldown(5, 60, commands.BucketType.user)
