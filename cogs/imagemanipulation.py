@@ -263,6 +263,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
     def __init__(self, bot, show_name):
         self.bot: utils.MyBot = bot
         self.show_name = show_name
+        self.ahb_cache = {}
 
     @commands.command(aliases=["ahb"])
     @commands.cooldown(1, 3, commands.BucketType.member)
@@ -271,24 +272,41 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
 
         text = text or "I'm dumb and didn't put any text"
 
-        if len(text) > 50:
-            fmt = "<:smh:789142899290931241> it can't be any longer than 50 characters!"
-            return await ctx.send(fmt)
-
         async with ctx.timeit:
             async with ctx.typing():
-                func = functools.partial(Manipulation.alwayshasbeen, text)
-                buffer = await self.bot.loop.run_in_executor(None, func)
 
-                embed = KalDiscordUtils.Embed.default(ctx)
+                try:
+                    cached = self.ahb_cache[text]
+                    cached.seek(0)
 
-                file = discord.File(fp=buffer, filename="ahb.png")
-                embed.set_image(url="attachment://ahb.png")
+                    embed = KalDiscordUtils.Embed.default(ctx)
 
-                await ctx.send(
-                    file=file,
-                    embed=embed
-                )
+                    file = discord.File(fp=cached, filename="ahb.png")
+                    embed.set_image(url="attachment://ahb.png")
+
+                    await ctx.send(
+                        file=file,
+                        embed=embed
+                    )
+                except KeyError:
+                    if len(text) > 50:
+                        fmt = "<:smh:789142899290931241> it can't be any longer than 50 characters!"
+                        return await ctx.send(fmt)
+
+                    func = functools.partial(Manipulation.alwayshasbeen, text)
+                    buffer = await self.bot.loop.run_in_executor(None, func)
+
+                    self.ahb_cache[text] = buffer
+
+                    embed = KalDiscordUtils.Embed.default(ctx)
+
+                    file = discord.File(fp=buffer, filename="ahb.png")
+                    embed.set_image(url="attachment://ahb.png")
+
+                    await ctx.send(
+                        file=file,
+                        embed=embed
+                    )
 
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
