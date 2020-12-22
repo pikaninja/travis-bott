@@ -176,7 +176,7 @@ class Management(utils.BaseCog, name="management"):
     #     instance = AutoReactMenu()
     #     await instance.paginate(ctx)
 
-    @commands.command(aliases=["sgw"], enabled=False)
+    @commands.command(aliases=["sgw"])
     @commands.has_permissions(manage_guild=True)
     async def startgiveaway(self, ctx: utils.CustomContext):
         """Starts an interactive giveaway message."""
@@ -238,7 +238,7 @@ class Management(utils.BaseCog, name="management"):
         if role_needed != "None":
             self.bot.giveaway_roles[message.id] = role_needed.id
 
-        await utils.set_giveaway(self.bot, time_end, ctx.channel.id, message.id)
+        await utils.set_giveaway(self.bot, time_end, channel.id, message.id)
 
     @commands.group(invoke_without_command=True)
     @commands.guild_only()
