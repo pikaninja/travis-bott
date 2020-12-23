@@ -48,7 +48,6 @@ class MyBot(commands.AutoShardedBot):
 
         self.session = aiohttp.ClientSession(loop=self.loop)
         self.loop.create_task(self.do_prep())
-        self.loop.create_task(self.update_web_stats())
         self.announcement = {
             "title": None,
             "message": None
@@ -119,18 +118,6 @@ class MyBot(commands.AutoShardedBot):
         }
 
         self.announcement = update
-
-    async def update_web_stats(self):
-        await self.wait_until_ready()
-        while True:
-            users = sum(g.member_count for g in self.guilds)
-            cmds = len([x for x in self.walk_commands()])
-            guilds = len(self.guilds)
-
-            await self.pool.execute("UPDATE web_stats SET users = $1, commands = $2, guilds = $3",
-                                    users, cmds, guilds)
-
-            await asyncio.sleep(300)
 
     async def get_context(self, message, *, cls=CustomContext):
         return await super().get_context(message, cls=cls)

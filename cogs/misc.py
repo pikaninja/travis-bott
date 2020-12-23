@@ -379,7 +379,8 @@ class Misc(utils.BaseCog, name="misc"):
         embed = KalDiscordUtils.Embed.default(ctx)
         [embed.add_field(name=k, value=v) for k, v in pings]
 
-        await message.edit(embed=embed)
+        await message.edit(content=None,
+                           embed=embed)
 
     @commands.command()
     async def password(self, ctx: utils.CustomContext, length: typing.Optional[int] = 8):

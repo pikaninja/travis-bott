@@ -125,16 +125,12 @@ async def on_ready():
         log.info("-> Added new guild(s) to database.")
 
 @bot_ipc.route()
-async def get_guild_count(data):
-    return len(bot.guilds)
-
-@bot_ipc.route()
-async def get_user_count(data):
-    return sum(g.member_count for g in bot.guilds)
-
-@bot_ipc.route()
-async def get_cmd_count(data):
-    return sum(1 for cmd in bot.walk_commands())
+async def get_stats(data):
+    return [
+        f"{len(bot.guilds):,}",
+        f"{sum(g.member_count for g in bot.guilds):,}",
+        f"{sum(1 for c in bot.walk_commands()):,}"
+    ]
 
 bot_ipc.start()
 bot.run(config("BOT_TOKEN"))
