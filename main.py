@@ -2,6 +2,7 @@ import datetime
 
 from utils.custombot import MyBot
 from discord import Game, Status, AllowedMentions, Intents
+from discord.ext.ipc import Server
 from decouple import config
 from discord.flags import MemberCacheFlags
 import os
@@ -39,6 +40,7 @@ bot = MyBot(
     member_cache_flags=stuff_to_cache,
     chunk_guilds_at_startup=False,
 )
+bot_ipc = Server(bot, "0.0.0.0", 8765, config("SECRET_KEY"))
 
 bot.version = "But Better"
 bot.description = (
@@ -122,5 +124,17 @@ async def on_ready():
     ):  # Just tell me if there's any guilds that got added if the bot was down
         log.info("-> Added new guild(s) to database.")
 
+@bot_ipc.route()
+async def get_guild_count(data):
+    return len(bot.guilds)
 
+@bot_ipc.route()
+async def get_user_count(data):
+    return sum(g.member_count for g in bot.guilds)
+
+@bot_ipc.route()
+async def get_cmd_count(data):
+    return sum(1 for cmd in bot.walk_commands())
+
+bot_ipc.start()
 bot.run(config("BOT_TOKEN"))
