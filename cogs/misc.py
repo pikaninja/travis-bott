@@ -338,7 +338,8 @@ class Misc(utils.BaseCog, name="misc"):
                         longest = length
 
                 for key in mapping:
-                    msg += key["name"].rjust(longest, " ") + " → " + key["status"].title() + "\n"
+                    msg += key["name"].rjust(longest, " ") + \
+                        " → " + key["status"].title() + "\n"
 
                 msg += "```"
                 return msg
@@ -427,14 +428,12 @@ class Misc(utils.BaseCog, name="misc"):
     async def invite(self, ctx: utils.CustomContext):
         """Sends an link to invite the bot to your server."""
 
-        bot_invite = f"https://discord.com/api/oauth2/authorize?client_id={self.bot.user.id}&permissions=8&scope=bot"
-
         embed = KalDiscordUtils.Embed.default(
             ctx,
             title="Invite the bot to your server here!"
         )
 
-        embed.url = bot_invite
+        embed.url = self.bot.invite_url
 
         await ctx.send(embed=embed)
 
@@ -444,7 +443,7 @@ class Misc(utils.BaseCog, name="misc"):
 
         await ctx.send(
             "If you need help with the bot please join the support server:\n"
-            + f"{config('SUPPORT_LINK')}"
+            + f"{self.bot.support_url}"
         )
 
     @commands.command()

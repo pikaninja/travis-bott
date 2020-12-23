@@ -28,7 +28,8 @@ class Beta(utils.BaseCog, name="beta", command_attrs=dict(hidden=True)):
             #     return await ctx.send("Something messed up lol")
 
             soup = BeautifulSoup(await response.text(), features="lxml")
-            results = soup.find_all("a", attrs={"class": "result__a"}, href=True)
+            results = soup.find_all(
+                "a", attrs={"class": "result__a"}, href=True)
             result = results[0]
 
             link = f"https:{result.get('href')}"

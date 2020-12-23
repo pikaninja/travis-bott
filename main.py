@@ -58,6 +58,7 @@ bot.exts = [
     "cogs.imagemanipulation",
     "cogs.misc",
     "cogs.beta",
+    "cogs.topgg",
 ]
 
 if datetime.datetime.utcnow().month == 11 or datetime.datetime.utcnow().month == 12:
@@ -123,6 +124,7 @@ async def on_ready():
         new_guilds
     ):  # Just tell me if there's any guilds that got added if the bot was down
         log.info("-> Added new guild(s) to database.")
+
 
 @bot_ipc.route()
 async def get_stats(data):

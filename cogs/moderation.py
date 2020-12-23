@@ -77,11 +77,13 @@ class BannedUser(commands.Converter):
             try:
                 await ctx.guild.fetch_ban(user)
             except discord.Forbidden:
-                raise commands.BadArgument("I can't view that ban, this is probably due to my permissions.")
+                raise commands.BadArgument(
+                    "I can't view that ban, this is probably due to my permissions.")
             except discord.NotFound:
                 raise commands.BadArgument("That user is not banned.")
             except discord.HTTPException:
-                raise commands.BadArgument("Discord messed up somewhere and I couldn't retrieve that ban.")
+                raise commands.BadArgument(
+                    "Discord messed up somewhere and I couldn't retrieve that ban.")
 
             return user
         except commands.UserNotFound:

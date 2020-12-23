@@ -296,7 +296,8 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         successful = []
         unsuccessful = {}
         exts = [x for x in self.bot.extensions.keys()]
-        current_cogs = [[exts[index], cog] for index, cog in enumerate(self.bot.cogs.values())]
+        current_cogs = [[exts[index], cog]
+                        for index, cog in enumerate(self.bot.cogs.values())]
         for cog_name, cog in current_cogs:
             try:
                 self.bot.reload_extension(cog_name)
@@ -314,7 +315,6 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             await ctx.send("\n".join(fmt))
 
         await ctx.send(f"Successfully reloaded:\n{', '.join(successful)}")
-
 
     @dev.command(name="load")
     async def dev_load(self, ctx: utils.CustomContext, cog: str):

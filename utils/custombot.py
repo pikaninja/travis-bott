@@ -62,6 +62,14 @@ class MyBot(commands.AutoShardedBot):
         self.github_url = "https://github.com/platform-discord/travis-bott"
 
         self.blacklist = {}
+        self.error_webhook = discord.Webhook.from_url(
+            cfg.error_log_webhook,
+            adapter=discord.AsyncWebhookAdapter(self.session)
+        )
+        self.guild_webhook = discord.Webhook.from_url(
+            cfg.guild_log_webhook,
+            adapter=discord.AsyncWebhookAdapter(self.session)
+        )
 
     @property
     async def kal(self):
@@ -152,13 +160,8 @@ class MyBot(commands.AutoShardedBot):
             f"I was just added to {guild.name} with {guild.member_count} members.",
             f"Now in {len(self.guilds)} guilds.",
         ]
-        url = cfg.guild_log_webhook
-        data = {
-            "username": "Added to guild.",
-            "content": "\n".join(message)
-        }
-
-        await self.session.post(url, data=data)
+        await self.guild_webhook.send(content="\n".join(message),
+                                      username="Added to guild.")
 
     async def on_guild_remove(self, guild: discord.Guild):
         await self.pool.execute(
@@ -175,13 +178,8 @@ class MyBot(commands.AutoShardedBot):
             f"I was just removed from {guild.name} with {guild.member_count} members.",
             f"Now in {len(self.guilds)} guilds.",
         ]
-        url = cfg.guild_log_webhook
-        data = {
-            "username": "Removed from guild.",
-            "content": "\n".join(message)
-        }
-
-        await self.session.post(url, data=data)
+        await self.guild_webhook.send(content="\n".join(message),
+                                      username="Removed from guild.")
 
     async def on_message_edit(self, before, after):
         await self.process_commands(after)

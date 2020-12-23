@@ -47,7 +47,8 @@ def has_voted():
             has_user_voted = bool(data["voted"])
 
         if not has_user_voted:
-            raise UserNotVoted("You must vote for the bot via the vote command to use this command.")
+            raise UserNotVoted(
+                "You must vote for the bot via the vote command to use this command.")
 
         return True
 
