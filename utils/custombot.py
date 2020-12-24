@@ -57,8 +57,7 @@ class MyBot(commands.AutoShardedBot):
         self.add_check(self.blacklist_check)
 
         self.support_url = "https://discord.gg/tKZbxAF"
-        self.invite_url = discord.utils.oauth_url(
-            "706530005169209386", discord.Permissions(2080763126))
+        self.invite_url = "https://kal-byte.co.uk/invite/706530005169209386/2080763126"
         self.github_url = "https://github.com/platform-discord/travis-bott"
 
         self.blacklist = {}
@@ -70,6 +69,8 @@ class MyBot(commands.AutoShardedBot):
             cfg.guild_log_webhook,
             adapter=discord.AsyncWebhookAdapter(self.session)
         )
+
+        self.ctx_cache = {}
 
     @property
     async def kal(self):

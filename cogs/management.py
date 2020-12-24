@@ -86,6 +86,12 @@ class Management(utils.BaseCog, name="management"):
             return
 
         role = channel.guild.get_role(mute_role_id)
+
+        if role is None:
+            await self.bot.pool.execute("UPDATE guild_settings SET mute_role_id = NULL WHERE guild_id = $1",
+                                        channel.guild.id)
+            self.bot.config[channel.guild.id]["mute_role_id"] = None
+
         role_overwrites = channel.overwrites_for(role)
         role_overwrites.update(send_messages=False)
 
@@ -196,13 +202,13 @@ class Management(utils.BaseCog, name="management"):
         }
 
         for question, func in questions.items():
-            await ctx.send(question)
+            await ctx.send(question, new_message=True)
             try:
                 response = await self.bot.wait_for("message",
                                                    timeout=30.0,
                                                    check=lambda m: m.author == ctx.author and m.channel == ctx.channel)
             except asyncio.TimeoutError:
-                return await ctx.send("You did not reply in time!")
+                return await ctx.send("You did not reply in time!", new_message=True)
             else:
                 get_thing, what_thing = await func(ctx, response.content)
                 what_is_needed[what_thing] = get_thing

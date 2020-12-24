@@ -40,7 +40,7 @@ bot = MyBot(
     member_cache_flags=stuff_to_cache,
     chunk_guilds_at_startup=False,
 )
-bot_ipc = Server(bot, "0.0.0.0", 8765, config("SECRET_KEY"))
+bot.ipc = Server(bot, "0.0.0.0", 8765, config("SECRET_KEY"))
 
 bot.version = "But Better"
 bot.description = (
@@ -126,7 +126,7 @@ async def on_ready():
         log.info("-> Added new guild(s) to database.")
 
 
-@bot_ipc.route()
+@bot.ipc.route()
 async def get_stats(data):
     return [
         f"{len(bot.guilds):,}",
@@ -134,5 +134,12 @@ async def get_stats(data):
         f"{sum(1 for c in bot.walk_commands()):,}"
     ]
 
-bot_ipc.start()
+@bot.ipc.route()
+async def get_bot_id(data):
+    user = await bot.fetch_user(data.bot_id)
+    if not user.bot:
+        return "706530005169209386"
+    return user.id
+
+bot.ipc.start()
 bot.run(config("BOT_TOKEN"))

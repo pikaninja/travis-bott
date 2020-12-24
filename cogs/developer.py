@@ -49,24 +49,16 @@ class CommandConverter(Converter):
         return ctx.bot.get_command(argument)
 
 
-class SQLCommandPages(menus.ListPageSource):
-    def __init__(self, ctx, data):
-        super().__init__(data, per_page=4)
-        self.ctx = ctx
+class SQLListPageSource(menus.ListPageSource):
+    def __init__(self, data, *, per_page=10):
+        super().__init__(data, per_page=per_page)
 
     async def format_page(self, menu, page):
-        embed = KalDiscordUtils.Embed.default(
-            self.ctx,
-            title="SQL Result:",
-            description=(
-                "```\n" +
-                "\n".join(page) +
-                "```"
-            )
-        )
-        embed.set_footer(
-            text=f"Page {menu.current_page + 1}/{self.get_max_pages()}")
-
+        embed = KalDiscordUtils.Embed.default(menu.ctx)
+        embed.description = (f"```py\n" +
+                             "\n".join(page) +
+                             "```")
+        embed.set_footer(text=f"Page {menu.current_page + 1}/{self.get_max_pages()}")
         return embed
 
 
@@ -203,33 +195,21 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
         async with ctx.timeit:
             """Start timing how long it takes to process the query."""
-            query = query[1].split("\n")
+            query = query.content
 
-            if len(query) >= 3:
-                query.pop(0)
-                query.pop(len(query) - 1)
-                query = "".join(query)
-            else:
-                query = query[0]
-
-            if query.lower().startswith("select"):
-                strategy = ctx.db.fetch
-            else:
-                strategy = ctx.db.execute
+            strategy = ctx.db.fetch if query.lower().startswith("select") else ctx.db.execute
 
             results = await strategy(query.format(author=ctx.author,
                                                   guild=ctx.guild))
 
-            paginator = commands.Paginator(prefix="```py",
-                                           suffix="```",
-                                           max_size=500)
+            data = []
             if isinstance(results, list):
                 for result in results:
-                    paginator.add_line(repr(result))
+                    data.append(repr(result))
             else:
-                paginator.add_line(repr(results))
+                data.append(repr(results))
 
-            menu = utils.KalPages(utils.CommandsPaginator(paginator))
+            menu = utils.KalPages(SQLListPageSource(data))
             await menu.start(ctx)
 
     @dev.command(name="restart")

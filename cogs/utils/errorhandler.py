@@ -9,9 +9,6 @@ from utils.embed import Embed
 
 import typing
 
-"""Pretty much from here:
-    https://github.com/4Kaylum/DiscordpyBotBase/blob/master/cogs/error_handler.py"""
-
 # noinspection PyRedundantParentheses
 
 
@@ -219,7 +216,7 @@ class ErrorHandler(Cog):
                 type(error), error, error.__traceback__))
         )
 
-        if len(tb) > 500:
+        if len(tb) > 1000:
             await ctx.send("The error message is too big so I sent it just to the developer.")
             await self.send_error(ctx, error)
         else:

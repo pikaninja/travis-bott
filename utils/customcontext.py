@@ -16,6 +16,22 @@ class CustomContext(commands.Context):
 
         self.timeit = timeit(self)
 
+    async def send(self, *args, **kwargs):
+        try:
+            if self.message.attachments or kwargs.get("file") or kwargs.get("files") or kwargs.get("new_message"):
+                raise KeyError
+
+            message = self.bot.ctx_cache[self.message.id]
+            await message.edit(content=str(*args), **kwargs)
+            return message
+        except KeyError:
+            if kwargs.get("new_message"):
+                kwargs.pop("new_message")
+
+            message = await super().send(*args, **kwargs)
+            self.bot.ctx_cache[self.message.id] = message
+            return message
+
     @property
     def db(self):
         """Returns bot.pool"""

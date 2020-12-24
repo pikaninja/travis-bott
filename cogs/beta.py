@@ -18,28 +18,32 @@ class Beta(utils.BaseCog, name="beta", command_attrs=dict(hidden=True)):
 
         await ctx.send_help(ctx.command)
 
-    @beta.command(name="duckduckgo")
-    async def beta_duckduckgo(self, ctx: utils.CustomContext, *, query: str):
-        """Searches duckduckgo with a given query."""
+    @beta.command(name="neofetch")
+    async def beta_neofetch(self, ctx: utils.CustomContext):
+        """Shows an output similar to Neofetch about the bots system."""
 
-        url = "http://duckduckgo.com/html/?q=" + query
-        async with self.bot.session.get(url) as response:
-            # if response != 200:
-            #     return await ctx.send("Something messed up lol")
-
-            soup = BeautifulSoup(await response.text(), features="lxml")
-            results = soup.find_all(
-                "a", attrs={"class": "result__a"}, href=True)
-            result = results[0]
-
-            link = f"https:{result.get('href')}"
-            title = result.get_text()
-
-            embed = KalDiscordUtils.Embed.default(ctx)
-            embed.title = title
-            embed.url = link
-
-            await ctx.send(embed=embed)
+    # @beta.command(name="duckduckgo")
+    # async def beta_duckduckgo(self, ctx: utils.CustomContext, *, query: str):
+    #     """Searches duckduckgo with a given query."""
+    #
+    #     url = "http://duckduckgo.com/html/?q=" + query
+    #     async with self.bot.session.get(url) as response:
+    #         # if response != 200:
+    #         #     return await ctx.send("Something messed up lol")
+    #
+    #         soup = BeautifulSoup(await response.text(), features="lxml")
+    #         results = soup.find_all(
+    #             "a", attrs={"class": "result__a"}, href=True)
+    #         result = results[0]
+    #
+    #         link = f"https:{result.get('href')}"
+    #         title = result.get_text()
+    #
+    #         embed = KalDiscordUtils.Embed.default(ctx)
+    #         embed.title = title
+    #         embed.url = link
+    #
+    #         await ctx.send(embed=embed)
 
 
 def setup(bot):
