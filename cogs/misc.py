@@ -443,7 +443,7 @@ class Misc(utils.BaseCog, name="misc"):
 
         await ctx.send(
             "If you need help with the bot please join the support server:\n"
-            + f"{self.bot.support_url}"
+            f"{self.bot.support_url}"
         )
 
     @commands.command()
