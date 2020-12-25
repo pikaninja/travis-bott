@@ -133,9 +133,6 @@ class Management(utils.BaseCog, name="management"):
         if payload.member.bot:
             return
 
-        if payload.event_type == "REACTION_REMOVE":
-            return
-
         try:
             role_id = self.bot.giveaway_roles[payload.message_id]
         except KeyError:
