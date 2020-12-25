@@ -168,7 +168,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         code_count = '\n'.join(f'{key}: {count}' for key, count in ctr.items())
         server_count = sum(1 for g in self.bot.guilds)
         user_count = sum(g.member_count for g in self.bot.guilds)
-        command_count = sum(1 for cmd in self.bot.commands)
+        command_count = sum(1 for cmd in self.bot.walk_commands())
         ping = round(self.bot.latency * 1000)
 
         fields = [
@@ -298,7 +298,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
             await ctx.send("\n".join(fmt))
 
-        await ctx.send(f"Successfully reloaded:\n{', '.join(successful)}")
+        await ctx.send(f"Successfully reloaded:\n{', '.join(successful)}", new_message=True)
 
     @dev.command(name="load")
     async def dev_load(self, ctx: utils.CustomContext, cog: str):

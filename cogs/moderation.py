@@ -732,7 +732,7 @@ class Moderation(utils.BaseCog, name="moderation"):
             embed_list.append(embed)
 
         if len(embed_list) > 1:
-            p = Paginator(embed_list, clear_reactions=True)
+            p = Paginator(embed_list, clear_reactions=True) # type: ignore[reportUndefinedVariable]
             await p.paginate(ctx)
         else:
             await ctx.send(embed=embed_list[0])
