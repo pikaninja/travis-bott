@@ -71,6 +71,7 @@ class MyBot(commands.AutoShardedBot):
         )
 
         self.ctx_cache = {}
+        self.cmd_usage = 0
 
     @property
     async def kal(self):
@@ -183,7 +184,8 @@ class MyBot(commands.AutoShardedBot):
                                       username="Removed from guild.")
 
     async def on_message_edit(self, before, after):
-        await self.process_commands(after)
+        if after.author.id in self.owner_ids:
+            await self.process_commands(after)
 
     async def command_check(self, ctx: CustomContext):
         if ctx.author.id in self.owner_ids:
