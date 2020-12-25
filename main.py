@@ -57,6 +57,7 @@ bot.exts = [
     "cogs.fun",
     "cogs.imagemanipulation",
     "cogs.misc",
+    "cogs.music",
     "cogs.beta",
     "cogs.topgg",
 ]

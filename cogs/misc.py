@@ -124,6 +124,7 @@ class RawMessagePaginator(menus.ListPageSource):
 
         return embed
 
+
 class BlockingFunctions:
 
     @staticmethod
