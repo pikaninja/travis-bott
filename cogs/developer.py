@@ -58,7 +58,8 @@ class SQLListPageSource(menus.ListPageSource):
         embed.description = (f"```py\n" +
                              "\n".join(page) +
                              "```")
-        embed.set_footer(text=f"Page {menu.current_page + 1}/{self.get_max_pages()}")
+        embed.set_footer(
+            text=f"Page {menu.current_page + 1}/{self.get_max_pages()}")
         return embed
 
 
@@ -114,7 +115,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         text = "\n".join(wrapped_text)
         size = ImageFont.load_default().getsize(text)
 
-        with PILImage.new("RGB", (size[0], (size[1] * (len(wrapped_text) + 1)) + 5), 0x2150c1) as base:
+        with PILImage.new("RGB", (size[0] - len(wrapped_text[0]), (size[1] * (len(wrapped_text) + 1)) + 5), 0x2150c1) as base:
 
             canvas = ImageDraw.Draw(base)
             canvas.multiline_text((5, 5), text)
@@ -166,12 +167,15 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
         code_count = '\n'.join(f'{key}: {count}' for key, count in ctr.items())
         server_count = sum(1 for g in self.bot.guilds)
+        user_count = sum(g.member_count for g in self.bot.guilds)
         command_count = sum(1 for cmd in self.bot.commands)
         ping = round(self.bot.latency * 1000)
 
         fields = [
             ["Server Count", server_count, True],
+            ["User Count", user_count, True],
             ["Command Count", command_count, True],
+            ["Command Usage (last restart)", self.bot.cmd_usage, True],
             ["Ping", ping, True],
             ["Uptime", str(self.bot.get_uptime()), True],
             ["Code Count", f"```\n{code_count}```", False]
