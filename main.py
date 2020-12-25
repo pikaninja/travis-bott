@@ -134,6 +134,7 @@ async def get_stats(data):
         f"{sum(1 for c in bot.walk_commands()):,}"
     ]
 
+
 @bot.ipc.route()
 async def get_bot_id(data):
     user = await bot.fetch_user(data.bot_id)
