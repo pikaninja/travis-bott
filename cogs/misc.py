@@ -114,6 +114,16 @@ class CommandsList(menus.ListPageSource):
         return embed
 
 
+class RawMessagePaginator(menus.ListPageSource):
+    def __init__(self, raw_message: list):
+        super().__init__(raw_message, per_page=20)
+
+    async def format_page(self, menu: menus.Menu, page: list):
+        embed = KalDiscordUtils.Embed.default(menu.ctx)
+        embed.description = "```json\n" + "\n".join(page) + "```"
+
+        return embed
+
 class BlockingFunctions:
 
     @staticmethod
@@ -157,6 +167,7 @@ class Misc(utils.BaseCog, name="misc"):
 
     @commands.Cog.listener()
     async def on_command(self, ctx: utils.CustomContext):
+        self.bot.cmd_usage += 1
         if ctx.guild:
             if not ctx.guild.chunked:
                 await ctx.guild.chunk(cache=True)
@@ -265,29 +276,19 @@ class Misc(utils.BaseCog, name="misc"):
                 f"https://discord.com/api/v8/channels/{message.channel.id}/messages/{message.id}",
                 headers={"Authorization": f"Bot {self.bot.http.token}"}) as r:
             if r.status != 200:
-                return await ctx.send("So that just didn't work.")
+                return await ctx.send(
+                    "Something went wrong... I can't really tell you why because I don't know BUT\n"
+                    f"What I do know is that the status code is {r.status} so maybe that'd help."
+                )
 
             r = await r.json()
 
         formatted = json.dumps(r, indent=4)
-        msg = f"{formatted}"
+        lines = [line for line in formatted.splitlines()]
 
-        if len(msg) > 2000:
-            paginator = commands.Paginator(
-                max_size=2000,
-                prefix="```json",
-                suffix="```"
-            )
-            paginator.add_line(line=msg[:1988])
-            paginator.add_line(line=msg[1988:])
-
-        if len(msg) < 2000:
-            message = await ctx.send(f"```json\n{msg}```")
-            await self.bot.add_delete_reaction(ctx.channel.id, message.id)
-        else:
-            source = utils.CommandsPaginator(paginator)
-            menu = utils.KalPages(source)
-            await menu.start(ctx)
+        source = RawMessagePaginator(lines)
+        menu = utils.KalPages(source)
+        await menu.start(ctx)
 
     @commands.command(aliases=["dstatus"])
     async def discordstatus(self, ctx: utils.CustomContext):
