@@ -93,13 +93,10 @@ class MyBot(commands.AutoShardedBot):
             self.verification_config[entry["message_id"]] = entry["role_id"]
 
         for entry in guild_configs:
-            data = {
-                "guild_prefix": entry["guild_prefix"],
-                "mute_role_id": entry["mute_role_id"],
-                "log_channel": entry["log_channel"]
-            }
+            settings = dict(entry)
+            settings.pop("guild_id")
 
-            self.config[entry["guild_id"]] = data
+            self.config[entry["guild_id"]] = settings
 
         for entry in blacklist:
             self.blacklist[entry["id"]] = entry["reason"]
@@ -184,6 +181,9 @@ class MyBot(commands.AutoShardedBot):
                                       username="Removed from guild.")
 
     async def on_message_edit(self, before, after):
+        if after.attachments and before.attachments:
+            return
+
         if after.author.id in self.owner_ids:
             await self.process_commands(after)
 

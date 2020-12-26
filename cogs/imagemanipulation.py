@@ -463,7 +463,8 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
     async def wanted(self, ctx: utils.CustomContext, user: discord.Member = None):
-        """Puts a members user avatar on a wanted poster."""
+        """Puts a members user avatar on a wanted poster.
+        Powered by Dagpi."""
 
         async with ctx.timeit:
             async with ctx.typing():
@@ -471,10 +472,11 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
                 img_file = await do_dagpi_stuff(user, ImageFeatures.wanted())
                 await ctx.send(content=f"Hands up **{user.name}!**", file=img_file)
 
-    @commands.command()
+    @commands.command(aliases=["colors"])
     @commands.cooldown(1, 3, commands.BucketType.member)
     async def colours(self, ctx: utils.CustomContext, user: discord.Member = None):
-        """Gives you the top 5 colours of your own or another persons profile picture."""
+        """Gives you the top 5 colours of your own or another persons profile picture.
+        Powered by Dagpi."""
 
         async with ctx.timeit:
             async with ctx.typing():
@@ -488,7 +490,8 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
     async def pixelate(self, ctx: utils.CustomContext, user: discord.Member = None):
-        """Pixelates someones profile picture"""
+        """Pixelates someones profile picture.
+        Powered by Dagpi."""
 
         async with ctx.timeit:
             async with ctx.typing():
@@ -499,7 +502,8 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
     async def polaroid(self, ctx: utils.CustomContext, user: discord.Member = None):
-        """Puts someones profile picture in a polaroid"""
+        """Puts someones profile picture in a polaroid.
+        Powered by Dagpi."""
 
         async with ctx.timeit:
             async with ctx.typing():

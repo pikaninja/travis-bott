@@ -136,9 +136,14 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             def process_img(instream):
                 # Get Image to OCR
                 stream = io.BytesIO(instream)
-                img = PILImage.open(stream)
+                img = PILImage.open(stream).convert("1")
+                img.save(stream, "png")
+                stream.seek(0)
 
-                return {"text": pytesseract.image_to_string(img)}
+                return {
+                    "text": pytesseract.image_to_string(img),
+                    "file": discord.File(stream, "test.png")
+                }
 
             data = await self.bot.loop.run_in_executor(None, process_img, img_bytes)
 
@@ -147,9 +152,12 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
                 description=f"{data['text']}"
             )
 
-            embed.set_image(url=url)
+            embed.set_image(url="attachment://test.png")
 
-        await ctx.send(embed=embed)
+        await ctx.send(
+            file=data["file"],
+            embed=embed
+        )
 
     @dev.command(name="stats")
     async def dev_stats(self, ctx: utils.CustomContext):
@@ -284,6 +292,9 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
                         for index, cog in enumerate(self.bot.cogs.values())]
         for cog_name, cog in current_cogs:
             try:
+                if cog_name == "cogs.music":
+                    continue
+
                 self.bot.reload_extension(cog_name)
                 if hasattr(cog, "show_name"):
                     successful.append(f"`{cog_name[5:]}`")

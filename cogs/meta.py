@@ -1,4 +1,5 @@
 import os
+import re
 
 import cse
 import contextlib
@@ -66,6 +67,26 @@ class AllConverter(commands.Converter):
             return convert.id
 
 
+class ColourConverter(commands.Converter):
+    async def convert(self, ctx: utils.CustomContext, argument: str):
+        with contextlib.suppress(AttributeError):
+            RGB_REGEX = re.compile(r"\(?(\d+),?\s*(\d+),?\s*(\d+)\)?")
+            match = RGB_REGEX.match(argument)
+            check = all(0 <= int(x) <= 255 for x in match.groups())
+
+        if match and check:
+            rgb = [int(x) for x in match.groups()]
+            return discord.Colour.from_rgb(*rgb)
+
+        converter = commands.ColourConverter()
+        result = await converter.convert(ctx, argument)
+
+        if result:
+            return result
+
+        raise commands.BadArgument("Couldn't find anything matching that.")
+
+
 class Meta(utils.BaseCog, name="meta"):
     """General and utility commands"""
 
@@ -73,6 +94,18 @@ class Meta(utils.BaseCog, name="meta"):
         self.bot: utils.MyBot = bot
         self.show_name = show_name
         self.weather_api_key = config("WEATHER_API_KEY")
+
+    def _get_top_coloured_role(self, target: discord.Member):
+        """Helper method to get the users top role that has colour else no colour."""
+
+        roles = target.roles
+        roles.reverse()
+
+        for role in roles:
+            if role.colour != discord.Colour(0):
+                return role.colour
+
+        return discord.Colour(0)
 
     @commands.command(name="id", aliases=["idof"])
     async def _id(self, ctx: utils.CustomContext, *, thing: AllConverter):
@@ -125,43 +158,21 @@ class Meta(utils.BaseCog, name="meta"):
                 embeds), clear_reactions_after=True)
             await menu.start(ctx)
 
-    @commands.command(aliases=["randomcolor", "rcolour", "rcolor"])
-    async def randomcolour(self, ctx: utils.CustomContext):
-        """Gives a random colour."""
-
-        colour = discord.Colour.random()
-        rgb = colour.to_rgb()
-
-        colour_representation = (
-            f"https://some-random-api.ml/canvas/colorviewer?hex={str(colour)[1:]}"
-        )
-        embed = KalDiscordUtils.Embed.default(
-            ctx,
-            title="Generated Colour",
-            colour=colour,
-        )
-        embed.set_thumbnail(url=colour_representation)
-        embed.add_field(name="Hex", value=f"{colour}", inline=False)
-        embed.add_field(name="RGB", value=f"{rgb}", inline=False)
-        await ctx.send(embed=embed)
-
     # noinspection PyUnresolvedReferences
     @commands.command(aliases=["color"])
-    async def colour(self, ctx: utils.CustomContext, colour: commands.ColourConverter):
-        """Shows a representation of a given colour"""
-
-        colour_representation = (
-            f"https://some-random-api.ml/canvas/colorviewer?hex={str(colour)[1:]}"
-        )
+    async def colour(self, ctx: utils.CustomContext, *, colour: ColourConverter):
+        """Shows a representation of a given colour.
+        To get a random colour just do: {prefix}colour random"""
 
         rgb = colour.to_rgb()
+        url = f"https://kal-byte.co.uk/colour/{'/'.join([str(x) for x in rgb])}"
 
         embed = KalDiscordUtils.Embed.default(
             ctx,
             colour=discord.Colour.from_rgb(*rgb)
         )
 
-        embed.set_thumbnail(url=colour_representation)
+        embed.set_thumbnail(url=url)
         embed.add_field(name="Hex", value=f"{colour}", inline=False)
         embed.add_field(name="RGB", value=f"{rgb}", inline=False)
         await ctx.send(embed=embed)
@@ -481,7 +492,9 @@ class Meta(utils.BaseCog, name="meta"):
         """Gives you basic information on someone."""
 
         user = user or ctx.author
+        colour = self._get_top_coloured_role(user)
         embed = KalDiscordUtils.Embed.default(ctx)
+        embed.colour = colour
         embed.title = f"About {user.name}"
         embed.description = (
             f"**ID**: {user.id}\n"

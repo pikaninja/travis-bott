@@ -57,4 +57,5 @@ class timeit(ContextDecorator):
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         self.end = time.perf_counter()
 
-        await self.ctx.send(f"Finished in `{self.end - self.start:,.2f}` seconds")
+        await self.ctx.send(f"Finished in `{self.end - self.start:,.2f}` seconds",
+                            new_message=True)

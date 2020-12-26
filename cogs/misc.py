@@ -452,7 +452,8 @@ class Misc(utils.BaseCog, name="misc"):
     async def uptime(self, ctx: utils.CustomContext):
         """Get the bots uptime."""
 
-        await ctx.send(f"Uptime: {self.bot.get_uptime()}")
+        uptime = utils.format_time(self.bot.start_time)
+        await ctx.send(f"I've been up for {uptime['precise']}")
 
     @commands.command(aliases=["git", "code", "src", "source"])
     async def github(self, ctx: utils.CustomContext):

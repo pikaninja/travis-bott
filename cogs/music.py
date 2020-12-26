@@ -120,6 +120,9 @@ class Music(commands.Cog, wavelink.WavelinkMixin, name="music"):
 
         channel = self.bot.get_channel(int(player.channel_id))
 
+        if len(channel.members) == 1:
+            return await player.teardown()
+
         if member == player.dj and after.channel is None:
             for m in channel.members:
                 if m.bot:
@@ -194,18 +197,22 @@ class Music(commands.Cog, wavelink.WavelinkMixin, name="music"):
     async def play(self, ctx: utils.CustomContext, *, query: str):
         """Plays a given track."""
 
+        player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
+
+        if not player.is_connected:
+            await ctx.invoke(self.connect_)
+
+        query = query.strip('<>')
         tracks = await self.bot.wavelink.get_tracks(f"ytsearch:{query}")
 
         if not tracks:
             return await ctx.send("Couldn't find any songs matching that query.")
 
-        player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
-        if not player.is_connected:
-            await ctx.invoke(self.connect_)
-
         await ctx.send(f"Added `{tracks[0]}` to the queue.")
-        await player.play(tracks[0])
         await player.queue.put(tracks[0])
+
+        if not player.is_playing:
+            await player.do_next()
 
     @commands.command(aliases=["s"])
     @commands.guild_only()

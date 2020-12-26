@@ -334,7 +334,8 @@ class Management(utils.BaseCog, name="management"):
 
         await ctx.send(
             f"You chose `{role}` to be set as your mute role, by typing `yes` this will make it so that the role "
-            "can *not* type in any channel and this action can not be reversed. Please type `yes` or `no`"
+            "can *not* type in any channel and this action can not be reversed. Please type `yes` or `no`",
+            new_message = True
         )
 
         try:
@@ -344,7 +345,8 @@ class Management(utils.BaseCog, name="management"):
                 check=lambda m: m.author == ctx.author and m.channel == ctx.channel
             )
         except asyncio.TimeoutError:
-            return await ctx.send("You did not reply in time.")
+            return await ctx.send("You did not reply in time.",
+                                  new_message=True)
         else:
             content = message.content.lower()
             if content == "yes":
@@ -352,20 +354,25 @@ class Management(utils.BaseCog, name="management"):
                                             role.id, ctx.guild.id)
                 self.bot.config[ctx.guild.id]["mute_role_id"] = role.id
 
-                await ctx.send("Alright, this may take a while.")
+                await ctx.send("Alright, this may take a while.", new_message=True)
 
                 for channel in ctx.guild.channels:
                     perms = channel.overwrites_for(role)
                     perms.update(send_messages=False)
-                    await channel.set_permissions(
-                        target=role,
-                        overwrite=perms,
-                        reason=f"Mute role set by: {ctx.author}"
-                    )
+                    try:
+                        await channel.set_permissions(
+                            target=role,
+                            overwrite=perms,
+                            reason=f"Mute role set by: {ctx.author}"
+                        )
+                    except discord.Forbidden:
+                        return await ctx.send("I must have permissions to edit channel permissions to do this!",
+                                              new_message=True)
 
                 return await ctx.reply("Finished updating all channel permissions for that role.")
             else:
-                return await ctx.send("Alright, backing out.")
+                return await ctx.send("Alright, backing out.",
+                                      new_message=True)
 
     @commands.group(invoke_without_command=True)
     @commands.guild_only()
@@ -415,7 +422,7 @@ class Management(utils.BaseCog, name="management"):
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
     @commands.bot_has_permissions(send_messages=True)
-    async def verification_setup(self, ctx: utils.CustomContext, channel: discord.TextChannel, *, role: str):
+    async def verification_setup(self, ctx: utils.CustomContext, channel: discord.TextChannel, *, role: utils.RoleConverter):
         """Goes through the process to set up verification."""
 
         check_guild = await self.bot.pool.fetchrow(
@@ -434,8 +441,11 @@ class Management(utils.BaseCog, name="management"):
         embed.set_footer(text=ctx.guild.name, icon_url=ctx.guild.icon_url)
         embed.timestamp = discord.Embed.Empty
 
-        role = await utils.find_roles(ctx.guild, role)
-        msg = await channel.send(embed=embed)
+        try:
+            msg = await channel.send(embed=embed)
+        except discord.Forbidden:
+            return await ctx.send("I can not send messages in that channel, please give me permissions to!")
+
         await msg.add_reaction("✅")
         await self.bot.pool.execute(
             "INSERT INTO guild_verification(guild_id, message_id, role_id) VALUES($1, $2, $3)",
