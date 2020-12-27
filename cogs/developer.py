@@ -1,3 +1,4 @@
+import ast
 import collections
 import contextlib
 import glob
@@ -71,18 +72,25 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
     async def cog_check(self, ctx: utils.CustomContext):
         return await self.bot.is_owner(ctx.author)
 
-    @staticmethod
-    def _cleanup_code(content):
-        """Automatically removes code blocks from the code."""
-
-        # remove ```py\n```
-        if content.startswith("```") and content.endswith("```"):
-            if content[-4] == "\n":
-                return "\n".join(content.split("\n")[1:-1])
-            return "\n".join(content.split("\n")[1:]).rstrip("`")
-
-        # remove `foo`
-        return content.strip("` \n")
+    def _exec_then_eval(self, ctx: utils.CustomContext, code):
+        """Helper method to help evaluate python code."""
+        block = ast.parse(code, mode="exec")
+        last = ast.Expression(block.body.pop().value)
+        _globals = {
+            "ctx": ctx,
+            "bot": ctx.bot,
+            "guild": ctx.guild,
+            "channel": ctx.channel,
+            "author": ctx.author,
+            "message": ctx.message,
+            "find": discord.utils.find,
+            "get": discord.utils.get,
+            "_": self._last_result,
+        }
+        _globals.update(globals())
+        _locals = {}
+        exec(compile(block, "<string>", mode="exec"), _globals, _locals)
+        return eval(compile(last, "<string>", mode="eval"), _globals, _locals)
 
     @group(invoke_without_command=True)
     @is_owner()
@@ -332,89 +340,25 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             await ctx.send("**`SUCCESS`**")
 
     @dev.command(name="ev")
-    async def dev_ev(self, ctx: utils.CustomContext, *, content: str):
-        """Evaluates Python code
-        Gracefully stolen from Rapptz ->
-        https://github.com/Rapptz/RoboDanny/blob/rewrite/cogs/admin.py#L72-L117"""
+    async def dev_ev(self, ctx: utils.CustomContext, *, code: codeblock_converter):
+        """Evaluates Python Code."""
 
-        # Make the environment
-        env = {
-            "bot": self.bot,
-            "ctx": ctx,
-            "channel": ctx.channel,
-            "author": ctx.author,
-            "guild": ctx.guild,
-            "message": ctx.message,
-            "self": self,
-        }
-        env.update(globals())
-
-        # Make code and output string
-        content = self._cleanup_code(content)
-        code = f'async def func():\n{textwrap.indent(content, "  ")}'
-
-        # Make the function into existence
-        stdout = io.StringIO()
         try:
-            exec(code, env)
+            result = self._exec_then_eval(ctx, code.content)
         except Exception as e:
-            return await ctx.send(f"```py\n{e.__class__.__name__}: {e}\n```")
-
-        # Grab the function we just made and run it
-        func = env["func"]
-        try:
-            # Shove stdout into StringIO
-            with contextlib.redirect_stdout(stdout):
-                ret = await func()
-        except Exception:
-            # Oh no it caused an error
-            stdout_value = stdout.getvalue() or None
-            message = KalDiscordUtils.Embed.default(
-                ctx,
-                description=f"```py\n{stdout_value}\n{traceback.format_exc()}\n```"
+            await ctx.message.add_reaction("<:doubleexclamation:783295580218064947>")
+            fmt_exc = f"{type(e).__name__}: {e}"
+            return await ctx.send(
+                f"```py\n{''.join(traceback.format_tb(e.__traceback__))}\n{fmt_exc}```"
             )
-            await ctx.send(embed=message)
-        else:
-            # Oh no it didn't cause an error
-            stdout_value = stdout.getvalue() or None
 
-            # Give reaction just to show that it ran
-            await ctx.message.add_reaction("\N{OK HAND SIGN}")
+        await ctx.message.add_reaction("<:checkmark:783295580298018827>")
+        self._last_result = result
 
-            # If the function returned nothing
-            if ret is None:
-                # It might have printed something
-                if stdout_value is not None:
-                    message = KalDiscordUtils.Embed.default(
-                        ctx,
-                        description=f"```py\n{stdout_value}\n```",
-                    )
-                    await ctx.send(embed=message)
-                return
+        if isinstance(result, discord.Embed):
+            return await ctx.send(embed=result)
 
-            # If the function did return a value
-            result_raw = stdout_value or ret  # What's returned from the function
-            result = str(result_raw)  # The result as a string
-            if result_raw is None:
-                return
-            text = f"```py\n{result}\n```"
-            if type(result_raw) == dict:
-                try:
-                    result = json.dumps(result_raw, indent=4)
-                except Exception:
-                    pass
-                else:
-                    text = f"```json\n{result}\n```"
-            if len(text) > 2000:
-                await ctx.send(
-                    file=discord.File(io.StringIO(result), filename="ev.txt")
-                )
-            else:
-                message = KalDiscordUtils.Embed.default(
-                    ctx,
-                    description=text
-                )
-                await ctx.send(embed=message)
+        return await ctx.send(result)
 
 
 def setup(bot):

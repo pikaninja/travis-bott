@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import random
 import re
 import time
 import typing
@@ -18,6 +19,41 @@ from .customcontext import CustomContext
 
 UserObject = typing.Union[discord.Member, discord.User]
 UserSnowflake = typing.Union[UserObject, discord.Object]
+
+
+OWO_REPL = {
+    "er": "ew",
+    "l": "w",
+    "the": "thuwu",
+    "row": "rowo",
+    "rus": "ruwus",
+    "y": "wy",
+}
+
+OWO_CHOICES = ("owo", "uwu")
+
+def owoify_text(text: str):
+    for sub, repl in OWO_REPL.items():
+        text = re.sub(sub, repl, text, flags=re.I)
+
+    return text + " " + random.choice(OWO_CHOICES)
+
+def owoify_embed(embed: discord.Embed):
+    embed.title = owoify_text(embed.title) if embed.title else None
+    embed.description = owoify_text(embed.description) if embed.description else None
+    embed.set_footer(text=owoify_text(embed.footer.text),
+                     icon_url=embed.footer.icon_url) if embed.footer else None
+    embed.set_author(name=owoify_text(embed.author.name),
+                     url=embed.author.url,
+                     icon_url=embed.author.icon_url) if embed.author else None
+    for i, field in enumerate(embed.fields):
+        kwargs = {
+            "name": owoify_text(field.name),
+            "value": owoify_text(field.value),
+            "inline": field.inline
+        }
+        embed.set_field_at(i, **kwargs)
+    return embed
 
 
 class RoleConverter(commands.Converter):

@@ -1,5 +1,7 @@
-import KalDiscordUtils
-from bs4 import BeautifulSoup
+import ast
+
+import discord
+from jishaku.codeblocks import codeblock_converter
 from discord.ext import commands
 
 import utils
@@ -18,9 +20,9 @@ class Beta(utils.BaseCog, name="beta", command_attrs=dict(hidden=True)):
 
         await ctx.send_help(ctx.command)
 
-    @beta.command(name="neofetch")
-    async def beta_neofetch(self, ctx: utils.CustomContext):
-        """Shows an output similar to Neofetch about the bots system."""
+    # @beta.command(name="neofetch")
+    # async def beta_neofetch(self, ctx: utils.CustomContext):
+    #     """Shows an output similar to Neofetch about the bots system."""
 
     # @beta.command(name="duckduckgo")
     # async def beta_duckduckgo(self, ctx: utils.CustomContext, *, query: str):

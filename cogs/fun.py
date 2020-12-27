@@ -115,7 +115,7 @@ class Fun(utils.BaseCog, name="fun"):
                 user.id
             )
 
-    @commands.command(aliases=["cb"])
+    @commands.command(aliases=["cb"], cooldown_after_parsing=True)
     @commands.max_concurrency(1, commands.BucketType.channel)
     @utils.has_voted()
     async def chatbot(self, ctx: utils.CustomContext, emotion: EmotionConverter = None):
