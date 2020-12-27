@@ -1,3 +1,4 @@
+import argparse
 import os
 import re
 
@@ -87,6 +88,17 @@ class ColourConverter(commands.Converter):
         raise commands.BadArgument("Couldn't find anything matching that.")
 
 
+class TodoList(menus.ListPageSource):
+    def __init__(self, data):
+        super().__init__(data, per_page=10)
+
+    async def format_page(self, menu: menus.Menu, page: list):
+        embed = KalDiscordUtils.Embed.default(menu.ctx)
+        embed.description = "\n".join([f"`{task_id}`. {task}" for task_id, task in page])
+
+        return embed
+
+
 class Meta(utils.BaseCog, name="meta"):
     """General and utility commands"""
 
@@ -106,6 +118,137 @@ class Meta(utils.BaseCog, name="meta"):
                 return role.colour
 
         return discord.Colour(0)
+
+    async def _sort_todo_records(self,  user: discord.Member, key = None):
+        sql = "SELECT * FROM todos WHERE user_id = $1"
+        tasks = await self.bot.pool.fetch(sql, user.id)
+        task_list = [task["task"] for task in tasks]
+        sorted_list = sorted(task_list, key=key) if key else sorted(task_list)
+        values = []
+        for index, task in enumerate(tasks):
+            values.append((sorted_list[index], task["id"]))
+
+        sql = "UPDATE todos SET task = $1 WHERE id = $2"
+
+        return sql, values
+
+    @commands.group(aliases=["to-do"], invoke_without_command=True)
+    async def todo(self, ctx: utils.CustomContext):
+        """Base command for all to-do commands."""
+
+        await ctx.send_help(ctx.command)
+
+    @todo.command(name="add")
+    async def todo_add(self, ctx: utils.CustomContext, *, task: str):
+        """Adds a task to your to-do list."""
+
+        if len(task) > 100:
+            raise commands.BadArgument("Your task can not be longer than 100 characters.")
+
+        sql = "INSERT INTO todos VALUES(DEFAULT, $1, $2)"
+        values = (ctx.author.id, task)
+        await self.bot.pool.execute(sql, *values)
+
+        await ctx.send("Successfully added that to your to-do list.")
+
+    @todo.command(name="bulkadd", aliases=["bulk_add", "badd"])
+    async def todo_bulk_add(self, ctx: utils.CustomContext, *tasks: str):
+        """Bulk adds tasks to your to-do list.
+        A couple of tasks may look like:
+        `{prefix}to-do bulkadd "Wow one task here" "Wow here's another task"`."""
+
+        values = []
+
+        for task in tasks:
+            if len(task) > 100:
+                raise commands.BadArgument("I couldn't add one of your tasks as they were above 100 characters.")
+
+            values.append((ctx.author.id, task))
+
+        sql = "INSERT INTO todos VALUES(DEFAULT, $1, $2)"
+        await self.bot.pool.executemany(sql, values)
+
+        await ctx.send("Successfully added those tasks to your to-do list.")
+
+    @todo.command(name="remove", aliases=["delete", "del"])
+    async def todo_remove(self, ctx: utils.CustomContext, *todo_ids: typing.Union[int, str]):
+        """Removes one or many of your to-do tasks by its ID.
+        Do: `{prefix}to-do remove *` to remove all of your tasks."""
+
+        if todo_ids[0] == "*":
+            sql = "DELETE FROM todos WHERE user_id = $1"
+            await self.bot.pool.execute(sql, ctx.author.id)
+            return await ctx.send("Successfully removed all of your current tasks.")
+
+        values = []
+
+        for index, todo_id in enumerate(todo_ids):
+            if isinstance(todo_id, str):
+                raise commands.BadArgument("That is not a valid ID.")
+
+            sql = "SELECT COUNT(*) FROM todos WHERE id = $1 AND user_id = $2"
+            sql_values = (todo_id, ctx.author.id)
+            check = await self.bot.pool.fetchval(sql, *sql_values)
+
+            if check == 0:
+                raise commands.BadArgument(f"It appears you don't own task {todo_id} \N{THINKING FACE}")
+
+            values.append((todo_id, ctx.author.id))
+
+        sql = "DELETE FROM todos WHERE id = $1 AND user_id = $2"
+        await self.bot.pool.executemany(sql, values)
+
+        await ctx.send(f"Successfully deleted {len(todo_ids)} of your tasks.")
+
+    @todo.command(name="sort")
+    async def todo_sort(self, ctx: utils.CustomContext, flag: str):
+        """Sorts your tasks. Available flags:
+        `--alphabetical` - Sorts all tasks in alphabetical order.
+        `--size` - Sorts all tasks by size."""
+
+        sql = "SELECT COUNT(*) FROM todos WHERE user_id = $1"
+        check = await self.bot.pool.fetchval(sql, ctx.author.id)
+
+        if check == 0:
+            raise utils.NoTodoItems("You have no available to-do items to sort.")
+
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--alphabetical", action="store_true")
+        parser.add_argument("--size", action="store_true")
+
+        try:
+            args = parser.parse_args([flag])
+        except SystemExit:
+            raise commands.BadArgument("The only available flags are `--alphabetical` and `--size`.")
+
+        if args.alphabetical:
+            sql, values = await self._sort_todo_records(ctx.author)
+            await self.bot.pool.executemany(sql, values)
+            await ctx.send("Successfully sorted your to-do list alphabetically.")
+        elif args.size:
+            sql, values = await self._sort_todo_records(ctx.author, lambda t: len(t))
+            await self.bot.pool.executemany(sql, values)
+            await ctx.send("Successfully sorted your to-do list by size.")
+
+    @todo.command(name="list")
+    async def todo_list(self, ctx: utils.CustomContext):
+        """Gives a list of all of your currently set tasks."""
+
+        sql = "SELECT * FROM todos WHERE user_id = $1"
+        results = await self.bot.pool.fetch(sql, ctx.author.id)
+
+        if not results:
+            raise utils.NoTodoItems("You have no to-do items I can show you.")
+
+        todo_list = []
+
+        for item in results:
+            todo_list.append([item["id"], item["task"]])
+
+        source = TodoList(todo_list)
+        paginator = utils.KalPages(source)
+
+        await paginator.start(ctx)
 
     @commands.command(name="id", aliases=["idof"])
     async def _id(self, ctx: utils.CustomContext, *, thing: AllConverter):

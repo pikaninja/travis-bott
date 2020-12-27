@@ -43,7 +43,7 @@ class MotherRussia(Cog, command_attrs=dict(hidden=True)):
             if member.bot:
                 return await member.kick(reason="No fuckin bots")
 
-            await member.edit(nick=member.name + " 🎄")
+            # await member.edit(nick=member.name + " 🎄")
             # Nuke bot Protection End
 
     @Cog.listener()

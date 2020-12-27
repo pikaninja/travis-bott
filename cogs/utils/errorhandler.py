@@ -210,6 +210,15 @@ class ErrorHandler(Cog):
                 ),
             )
 
+        # Custom exception
+        elif isinstance(error, utils.NoTodoItems):
+            return await self.send_to_ctx_or_author(
+                ctx,
+                embed=Embed.error(
+                    description=f"{error}"
+                ),
+            )
+
         prettify_exceptions.DefaultFormatter().theme['_ansi_enabled'] = False
         tb = (
             ''.join(prettify_exceptions.DefaultFormatter().format_exception(
