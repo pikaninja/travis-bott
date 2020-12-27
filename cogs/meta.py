@@ -94,7 +94,7 @@ class TodoList(menus.ListPageSource):
 
     async def format_page(self, menu: menus.Menu, page: list):
         embed = KalDiscordUtils.Embed.default(menu.ctx)
-        embed.description = "\n".join([f"`{task_id}`. {task}" for task_id, task in page])
+        embed.description = "\n".join([f"`{index + 1}`. {task}" for index, task in enumerate(page)])
 
         return embed
 
@@ -119,7 +119,22 @@ class Meta(utils.BaseCog, name="meta"):
 
         return discord.Colour(0)
 
+    async def _get_task_by_enumeration(self, user: discord.Member, enumerated_id: int):
+        """Helper method to get a task by its enumeration ID."""
+
+        sql = "SELECT * FROM todos WHERE user_id = $1"
+        all_tasks = await self.bot.pool.fetch(sql, user.id)
+
+        try:
+            resultant_task = all_tasks[enumerated_id - 1]
+        except IndexError:
+            raise commands.BadArgument("You do not have a task that corresponds with that ID.")
+
+        return resultant_task["id"]
+
     async def _sort_todo_records(self,  user: discord.Member, key = None):
+        """Helper method to get the to-do task records in a sorted fashion."""
+
         sql = "SELECT * FROM todos WHERE user_id = $1"
         tasks = await self.bot.pool.fetch(sql, user.id)
         task_list = [task["task"] for task in tasks]
@@ -157,6 +172,9 @@ class Meta(utils.BaseCog, name="meta"):
         A couple of tasks may look like:
         `{prefix}to-do bulkadd "Wow one task here" "Wow here's another task"`."""
 
+        if len(tasks) > 10:
+            raise commands.BadArgument("You can not insert more than 10 tasks at a time.")
+
         values = []
 
         for task in tasks:
@@ -182,22 +200,12 @@ class Meta(utils.BaseCog, name="meta"):
 
         values = []
 
-        for index, todo_id in enumerate(todo_ids):
-            if isinstance(todo_id, str):
-                raise commands.BadArgument("That is not a valid ID.")
+        for todo_id in todo_ids:
+            _id = await self._get_task_by_enumeration(ctx.author, todo_id)
+            values.append((ctx.author.id, _id))
 
-            sql = "SELECT COUNT(*) FROM todos WHERE id = $1 AND user_id = $2"
-            sql_values = (todo_id, ctx.author.id)
-            check = await self.bot.pool.fetchval(sql, *sql_values)
-
-            if check == 0:
-                raise commands.BadArgument(f"It appears you don't own task {todo_id} \N{THINKING FACE}")
-
-            values.append((todo_id, ctx.author.id))
-
-        sql = "DELETE FROM todos WHERE id = $1 AND user_id = $2"
+        sql = "DELETE FROM todos WHERE user_id = $1 AND id = $2"
         await self.bot.pool.executemany(sql, values)
-
         await ctx.send(f"Successfully deleted {len(todo_ids)} of your tasks.")
 
     @todo.command(name="sort")
@@ -243,7 +251,7 @@ class Meta(utils.BaseCog, name="meta"):
         todo_list = []
 
         for item in results:
-            todo_list.append([item["id"], item["task"]])
+            todo_list.append(item["task"])
 
         source = TodoList(todo_list)
         paginator = utils.KalPages(source)
