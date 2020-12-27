@@ -132,21 +132,6 @@ class Meta(utils.BaseCog, name="meta"):
 
         return resultant_task["id"]
 
-    async def _sort_todo_records(self, user: discord.Member, key = None):
-        """Helper method to get the to-do task records in a sorted fashion."""
-
-        sql = "SELECT * FROM todos WHERE user_id = $1"
-        tasks = await self.bot.pool.fetch(sql, user.id)
-        task_list = [task["task"] for task in tasks]
-        sorted_list = sorted(task_list, key=key) if key else sorted(task_list)
-        values = []
-        for index, task in enumerate(tasks):
-            values.append((sorted_list[index], task["id"]))
-
-        sql = "UPDATE todos SET task = $1 WHERE id = $2"
-
-        return sql, values
-
     @commands.group(aliases=["to-do"], invoke_without_command=True)
     async def todo(self, ctx: utils.CustomContext):
         """Base command for all to-do commands."""
@@ -208,41 +193,31 @@ class Meta(utils.BaseCog, name="meta"):
         await self.bot.pool.executemany(sql, values)
         await ctx.send(f"Successfully deleted {len(todo_ids)} of your tasks.")
 
-    @todo.command(name="sort")
-    async def todo_sort(self, ctx: utils.CustomContext, flag: str):
-        """Sorts your tasks. Available flags:
-        `--alphabetical` - Sorts all tasks in alphabetical order.
-        `--size` - Sorts all tasks by size."""
-
-        sql = "SELECT COUNT(*) FROM todos WHERE user_id = $1"
-        check = await self.bot.pool.fetchval(sql, ctx.author.id)
-
-        if check == 0:
-            raise utils.NoTodoItems("You have no available to-do items to sort.")
-
-        parser = argparse.ArgumentParser()
-        parser.add_argument("--alphabetical", action="store_true")
-        parser.add_argument("--size", action="store_true")
-
-        try:
-            args = parser.parse_args([flag])
-        except SystemExit:
-            raise commands.BadArgument("The only available flags are `--alphabetical` and `--size`.")
-
-        if args.alphabetical:
-            sql, values = await self._sort_todo_records(ctx.author)
-            await self.bot.pool.executemany(sql, values)
-            await ctx.send("Successfully sorted your to-do list alphabetically.")
-        elif args.size:
-            sql, values = await self._sort_todo_records(ctx.author, lambda t: len(t))
-            await self.bot.pool.executemany(sql, values)
-            await ctx.send("Successfully sorted your to-do list by size.")
-
     @todo.command(name="list")
-    async def todo_list(self, ctx: utils.CustomContext):
-        """Gives a list of all of your currently set tasks."""
+    async def todo_list(self, ctx: utils.CustomContext, flag: str = None):
+        """Gives a list of all of your currently set tasks.
+        You can also sort them with these flags:
+        `--alphabetical` - Sorts all tasks in alphabetical order.
+        `--size` - Sorts all tasks by size.
+        Note: If you try to delete a task that is in one of these orders you may delete another task by accident!"""
 
         sql = "SELECT * FROM todos WHERE user_id = $1"
+
+        if flag:
+            parser = argparse.ArgumentParser()
+            parser.add_argument("--alphabetical", action="store_true")
+            parser.add_argument("--size", action="store_true")
+
+            try:
+                args = parser.parse_args([flag])
+            except SystemExit:
+                raise commands.BadArgument("The only available flags are `--alphabetical` and `--size`.")
+
+            if args.alphabetical:
+                sql += " ORDER BY task ASC"
+            if args.size:
+                sql += " ORDER BY CHAR_LENGTH(task) ASC"
+
         results = await self.bot.pool.fetch(sql, ctx.author.id)
 
         if not results:
