@@ -3,11 +3,13 @@ import random
 import re
 import textwrap
 import typing
-from io import BytesIO
-
 import KalDiscordUtils
 import asyncdagpi
 import discord
+import twemoji_parser
+from twemoji_parser import emoji_to_url
+
+from io import BytesIO
 from asyncdagpi import ImageFeatures
 from decouple import config
 from discord.ext import commands
@@ -43,9 +45,15 @@ class ImageOrMember(commands.Converter):
 
         except (commands.MemberNotFound, TypeError):
 
+            url_regex = r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
             try:
-                url_regex = r"http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
                 emoji_regex = r"<(?P<animated>a?):(?P<name>[a-zA-Z0-9_]{2,32}):(?P<id>[0-9]{18,22})>"
+
+                url = await twemoji_parser.emoji_to_url(argument, include_check=True)
+                if re.match(url_regex, url):
+                    async with ctx.bot.session.get(url) as response:
+                        image_bytes = await response.read()
+                        return image_bytes
 
                 if re.match(url_regex, argument):
                     async with ctx.bot.session.get(argument) as response:
@@ -53,7 +61,7 @@ class ImageOrMember(commands.Converter):
                         return image
 
                 elif re.match(emoji_regex, argument):
-                    emoji_converter = commands.EmojiConverter()
+                    emoji_converter = commands.PartialEmojiConverter()
                     emoji = await emoji_converter.convert(ctx, argument)
 
                     asset = emoji.url

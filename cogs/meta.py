@@ -132,7 +132,7 @@ class Meta(utils.BaseCog, name="meta"):
 
         return resultant_task["id"]
 
-    async def _sort_todo_records(self,  user: discord.Member, key = None):
+    async def _sort_todo_records(self, user: discord.Member, key = None):
         """Helper method to get the to-do task records in a sorted fashion."""
 
         sql = "SELECT * FROM todos WHERE user_id = $1"

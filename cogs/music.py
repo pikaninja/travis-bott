@@ -1,5 +1,4 @@
 import asyncio
-import enum
 import discord
 from discord.ext import commands, menus
 from decouple import config
@@ -21,6 +20,7 @@ class Player(wavelink.Player):
             self.dj: discord.Member = self.context.author
 
         self.queue = asyncio.Queue()
+        self.repeat = False
 
         self.waiting = False
         self.updating = False
@@ -64,6 +64,7 @@ class PaginatorSource(menus.ListPageSource):
         return embed
 
 
+# noinspection PyUnresolvedReferences
 class Music(commands.Cog, wavelink.WavelinkMixin, name="music"):
     """Music Commands"""
 
@@ -100,18 +101,20 @@ class Music(commands.Cog, wavelink.WavelinkMixin, name="music"):
     async def on_node_ready(self, node: wavelink.Node):
         print(f"Node {node.identifier} is ready!")
 
+    # noinspection PyUnusedLocal
     @wavelink.WavelinkMixin.listener("on_track_stuck")
     @wavelink.WavelinkMixin.listener("on_track_end")
     @wavelink.WavelinkMixin.listener("on_track_exception")
     async def on_player_stop(self, node: wavelink.Node, payload):
         await payload.player.do_next()
 
+    # noinspection PyUnusedLocal
     @commands.Cog.listener()
     async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
         if member.bot:
             return
 
-        player: wavelink.Player = self.bot.wavelink.get_player(
+        player: Player = self.bot.wavelink.get_player(
             member.guild.id, cls=Player)
 
         if not player.channel_id or not player.context:
@@ -135,7 +138,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin, name="music"):
             player.dj = member
 
     async def cog_before_invoke(self, ctx: utils.CustomContext):
-        player: wavelink.Player = self.bot.wavelink.get_player(
+        player: Player = self.bot.wavelink.get_player(
             ctx.guild.id, context=ctx, cls=Player)
 
         if player.context:
@@ -161,10 +164,10 @@ class Music(commands.Cog, wavelink.WavelinkMixin, name="music"):
                     )
 
     def required_members(self, ctx: utils.CustomContext):
-        player: wavelink.Player = self.bot.wavelink.get_player(
+        player: Player = self.bot.wavelink.get_player(
             ctx.guild.id, cls=Player)
         channel = self.bot.get_channel(int(player.channel_id))
-        required = math.ceil((3) / 3.5)
+        required = math.ceil(3 / 3.5)
 
         if ctx.command.name == "stop":
             if len(channel.members) == 3:
@@ -173,7 +176,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin, name="music"):
         return required
 
     def is_privileged(self, ctx: utils.CustomContext):
-        player: wavelink.Player = self.bot.wavelink.get_player(
+        player: Player = self.bot.wavelink.get_player(
             ctx.guild.id, cls=Player)
 
         return player.dj == ctx.author or ctx.author.guild_permissions.manage_messages
@@ -219,7 +222,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin, name="music"):
     async def skip(self, ctx: utils.CustomContext):
         """Skips the current song playing."""
 
-        player: wavelink.Player = self.bot.wavelink.get_player(
+        player: Player = self.bot.wavelink.get_player(
             ctx.guild.id, cls=Player)
 
         if not player.is_connected:
@@ -250,7 +253,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin, name="music"):
     async def stop(self, ctx: utils.CustomContext):
         """Stops the music from playing entirely."""
 
-        player: wavelink.Player = self.bot.wavelink.get_player(
+        player: Player = self.bot.wavelink.get_player(
             ctx.guild.id, cls=Player)
 
         if not player.is_connected:
@@ -274,7 +277,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin, name="music"):
     async def queue(self, ctx: utils.CustomContext):
         """Displays the current songs that are queued."""
 
-        player: wavelink.Player = self.bot.wavelink.get_player(
+        player: Player = self.bot.wavelink.get_player(
             ctx.guild.id, cls=Player)
 
         if not player.is_connected:
@@ -283,6 +286,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin, name="music"):
         if player.queue.qsize() == 0:
             return await ctx.send("There are no more songs in the queue...")
 
+        # noinspection PyProtectedMember
         entries = [track.title for track in player.queue._queue]
         pages = PaginatorSource(entries=entries)
         paginator = utils.KalPages(pages)
