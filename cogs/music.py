@@ -4,6 +4,7 @@ from discord.ext import commands, menus
 from decouple import config
 
 import math
+import logging
 import wavelink
 import async_timeout
 import KalDiscordUtils
@@ -71,6 +72,8 @@ class Music(commands.Cog, wavelink.WavelinkMixin, name="music"):
     def __init__(self, bot, show_name):
         self.bot: utils.MyBot = bot
         self.show_name = show_name
+
+        self.logger = utils.create_logger(self.__class__.__name__, logging.INFO)
 
         if not hasattr(bot, "wavelink"):
             self.bot.wavelink = wavelink.Client(bot=self.bot)

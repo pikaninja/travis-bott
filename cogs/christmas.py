@@ -1,5 +1,6 @@
 import asyncio
 import datetime
+import logging
 import random
 
 import KalDiscordUtils
@@ -15,6 +16,7 @@ class Christmas(utils.BaseCog, name="christmas"):
     def __init__(self, bot, show_name):
         self.bot: utils.MyBot = bot
         self.show_name = show_name
+        self.logger = utils.create_logger(self.__class__.__name__, logging.INFO)
 
     @commands.command()
     async def howlong(self, ctx: utils.CustomContext):

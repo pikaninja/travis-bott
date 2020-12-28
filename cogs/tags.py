@@ -5,6 +5,7 @@ from discord.ext import commands, menus
 import discord
 
 import typing
+import logging
 
 import utils
 
@@ -53,6 +54,8 @@ class Tags(utils.BaseCog, name="tags"):
     def __init__(self, bot: utils.MyBot, show_name: str):
         self.bot: utils.MyBot = bot
         self.show_name: str = show_name
+
+        self.logger = utils.create_logger(self.__class__.__name__, logging.INFO)
 
     @commands.group(invoke_without_command=True)
     async def tag(self, ctx: utils.CustomContext):

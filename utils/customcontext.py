@@ -26,8 +26,9 @@ class CustomContext(commands.Context):
             kwargs["embed"] = embed
 
         text = utils.owoify_text(str(*args))
-        message = await method(text, **kwargs)
-        self.bot.ctx_cache[self.message.id] = message
+        message = await method(content=text, **kwargs)
+        if self.author.id in self.bot.owner_ids:
+            self.bot.ctx_cache[self.message.id] = message
         return message
 
     async def send(self, *args, **kwargs):
@@ -50,7 +51,10 @@ class CustomContext(commands.Context):
                 return await self._owoify(super().send, *args, **kwargs)
 
             message = await super().send(*args, **kwargs)
-            self.bot.ctx_cache[self.message.id] = message
+
+            if self.author.id in self.bot.owner_ids:
+                self.bot.ctx_cache[self.message.id] = message
+
             return message
 
     @property

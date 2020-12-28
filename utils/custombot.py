@@ -1,4 +1,5 @@
 import asyncio
+import logging
 import re
 import time
 
@@ -11,10 +12,14 @@ from datetime import timedelta
 
 import aiohttp
 
+from .logger import create_logger
 from .customcontext import CustomContext
 from .utils import set_mute, set_giveaway
 
 import config as cfg
+
+
+logger = create_logger("custombot", logging.INFO)
 
 
 async def get_prefix(bot: commands.AutoShardedBot, message: discord.Message):
@@ -92,20 +97,28 @@ class MyBot(commands.AutoShardedBot):
         for entry in verification_config:
             self.verification_config[entry["message_id"]] = entry["role_id"]
 
+        logger.info("Finished caching the verification config")
+
         for entry in guild_configs:
             settings = dict(entry)
             settings.pop("guild_id")
 
             self.config[entry["guild_id"]] = settings
 
+        logger.info("Finished caching guild configs")
+
         for entry in blacklist:
             self.blacklist[entry["id"]] = entry["reason"]
+
+        logger.info("Finished caching blacklists")
 
         for entry in giveaways:
             if entry["role_id"]:
                 self.giveaway_roles[entry["message_id"]] = entry["role_id"]
 
             await set_giveaway(self, entry["ends_at"], entry["channel_id"], entry["message_id"])
+
+        logger.info("Finished caching and setting giveaways")
 
         mutes = await self.pool.fetch("SELECT * FROM guild_mutes")
         for mute in mutes:
@@ -115,6 +128,8 @@ class MyBot(commands.AutoShardedBot):
                            guild_id=mute["guild_id"],
                            user_id=mute["member_id"],
                            _time=seconds_left)
+
+        logger.info("Finished setting mutes.")
 
         updates_channel = await self.fetch_channel(711586681580552232)
         last_update = await updates_channel.fetch_message(updates_channel.last_message_id)
@@ -159,6 +174,9 @@ class MyBot(commands.AutoShardedBot):
             f"I was just added to {guild.name} with {guild.member_count} members.",
             f"Now in {len(self.guilds)} guilds.",
         ]
+
+        logger.info("\n".join(message))
+
         await self.guild_webhook.send(content="\n".join(message),
                                       username="Added to guild.")
 
@@ -177,6 +195,9 @@ class MyBot(commands.AutoShardedBot):
             f"I was just removed from {guild.name} with {guild.member_count} members.",
             f"Now in {len(self.guilds)} guilds.",
         ]
+
+        logger.info("\n".join(message))
+
         await self.guild_webhook.send(content="\n".join(message),
                                       username="Removed from guild.")
 

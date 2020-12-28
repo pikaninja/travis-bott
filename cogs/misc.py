@@ -1,5 +1,6 @@
 import io
 import json
+import logging
 import time
 import typing
 import re
@@ -165,6 +166,8 @@ class Misc(utils.BaseCog, name="misc"):
                           758861325039566868]
         self.bot: utils.MyBot = bot
         self.show_name = show_name
+
+        self.logger = utils.create_logger(self.__class__.__name__, logging.INFO)
 
     @commands.Cog.listener()
     async def on_command(self, ctx: utils.CustomContext):
@@ -459,10 +462,14 @@ class Misc(utils.BaseCog, name="misc"):
     async def github(self, ctx: utils.CustomContext):
         """Sends the bots github repo"""
 
-        await ctx.send(
-            "Here's my source code, if you decide to use my code please star my repo :}:\n"
-            f"<{self.bot.github_url}>"
+        embed = KalDiscordUtils.Embed.default(
+            ctx,
+            title="Click here to view my source code."
         )
+
+        embed.url = self.bot.github_url
+
+        await ctx.send(embed=embed)
 
 
 def setup(bot):

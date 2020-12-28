@@ -9,6 +9,7 @@ from datetime import datetime as dt
 import humanize
 
 import asyncio
+import logging
 import discord
 import uuid
 import re
@@ -155,6 +156,8 @@ class Moderation(utils.BaseCog, name="moderation"):
     def __init__(self, bot, show_name):
         self.bot: utils.MyBot = bot
         self.show_name = show_name
+
+        self.logger = utils.create_logger(self.__class__.__name__, logging.INFO)
 
     @commands.Cog.listener()
     async def on_mod_cmd(

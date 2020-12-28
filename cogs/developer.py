@@ -3,6 +3,7 @@ import collections
 import contextlib
 import glob
 import io
+import logging
 import os
 import json
 import textwrap
@@ -68,6 +69,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
     def __init__(self, bot):
         self._last_result = None
         self.bot: utils.MyBot = bot
+        self.logger = utils.create_logger(self.__class__.__name__, logging.INFO)
 
     async def cog_check(self, ctx: utils.CustomContext):
         return await self.bot.is_owner(ctx.author)

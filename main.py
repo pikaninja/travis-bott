@@ -1,25 +1,16 @@
 import datetime
+import logging
+
+import utils
+import os
 
 from utils.custombot import MyBot
 from discord import Game, Status, AllowedMentions, Intents
 from discord.ext.ipc import Server
 from decouple import config
 from discord.flags import MemberCacheFlags
-import os
-import logging
-from logging.handlers import RotatingFileHandler
 
-logging.basicConfig(
-    level=logging.INFO,
-    filename="./logs/discord.log",
-    filemode="w"
-)
-
-log = logging.getLogger(__name__)
-handler = RotatingFileHandler("./logs/discord.log",
-                              maxBytes=5242880,  # 5 Megabytes
-                              backupCount=1)
-log.addHandler(handler)
+logger = utils.create_logger("travis-bott", logging.INFO)
 
 new_guilds = False
 
@@ -62,8 +53,6 @@ bot.exts = [
     "cogs.topgg",
 ]
 
-if datetime.datetime.utcnow().month == 11 or datetime.datetime.utcnow().month == 12:
-    bot.exts.append("cogs.christmas")
 
 os.environ["JISHAKU_HIDE"] = "True"
 os.environ["JISHAKU_NO_UNDERSCORE"] = "True"
@@ -85,17 +74,17 @@ cogs = [
 
 for cog in cogs:
     bot.load_extension(cog)
-    log.info(f"-> [MODULE] {cog[5:]} loaded.")
+    logger.info(f"-> [MODULE] {cog[5:]} loaded.")
 
 for ext in bot.exts:
     bot.load_extension(ext)
-    log.info(f"-> [MODULE] {ext[5:]} loaded.")
+    logger.info(f"-> [MODULE] {ext[5:]} loaded.")
 
 # Utilities
 for file in os.listdir("./cogs/utils"):
     if file.endswith(".py"):
         bot.load_extension(f"cogs.utils.{file[:-3]}")
-        log.info(f"-> [MODULE] {file[:-3]} loaded.")
+        logger.info(f"-> [MODULE] {file[:-3]} loaded.")
 
 
 @bot.event
@@ -105,9 +94,9 @@ async def on_ready():
         activity=Game(name=config("BOT_STATUS"))
     )  # Set the status
     # Basic info on the bot @ startup
-    log.info(f"Logged in as -> {bot.user.name}")
-    log.info(f"Client ID -> {bot.user.id}")
-    log.info(f"Guild Count -> {len(bot.guilds)}")
+    logger.info(f"Logged in as -> {bot.user.name}")
+    logger.info(f"Client ID -> {bot.user.id}")
+    logger.info(f"Guild Count -> {len(bot.guilds)}")
 
     # Makes sure that all the guilds the bot is in are registered in the database
     # This may need to be used IF the bot is offline and gets added to new servers
@@ -124,7 +113,7 @@ async def on_ready():
     if (
         new_guilds
     ):  # Just tell me if there's any guilds that got added if the bot was down
-        log.info("-> Added new guild(s) to database.")
+        logger.info("-> Added new guild(s) to database.")
 
 
 @bot.ipc.route()
