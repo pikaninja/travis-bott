@@ -37,7 +37,7 @@ class CustomContext(commands.Context):
 
             message = self.bot.ctx_cache[self.message.id]
 
-            if self.guild.id == 336642139381301249:
+            if self.bot.config[self.guild.id]["owoify"]:
                 return await self._owoify(message.edit, *args, **kwargs)
 
             await message.edit(content=str(*args), **kwargs)
@@ -46,7 +46,7 @@ class CustomContext(commands.Context):
             if kwargs.get("new_message"):
                 kwargs.pop("new_message")
 
-            if self.guild.id == 336642139381301249:
+            if self.bot.config[self.guild.id]["owoify"]:
                 return await self._owoify(super().send, *args, **kwargs)
 
             message = await super().send(*args, **kwargs)

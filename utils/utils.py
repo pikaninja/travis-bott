@@ -22,19 +22,32 @@ UserSnowflake = typing.Union[UserObject, discord.Object]
 
 
 OWO_REPL = {
-    "er": "ew",
-    "l": "w",
-    "the": "thuwu",
-    "row": "rowo",
-    "rus": "ruwus",
-    "y": "wy",
+    r"\By": "wy",
+    r"l": "w",
+    r"er": "ew",
+    r"row": "rowo",
+    r"rus": "ruwus",
+    r"the": "thuwu"
 }
 
 OWO_CHOICES = ("owo", "uwu")
 
+def _maintain_case_replace(sub: str, repl: str, text: str):
+    def _repl(match: re.Match):
+        group = match.group()
+        # there has to be a better way to do this
+        if group.islower():
+            return repl.lower()
+        elif group.istitle():
+            return repl.title()
+        elif group.isupper():
+            return repl.upper()
+        return repl
+    return re.sub(sub, _repl, text, flags=re.I)
+
 def owoify_text(text: str):
     for sub, repl in OWO_REPL.items():
-        text = re.sub(sub, repl, text, flags=re.I)
+        text = _maintain_case_replace(sub, repl, text)
 
     return text + " " + random.choice(OWO_CHOICES)
 

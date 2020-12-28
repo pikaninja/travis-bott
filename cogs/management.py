@@ -374,6 +374,18 @@ class Management(utils.BaseCog, name="management"):
                 return await ctx.send("Alright, backing out.",
                                       new_message=True)
 
+    @commands.command()
+    @commands.guild_only()
+    @commands.has_permissions(manage_guild=True)
+    async def owoify(self, ctx: utils.CustomContext, enabled: bool):
+        """Enables owoified text for the server."""
+
+        self.bot.config[ctx.guild.id]["owoify"] = enabled
+        await self.bot.pool.execute("UPDATE guild_settings SET owoify = $1 WHERE guild_id = $2",
+                                    enabled, ctx.guild.id)
+
+        await ctx.send("Successfully updated your owoify settings")
+
     @commands.group(invoke_without_command=True)
     @commands.guild_only()
     async def prefix(self, ctx: utils.CustomContext):

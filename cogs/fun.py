@@ -115,6 +115,13 @@ class Fun(utils.BaseCog, name="fun"):
                 user.id
             )
 
+    @commands.command(name="owo-text")
+    async def owo_text(self, ctx: utils.CustomContext, *, text: str):
+        """Owoifies a given piece of text."""
+
+        owoified = utils.owoify_text(text)
+        await ctx.send(owoified)
+
     @commands.command(aliases=["cb"], cooldown_after_parsing=True)
     @commands.max_concurrency(1, commands.BucketType.channel)
     @utils.has_voted()
