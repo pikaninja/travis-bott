@@ -219,7 +219,7 @@ class Moderation(utils.BaseCog, name="moderation"):
         mute_role = member.guild.get_role(role_id=mute_role_id)
         await member.add_roles(mute_role, reason="Mute Role Persist")
 
-    @commands.command()
+    @commands.command(hidden=True)
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_permissions(ban_members=True)
