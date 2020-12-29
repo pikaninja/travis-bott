@@ -96,7 +96,8 @@ class ColourConverter(commands.Converter):
         if result:
             return result
 
-        raise commands.BadArgument(f"Couldn't find a colour value matching `{argument}`.")
+        raise commands.BadArgument(
+            f"Couldn't find a colour value matching `{argument}`.")
 
 
 class TodoList(menus.ListPageSource):
@@ -774,7 +775,8 @@ class Meta(utils.BaseCog, name="meta"):
                 if i == 10:
                     emojis.append("\N{KEYCAP TEN}")
 
-                emojis.append(f"{i}\N{VARIATION SELECTOR-16}\N{COMBINING ENCLOSING KEYCAP}")
+                emojis.append(
+                    f"{i}\N{VARIATION SELECTOR-16}\N{COMBINING ENCLOSING KEYCAP}")
 
             embed = Embed.default(ctx,
                                   title=multi[0],
@@ -783,7 +785,8 @@ class Meta(utils.BaseCog, name="meta"):
             choices = multi[1].split(", ")
 
             if len(choices) > 11:
-                raise commands.BadArgument("You can not provide more than 10 options!")
+                raise commands.BadArgument(
+                    "You can not provide more than 10 options!")
 
             for index, choice in enumerate(choices):
                 embed.description += f"{emojis[index]} {choice}\n"

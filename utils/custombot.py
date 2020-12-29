@@ -4,6 +4,7 @@ import re
 import time
 
 import asyncpg
+from decouple import config
 import discord
 from discord.ext import commands
 
@@ -89,6 +90,18 @@ class MyBot(commands.AutoShardedBot):
 
     async def do_prep(self):
         await self.wait_until_ready()
+
+        for guild in self.guilds:
+            get_guild = await self.pool.fetchval(
+                "SELECT guild_id FROM guild_settings WHERE guild_id = $1", guild.id
+            )
+
+            if get_guild is None:
+                await self.pool.execute(
+                    "INSERT INTO guild_settings VALUES($1, DEFAULT, $2, $3, $4)",
+                    guild.id, None, None, None
+                )
+
         verification_config = await self.pool.fetch("SELECT message_id, role_id FROM guild_verification")
         guild_configs = await self.pool.fetch("SELECT * FROM guild_settings")
         blacklist = await self.pool.fetch("SELECT * FROM blacklist")
@@ -140,6 +153,8 @@ class MyBot(commands.AutoShardedBot):
         }
 
         self.announcement = update
+
+        await self.change_presence(activity=discord.Game(name=config("BOT_STATUS")))
 
     async def get_context(self, message, *, cls=CustomContext):
         return await super().get_context(message, cls=cls)
