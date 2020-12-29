@@ -235,7 +235,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
     async def dev_restart(self, ctx: utils.CustomContext, what: str):
         await ctx.send(f"⚠ Restarting {what.lower()} now...")
         if what.lower() == "bot":
-            await self.bot.logout()
+            await self.bot.close()
         elif what.lower() == "webserver":
             os.system("systemctl restart webserver")
         elif what.lower() == "server":
