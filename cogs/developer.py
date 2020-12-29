@@ -78,8 +78,10 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
     def _exec_then_eval(self, ctx: utils.CustomContext, code):
         """Helper method to help evaluate python code."""
+
         block = ast.parse(code, mode="exec")
         last = ast.Expression(block.body.pop().value)
+
         _globals = {
             "ctx": ctx,
             "bot": ctx.bot,
@@ -93,6 +95,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         }
         _globals.update(globals())
         _locals = {}
+
         exec(compile(block, "<string>", mode="exec"), _globals, _locals)
         return eval(compile(last, "<string>", mode="eval"), _globals, _locals)
 
@@ -115,28 +118,6 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         await ctx.send(
             "\N{OK HAND SIGN} Successfully blacklisted that user."
         )
-
-    @dev.command(name="test")
-    async def dev_test(self, ctx: utils.CustomContext):
-        """Testing PIL"""
-
-        buffer = io.BytesIO()
-
-        text = "The quick brown fox jumped over the lazy dog longer test lol watch this."
-        wrapped_text = textwrap.wrap(text, width=30)
-        text = "\n".join(wrapped_text)
-        size = ImageFont.load_default().getsize(text)
-
-        with PILImage.new("RGB", (size[0] - len(wrapped_text[0]), (size[1] * (len(wrapped_text) + 1)) + 5), 0x2150c1) as base:
-
-            canvas = ImageDraw.Draw(base)
-            canvas.multiline_text((5, 5), text)
-
-            base.save(buffer, "png")
-
-        buffer.seek(0)
-
-        await ctx.send(file=discord.File(buffer, "test.png"))
 
     @dev.command(name="ocr")
     async def dev_ocr(self, ctx: utils.CustomContext, url: str):
@@ -185,7 +166,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
                     ctr['coroutine'] += line.startswith('async def')
                     ctr['comment'] += '#' in line
 
-        code_count = '\n'.join(f'{key}: {count}' for key, count in ctr.items())
+        code_count = '\n'.join(f'{key.upper()}: {count}' for key, count in ctr.items())
         server_count = sum(1 for g in self.bot.guilds)
         user_count = sum(g.member_count for g in self.bot.guilds)
         command_count = sum(1 for cmd in self.bot.walk_commands())
@@ -255,44 +236,6 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         channel = channel or ctx.channel
         await channel.send(msg)
 
-    @dev.command(name="kill")
-    async def dev_kill(self, ctx: utils.CustomContext):
-        try:
-            self.bot.clear()
-            await self.bot.close()
-        except Exception as e:
-            await ctx.send(
-                "Couldn't kill the bot for some reason, maybe this will help:\n"
-                + f"{type(e).__name__} - {e}"
-            )
-
-    @dev.command()
-    async def shard_recon(self, ctx: utils.CustomContext, shard_id: int):
-        try:
-            self.bot.get_shard(shard_id).reconnect()
-        except Exception as e:
-            await ctx.send(f"**`ERROR:`** {type(e).__name__} - {e}")
-        else:
-            await ctx.send("**`SUCCESS`**")
-
-    @dev.command()
-    async def shard_discon(self, ctx: utils.CustomContext, shard_id: int):
-        try:
-            self.bot.get_shard(shard_id).disconnect()
-        except Exception as e:
-            await ctx.send(f"**`ERROR:`** {type(e).__name__} - {e}")
-        else:
-            await ctx.send("**`SUCCESS`**")
-
-    @dev.command()
-    async def shard_con(self, ctx: utils.CustomContext, shard_id: int):
-        try:
-            self.bot.get_shard(shard_id).connect()
-        except Exception as e:
-            await ctx.send(f"**`ERROR:`** {type(e).__name__} - {e}")
-        else:
-            await ctx.send("**`SUCCESS`**")
-
     @dev.command(name="reload", aliases=["r"])
     async def dev_reload(self, ctx: utils.CustomContext):
         """Reloads all cogs"""
@@ -324,24 +267,49 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         await ctx.send(f"Successfully reloaded:\n{', '.join(successful)}", new_message=True)
 
     @dev.command(name="load")
-    async def dev_load(self, ctx: utils.CustomContext, cog: str):
-        # Loads a given Cog
-        try:
-            self.bot.load_extension(cog)
-        except Exception as e:
-            await ctx.send(f"**`ERROR:`** {type(e).__name__} - {e}")
-        else:
-            await ctx.send("**`SUCCESS`**")
+    async def dev_load(self, ctx: utils.CustomContext, *cogs: str):
+        """Loads given cog(s)"""
+
+        successful = []
+        unsuccessful = {}
+
+        for cog in cogs:
+            try:
+                self.bot.load_extension(cog)
+                successful.append(cog)
+            except Exception as e:
+                unsuccessful[cog] = f"{type(e).__name__} - {e}"
+
+        await ctx.send(f"I successfully loaded {', '.join(successful)}")
+
+        if unsuccessful:
+            fmt = "\n".join([f"{key} - {value}" for key, value in unsuccessful.items()])
+            await ctx.send(
+                "Though there were some errors loading something:\n" +
+                fmt
+            )
 
     @dev.command(name="unload")
-    async def dev_unload(self, ctx: utils.CustomContext, cog: str):
-        # Unloads a given Cog
-        try:
-            self.bot.unload_extension(cog)
-        except Exception as e:
-            await ctx.send(f"**`ERROR:`** {type(e).__name__} - {e}")
-        else:
-            await ctx.send("**`SUCCESS`**")
+    async def dev_unload(self, ctx: utils.CustomContext, *cogs: str):
+        """Unloads given cog(s)"""
+
+        successful = []
+        unsuccessful = {}
+
+        for cog in cogs:
+            try:
+                self.bot.unload_extension(cog)
+            except Exception as e:
+                unsuccessful[cog] = f"{type(e).__name__} - {e}"
+
+        await ctx.send(f"I successfully unloaded {', '.join(successful)}")
+
+        if unsuccessful:
+            fmt = "\n".join([f"{key} - {value}" for key, value in unsuccessful.items()])
+            await ctx.send(
+                "Though there were some errors unloading something:\n" +
+                fmt
+            )
 
     @dev.command(name="ev")
     async def dev_ev(self, ctx: utils.CustomContext, *, code: codeblock_converter):
