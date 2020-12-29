@@ -1,22 +1,37 @@
+"""
+Developer commands to provide the developer some useful functionalities in the program.
+Copyright (C) 2020 kal-byte
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+"""
+
 import ast
 import collections
-import contextlib
 import glob
 import io
 import logging
 import os
-import json
-import textwrap
 import traceback
 import re
 import typing
 
 from jishaku.codeblocks import codeblock_converter
-from PIL import Image as PILImage, ImageDraw, ImageFont
+from PIL import Image as PILImage
 import pytesseract
 
 import discord
-from discord.ext import menus, commands
+from discord.ext import menus
 from discord.ext.commands import (
     Cog, is_owner, BadArgument, group, Converter
 )
@@ -24,7 +39,6 @@ from discord.ext.commands import (
 from utils.embed import Embed
 
 import utils
-import config as cfg
 
 time_regex = re.compile("(?:(\d{1,5})(h|s|m|d))+?")
 time_dict = {"h": 3600, "s": 1, "m": 60, "d": 86400}
