@@ -20,21 +20,22 @@ from .utils import set_mute, set_giveaway
 import config as cfg
 
 
-logger = create_logger("custombot", logging.INFO)
+logger = create_logger("custom-bot", logging.INFO)
 
 
 async def get_prefix(bot: commands.AutoShardedBot, message: discord.Message):
-    if (
-        bot.user.id == 706530005169209386 and
-            message.author.id in bot.owner_ids and
-        message.content.startswith(("dev", "jsk"))
-    ):
+    if await bot.is_owner(message.author) and message.content.startswith(("dev", "jsk")):
         return ""
+
     if message.guild is None:
         return commands.when_mentioned_or("tb!")(bot, message)
-    else:
+
+    try:
         prefix = bot.config[message.guild.id]["guild_prefix"]
-        return commands.when_mentioned_or(prefix)(bot, message)
+    except KeyError:
+        return commands.when_mentioned(bot, message)
+
+    return commands.when_mentioned_or(prefix)(bot, message)
 
 
 class MyBot(commands.AutoShardedBot):

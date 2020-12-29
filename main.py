@@ -62,7 +62,8 @@ cogs = [
 for cog in cogs:
     try:
         bot.load_extension(cog)
-        logger.info(f"-> [MODULE] {cog[5:] if cog.startswith('cog') else cog} loaded.")
+        logger.info(
+            f"-> [MODULE] {cog[5:] if cog.startswith('cog') else cog} loaded.")
     except Exception as e:
         logger.critical(f"{type(e).__name__} - {e}")
 
