@@ -10,7 +10,8 @@ import utils
 class TopGG(utils.BaseCog):
     def __init__(self, bot):
         self.bot: utils.MyBot = bot
-        self.logger = utils.create_logger(self.__class__.__name__, logging.INFO)
+        self.logger = utils.create_logger(
+            self.__class__.__name__, logging.INFO)
 
         self.dbl_token = config("TOP_GG_API")
         self.update_stats.start()

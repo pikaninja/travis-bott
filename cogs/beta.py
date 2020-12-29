@@ -14,7 +14,8 @@ class Beta(utils.BaseCog, name="beta", command_attrs=dict(hidden=True)):
     def __init__(self, bot, show_name):
         self.bot: utils.MyBot = bot
         self.show_name = show_name
-        self.logger = utils.create_logger(self.__class__.__name__, logging.INFO)
+        self.logger = utils.create_logger(
+            self.__class__.__name__, logging.INFO)
 
     @commands.group(aliases=["b"], invoke_without_command=True)
     async def beta(self, ctx: utils.CustomContext):

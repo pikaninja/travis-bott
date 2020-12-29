@@ -1,13 +1,14 @@
 import uuid
-
-import KalDiscordUtils
-from discord.ext import commands, menus
-import discord
-
 import typing
 import logging
 
+import discord
+
 import utils
+
+from discord.ext import commands, menus
+
+from utils.embed import Embed
 
 
 class TagsListPageSource(menus.ListPageSource):
@@ -17,7 +18,7 @@ class TagsListPageSource(menus.ListPageSource):
         self.username: str = username
 
     async def format_page(self, menu: menus.Menu, all_tags: list):
-        embed = KalDiscordUtils.Embed.default(menu.ctx)
+        embed = Embed.default(menu.ctx)
         embed.title = f'{self.username}\'s tags'
         embed.description = "\n".join(all_tags)
 
@@ -55,7 +56,8 @@ class Tags(utils.BaseCog, name="tags"):
         self.bot: utils.MyBot = bot
         self.show_name: str = show_name
 
-        self.logger = utils.create_logger(self.__class__.__name__, logging.INFO)
+        self.logger = utils.create_logger(
+            self.__class__.__name__, logging.INFO)
 
     @commands.group(invoke_without_command=True)
     async def tag(self, ctx: utils.CustomContext):

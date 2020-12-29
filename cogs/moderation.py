@@ -1,12 +1,12 @@
-import KalDiscordUtils
-from discord.ext import commands, menus
+import humanize
 
 import utils
+from utils.embed import Embed
 
 from time import time as t
 
 from datetime import datetime as dt
-import humanize
+from discord.ext import commands, menus
 
 import asyncio
 import logging
@@ -118,7 +118,7 @@ class WarnsMenu(menus.ListPageSource):
         super().__init__(data, per_page=per_page)
 
     async def format_page(self, menu: menus.Menu, page):
-        embed = KalDiscordUtils.Embed.default(menu.ctx)
+        embed = Embed.default(menu.ctx)
         embed.description = "\n".join(page)
 
         return embed
@@ -129,7 +129,7 @@ class ModerationsMenu(menus.ListPageSource):
         super().__init__(data, per_page=per_page)
 
     async def format_page(self, menu: menus.Menu, page):
-        embed = KalDiscordUtils.Embed.default(menu.ctx)
+        embed = Embed.default(menu.ctx)
         embed.title = "Active Mutes"
         embed.description = "\n".join(page)
 
@@ -157,7 +157,8 @@ class Moderation(utils.BaseCog, name="moderation"):
         self.bot: utils.MyBot = bot
         self.show_name = show_name
 
-        self.logger = utils.create_logger(self.__class__.__name__, logging.INFO)
+        self.logger = utils.create_logger(
+            self.__class__.__name__, logging.INFO)
 
     @commands.Cog.listener()
     async def on_mod_cmd(
@@ -187,7 +188,7 @@ class Moderation(utils.BaseCog, name="moderation"):
             await self.bot.pool.execute("UPDATE guild_settings SET log_channel = $1 WHERE guild_id = $2",
                                         None, ctx.guild.id)
 
-        embed = KalDiscordUtils.Embed.default(
+        embed = Embed.default(
             ctx,
             title=f"Super Log",
             description=f"{moderator} to {user_affected}\n"
@@ -269,7 +270,7 @@ class Moderation(utils.BaseCog, name="moderation"):
         dt_obj = dt.fromtimestamp(timestamp)
         humanized = humanize.precisedelta(dt_obj, format="%0.0f")
 
-        embed = KalDiscordUtils.Embed.default(ctx)
+        embed = Embed.default(ctx)
         embed.description = (
             f"{ctx.author.mention} ({ctx.author}) has muted {user.mention} ({user}) for {humanized} for the reason: "
             f"{reason}"
@@ -302,7 +303,7 @@ class Moderation(utils.BaseCog, name="moderation"):
             return await ctx.send("That user does not have the guilds set muted role.")
 
         await user.remove_roles(mute_role, reason=f"Unmuted by: {ctx.author}")
-        embed = KalDiscordUtils.Embed.default(ctx)
+        embed = Embed.default(ctx)
         embed.description = f"{ctx.author.mention} ({ctx.author}) unmuted {user.mention} ({user})"
 
         await ctx.send(embed=embed)
@@ -558,7 +559,7 @@ class Moderation(utils.BaseCog, name="moderation"):
         if len("\n".join(columns[1])) > 1024:
             columns[1] = columns[1][:20]
 
-        embed = KalDiscordUtils.Embed.default(
+        embed = Embed.default(
             ctx,
             title=f"Members in {role.name} [{sum(1 for m in role.members)}]"
         )
@@ -635,7 +636,7 @@ class Moderation(utils.BaseCog, name="moderation"):
         await user.edit(roles=current_roles)
         await ctx.thumbsup()
 
-        embed = KalDiscordUtils.Embed.default(
+        embed = Embed.default(
             ctx,
             title="Updated Member Roles",
             description=f"{user.mention} | {' '.join(modifiers)}",
@@ -734,7 +735,7 @@ class Moderation(utils.BaseCog, name="moderation"):
                 ["Permissions",
                     f"```\n{repr_permissions or 'Nothing special.'}```", False],
             ]
-            embed = KalDiscordUtils.Embed.default(
+            embed = Embed.default(
                 ctx,
                 colour=discord.Color.from_rgb(*role_colour)
             )
@@ -743,9 +744,9 @@ class Moderation(utils.BaseCog, name="moderation"):
             embed_list.append(embed)
 
         if len(embed_list) > 1:
-            # type: ignore[reportUndefinedVariable]
-            p = Paginator(embed_list, clear_reactions=True)
-            await p.paginate(ctx)
+            source = utils.EmbedMenu(embed_list)
+            paginator = utils.KalPages(source)
+            await paginator.start(ctx)
         else:
             await ctx.send(embed=embed_list[0])
 
@@ -766,7 +767,7 @@ class Moderation(utils.BaseCog, name="moderation"):
             role_names.append(f"{role.mention}")
             role_ids.append(f"{role.id}")
 
-        embed = KalDiscordUtils.Embed.default(ctx)
+        embed = Embed.default(ctx)
         embed.add_field(name="Names", value="\n".join(role_names))
         embed.add_field(name="IDs", value="\n".join(role_ids))
         await ctx.send(embed=embed)

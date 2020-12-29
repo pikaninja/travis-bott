@@ -16,6 +16,7 @@ import utils
 import KalDiscordUtils
 
 from utils.paginator import KalPages
+from utils.embed import Embed
 
 
 """
@@ -90,7 +91,7 @@ class CommandCatList(menus.ListPageSource):
         self.cog_name = cog_name
 
     async def format_page(self, menu, cmds):
-        embed = KalDiscordUtils.Embed.default(
+        embed = Embed.default(
             self.ctx,
             title=self.cog_name,
             description="\n".join(cmds)
@@ -106,7 +107,7 @@ class CommandsList(menus.ListPageSource):
         self.ctx = ctx
 
     async def format_page(self, menu, cmds):
-        embed = KalDiscordUtils.Embed.default(
+        embed = Embed.default(
             self.ctx,
             title=cmds[0][0],
             description="\n".join([c[1] for c in cmds])
@@ -120,7 +121,7 @@ class RawMessagePaginator(menus.ListPageSource):
         super().__init__(raw_message, per_page=20)
 
     async def format_page(self, menu: menus.Menu, page: list):
-        embed = KalDiscordUtils.Embed.default(menu.ctx)
+        embed = Embed.default(menu.ctx)
         embed.description = "```json\n" + "\n".join(page) + "```"
 
         return embed
@@ -167,7 +168,8 @@ class Misc(utils.BaseCog, name="misc"):
         self.bot: utils.MyBot = bot
         self.show_name = show_name
 
-        self.logger = utils.create_logger(self.__class__.__name__, logging.INFO)
+        self.logger = utils.create_logger(
+            self.__class__.__name__, logging.INFO)
 
     @commands.Cog.listener()
     async def on_command(self, ctx: utils.CustomContext):
@@ -206,7 +208,7 @@ class Misc(utils.BaseCog, name="misc"):
             f"[Click here to vote for Travis Bott :)](https://top.gg/bot/706530005169209386)\n"
             "If you genuinely enjoy the bot make sure to leave an honest review, thank you for using Travis Bott."
         )
-        embed = KalDiscordUtils.Embed.default(ctx)
+        embed = Embed.default(ctx)
         embed.description = fmt
 
         await ctx.send(embed=embed)
@@ -220,7 +222,7 @@ class Misc(utils.BaseCog, name="misc"):
 
         async with ctx.typing():
             obj = await self.bot.loop.run_in_executor(None, BlockingFunctions.screenshot, url)
-            embed = KalDiscordUtils.Embed.default(ctx)
+            embed = Embed.default(ctx)
 
             file = discord.File(obj, filename="scrape.png")
             embed.set_image(url="attachment://scrape.png")
@@ -303,7 +305,7 @@ class Misc(utils.BaseCog, name="misc"):
             try:
                 current = data["months"][0]["incidents"][0]
             except IndexError:
-                embed = KalDiscordUtils.Embed.warning(
+                embed = Embed.warning(
                     description="There are no incidents reported this month as of yet.")
                 return await ctx.send(embed=embed)
             components = data["components"]
@@ -314,7 +316,7 @@ class Misc(utils.BaseCog, name="misc"):
             embeds = []
 
             if len(timestamp) < 17:
-                main_embed = KalDiscordUtils.Embed.default(
+                main_embed = Embed.default(
                     ctx,
                     title="Current Status for Discord.",
                     description=(
@@ -349,7 +351,7 @@ class Misc(utils.BaseCog, name="misc"):
                 msg += "```"
                 return msg
 
-            components_embed = KalDiscordUtils.Embed.default(
+            components_embed = Embed.default(
                 ctx,
                 title="Components",
                 description=format_comp(components)
@@ -382,7 +384,7 @@ class Misc(utils.BaseCog, name="misc"):
             ["Database Latency", f"{db_fmt} ms"]
         ]
 
-        embed = KalDiscordUtils.Embed.default(ctx)
+        embed = Embed.default(ctx)
         [embed.add_field(name=k, value=v) for k, v in pings]
 
         await message.edit(content=None,
@@ -433,7 +435,7 @@ class Misc(utils.BaseCog, name="misc"):
     async def invite(self, ctx: utils.CustomContext):
         """Sends an link to invite the bot to your server."""
 
-        embed = KalDiscordUtils.Embed.default(
+        embed = Embed.default(
             ctx,
             title="Invite the bot to your server here!"
         )
@@ -462,7 +464,7 @@ class Misc(utils.BaseCog, name="misc"):
     async def github(self, ctx: utils.CustomContext):
         """Sends the bots github repo"""
 
-        embed = KalDiscordUtils.Embed.default(
+        embed = Embed.default(
             ctx,
             title="Click here to view my source code."
         )

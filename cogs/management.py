@@ -1,14 +1,16 @@
 import logging
 import random
 
-import KalDiscordUtils
 import dateparser
-from discord.ext import commands
 
 import discord
 
 import utils
 import asyncio
+
+from discord.ext import commands
+
+from utils.embed import Embed
 
 
 class Prefix(commands.Converter):
@@ -75,7 +77,8 @@ class Management(utils.BaseCog, name="management"):
     def __init__(self, bot, show_name):
         self.bot: utils.MyBot = bot
         self.show_name = show_name
-        self.logger = utils.create_logger(self.__class__.__name__, logging.INFO)
+        self.logger = utils.create_logger(
+            self.__class__.__name__, logging.INFO)
 
     # noinspection PyUnresolvedReferences
     @commands.Cog.listener("on_guild_channel_create")
@@ -216,7 +219,7 @@ class Management(utils.BaseCog, name="management"):
         role_needed = what_is_needed['role_needed']
         channel = what_is_needed['channel']
 
-        embed = KalDiscordUtils.Embed.default(ctx)
+        embed = Embed.default(ctx)
         embed.title = f"Giveaway for {what_is_needed['prize']}"
 
         fmt = f"React to \N{PARTY POPPER} to be entered into the giveaway."
@@ -260,7 +263,7 @@ class Management(utils.BaseCog, name="management"):
     async def config(self, ctx: utils.CustomContext):
         """Shows you all of the configuration for the current server."""
 
-        embed = KalDiscordUtils.Embed.default(ctx)
+        embed = Embed.default(ctx)
 
         mapped_names = {
             "guild_prefix": "Current Prefix",
@@ -338,7 +341,7 @@ class Management(utils.BaseCog, name="management"):
         await ctx.send(
             f"You chose `{role}` to be set as your mute role, by typing `yes` this will make it so that the role "
             "can *not* type in any channel and this action can not be reversed. Please type `yes` or `no`",
-            new_message = True
+            new_message=True
         )
 
         try:
@@ -447,7 +450,7 @@ class Management(utils.BaseCog, name="management"):
         if check_guild:
             return await ctx.send("❌ Verification is already set up.")
 
-        embed = KalDiscordUtils.Embed.default(
+        embed = Embed.default(
             ctx,
             title="Human Verification",
             description="React to this message to gain access to the rest of the server.",

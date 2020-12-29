@@ -8,8 +8,8 @@ import KalDiscordUtils
 import asyncdagpi
 import discord
 import twemoji_parser
-from twemoji_parser import emoji_to_url
 
+from twemoji_parser import emoji_to_url
 from io import BytesIO
 from asyncdagpi import ImageFeatures
 from decouple import config
@@ -18,6 +18,8 @@ from polaroid.polaroid import Image
 from PIL import Image as PILImage, ImageDraw, ImageFont
 from wand.color import Color
 from wand.image import Image as WandImage
+
+from utils.embed import Embed
 
 import utils
 
@@ -272,7 +274,8 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
     def __init__(self, bot, show_name):
         self.bot: utils.MyBot = bot
         self.show_name = show_name
-        self.logger = utils.create_logger(self.__class__.__name__, logging.INFO)
+        self.logger = utils.create_logger(
+            self.__class__.__name__, logging.INFO)
 
         self.ahb_cache = {}
 
@@ -290,7 +293,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
                     cached = self.ahb_cache[text]
                     cached.seek(0)
 
-                    embed = KalDiscordUtils.Embed.default(ctx)
+                    embed = Embed.default(ctx)
 
                     file = discord.File(fp=cached, filename="ahb.png")
                     embed.set_image(url="attachment://ahb.png")
@@ -309,7 +312,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
 
                     self.ahb_cache[text] = buffer
 
-                    embed = KalDiscordUtils.Embed.default(ctx)
+                    embed = Embed.default(ctx)
 
                     file = discord.File(fp=buffer, filename="ahb.png")
                     embed.set_image(url="attachment://ahb.png")
@@ -332,7 +335,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
                 func = functools.partial(Manipulation.swirl, buffer, degrees)
                 buffer = await self.bot.loop.run_in_executor(None, func)
 
-                embed = KalDiscordUtils.Embed.default(ctx)
+                embed = Embed.default(ctx)
                 file = discord.File(fp=buffer, filename="swirl.png")
                 embed.set_image(url="attachment://swirl.png")
 
@@ -353,7 +356,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
                 func = functools.partial(Manipulation.chroma, buffer)
                 buffer = await self.bot.loop.run_in_executor(None, func)
 
-                embed = KalDiscordUtils.Embed.default(ctx)
+                embed = Embed.default(ctx)
                 file = discord.File(fp=buffer, filename="chroma.png")
                 embed.set_image(url="attachment://chroma.png")
 
@@ -375,7 +378,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
                 func = functools.partial(Manipulation.floor, buffer)
                 buffer = await self.bot.loop.run_in_executor(None, func)
 
-                embed = KalDiscordUtils.Embed.default(ctx)
+                embed = Embed.default(ctx)
                 file = discord.File(fp=buffer, filename="floor.png")
                 embed.set_image(url="attachment://floor.png")
 
@@ -397,7 +400,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
                 func = functools.partial(Manipulation.magik, buffer)
                 buffer = await self.bot.loop.run_in_executor(None, func)
 
-                embed = KalDiscordUtils.Embed.default(ctx)
+                embed = Embed.default(ctx)
                 file = discord.File(buffer, filename="magik.png")
                 embed.set_image(url="attachment://magik.png")
 
@@ -419,7 +422,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
                     Manipulation.facetime, what, author_image)
                 image_bytes = await self.bot.loop.run_in_executor(None, func)
 
-                embed = KalDiscordUtils.Embed.default(ctx)
+                embed = Embed.default(ctx)
                 file = discord.File(image_bytes, filename="facetime.png")
                 embed.set_image(url="attachment://facetime.png")
 
@@ -441,7 +444,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
                     Manipulation.brighten_image, what, amount)
                 image_bytes = await self.bot.loop.run_in_executor(None, func)
 
-                embed = KalDiscordUtils.Embed.default(ctx)
+                embed = Embed.default(ctx)
                 file = discord.File(image_bytes, filename="brightened.png")
                 embed.set_image(url="attachment://brightened.png")
 
@@ -462,7 +465,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
                 func = functools.partial(Manipulation.solarize_image, what)
                 image_bytes = await self.bot.loop.run_in_executor(None, func)
 
-                embed = KalDiscordUtils.Embed.default(ctx)
+                embed = Embed.default(ctx)
                 file = discord.File(image_bytes, filename="solarize.png")
                 embed.set_image(url="attachment://solarize.png")
 

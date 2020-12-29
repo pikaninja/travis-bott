@@ -11,7 +11,6 @@ import traceback
 import re
 import typing
 
-import KalDiscordUtils
 from jishaku.codeblocks import codeblock_converter
 from PIL import Image as PILImage, ImageDraw, ImageFont
 import pytesseract
@@ -21,6 +20,8 @@ from discord.ext import menus, commands
 from discord.ext.commands import (
     Cog, is_owner, BadArgument, group, Converter
 )
+
+from utils.embed import Embed
 
 import utils
 import config as cfg
@@ -56,7 +57,7 @@ class SQLListPageSource(menus.ListPageSource):
         super().__init__(data, per_page=per_page)
 
     async def format_page(self, menu, page):
-        embed = KalDiscordUtils.Embed.default(menu.ctx)
+        embed = Embed.default(menu.ctx)
         embed.description = (f"```py\n" +
                              "\n".join(page) +
                              "```")
@@ -69,7 +70,8 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
     def __init__(self, bot):
         self._last_result = None
         self.bot: utils.MyBot = bot
-        self.logger = utils.create_logger(self.__class__.__name__, logging.INFO)
+        self.logger = utils.create_logger(
+            self.__class__.__name__, logging.INFO)
 
     async def cog_check(self, ctx: utils.CustomContext):
         return await self.bot.is_owner(ctx.author)
@@ -157,7 +159,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
             data = await self.bot.loop.run_in_executor(None, process_img, img_bytes)
 
-            embed = KalDiscordUtils.Embed.default(
+            embed = Embed.default(
                 ctx,
                 description=f"{data['text']}"
             )
@@ -199,7 +201,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             ["Code Count", f"```\n{code_count}```", False]
         ]
 
-        embed = KalDiscordUtils.Embed.default(ctx, title="Dev Stats")
+        embed = Embed.default(ctx, title="Dev Stats")
 
         [embed.add_field(name=n, value=v, inline=i) for n, v, i in fields]
 

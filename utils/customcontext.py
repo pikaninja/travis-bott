@@ -13,7 +13,6 @@ class CommandConverter(commands.Converter):
         return ctx.bot.get_command(argument)
 
 
-
 class CustomContext(commands.Context):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)

@@ -17,7 +17,8 @@ import typing
 class ErrorHandler(Cog):
     def __init__(self, bot):
         self.bot: MyBot = bot
-        self.logger = utils.create_logger(self.__class__.__name__, logging.INFO)
+        self.logger = utils.create_logger(
+            self.__class__.__name__, logging.INFO)
 
     async def send_to_ctx_or_author(
         self, ctx, text: str = None, *args, **kwargs

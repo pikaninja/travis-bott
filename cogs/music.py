@@ -7,9 +7,9 @@ import math
 import logging
 import wavelink
 import async_timeout
-import KalDiscordUtils
 
 import utils
+from utils.embed import Embed
 
 
 class Player(wavelink.Player):
@@ -58,7 +58,7 @@ class PaginatorSource(menus.ListPageSource):
         super().__init__(entries, per_page=8)
 
     async def format_page(self, menu, page):
-        embed = KalDiscordUtils.Embed.default(menu.ctx)
+        embed = Embed.default(menu.ctx)
         embed.description = "\n".join(
             f"`{index}. {title}`" for index, title in enumerate(page, 1))
 
@@ -73,7 +73,8 @@ class Music(commands.Cog, wavelink.WavelinkMixin, name="music"):
         self.bot: utils.MyBot = bot
         self.show_name = show_name
 
-        self.logger = utils.create_logger(self.__class__.__name__, logging.INFO)
+        self.logger = utils.create_logger(
+            self.__class__.__name__, logging.INFO)
 
         if not hasattr(bot, "wavelink"):
             self.bot.wavelink = wavelink.Client(bot=self.bot)

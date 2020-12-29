@@ -32,6 +32,7 @@ OWO_REPL = {
 
 OWO_CHOICES = ("owo", "uwu")
 
+
 def _maintain_case_replace(sub: str, repl: str, text: str):
     def _repl(match: re.Match):
         group = match.group()
@@ -45,15 +46,18 @@ def _maintain_case_replace(sub: str, repl: str, text: str):
         return repl
     return re.sub(sub, _repl, text, flags=re.I)
 
+
 def owoify_text(text: str):
     for sub, repl in OWO_REPL.items():
         text = _maintain_case_replace(sub, repl, text)
 
     return text + " " + random.choice(OWO_CHOICES)
 
+
 def owoify_embed(embed: discord.Embed):
     embed.title = owoify_text(embed.title) if embed.title else None
-    embed.description = owoify_text(embed.description) if embed.description else None
+    embed.description = owoify_text(
+        embed.description) if embed.description else None
     embed.set_footer(text=owoify_text(embed.footer.text),
                      icon_url=embed.footer.icon_url) if embed.footer else None
     embed.set_author(name=owoify_text(embed.author.name),

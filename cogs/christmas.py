@@ -3,9 +3,11 @@ import datetime
 import logging
 import random
 
-import KalDiscordUtils
 import discord
+
 from discord.ext import commands
+
+from utils.embed import Embed
 
 import utils
 
@@ -16,7 +18,8 @@ class Christmas(utils.BaseCog, name="christmas"):
     def __init__(self, bot, show_name):
         self.bot: utils.MyBot = bot
         self.show_name = show_name
-        self.logger = utils.create_logger(self.__class__.__name__, logging.INFO)
+        self.logger = utils.create_logger(
+            self.__class__.__name__, logging.INFO)
 
     @commands.command()
     async def howlong(self, ctx: utils.CustomContext):
@@ -24,8 +27,8 @@ class Christmas(utils.BaseCog, name="christmas"):
 
         current_year = datetime.datetime.utcnow().year
         time = datetime.datetime(year=current_year, month=12, day=25)
-        formatted_time = KalDiscordUtils.format_time(time)
-        embed = KalDiscordUtils.Embed.default(
+        formatted_time = utils.format_time(time)
+        embed = Embed.default(
             ctx,
             title=f"{formatted_time['precise']} until {formatted_time['date']}"
         )

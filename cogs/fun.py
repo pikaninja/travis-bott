@@ -5,8 +5,6 @@ import time
 
 import KalDiscordUtils
 import async_cleverbot
-from decouple import config
-from discord.ext import commands, menus
 
 import utils
 
@@ -15,6 +13,11 @@ import discord
 import typing
 import random
 import vacefron
+
+from decouple import config
+from discord.ext import commands, menus
+
+from utils.embed import Embed
 
 standard_cooldown = 3.0
 
@@ -25,7 +28,7 @@ class CookiesLBPage(menus.ListPageSource):
         self.ctx = ctx
 
     async def format_page(self, menu, entries):
-        embed = KalDiscordUtils.Embed.default(
+        embed = Embed.default(
             self.ctx,
             title="Cookie Leaderboard",
             description="\n".join(entries)
@@ -61,7 +64,8 @@ class Fun(utils.BaseCog, name="fun"):
     def __init__(self, bot, show_name):
         self.bot: utils.MyBot = bot
         self.show_name = show_name
-        self.logger = utils.create_logger(self.__class__.__name__, logging.INFO)
+        self.logger = utils.create_logger(
+            self.__class__.__name__, logging.INFO)
 
         self._8ballResponse = [
             "It is certain",
@@ -201,9 +205,9 @@ class Fun(utils.BaseCog, name="fun"):
                     if not ctx.channel.is_nsfw():
                         return await ctx.send("Bonk! Go to horny jail.")
 
-                embed = KalDiscordUtils.Embed.default(ctx,
-                                                      title=title,
-                                                      url=f"https://www.reddit.com{perma_link}")
+                embed = Embed.default(ctx,
+                                      title=title,
+                                      url=f"https://www.reddit.com{perma_link}")
 
                 embed.add_field(name="\N{UPWARDS BLACK ARROW}",
                                 value=ups)
@@ -225,7 +229,7 @@ class Fun(utils.BaseCog, name="fun"):
 
         with contextlib.suppress(discord.NotFound):
             timer = 3
-            embed = KalDiscordUtils.Embed.default(
+            embed = Embed.default(
                 ctx,
                 description="First person to click wins..."
             )
@@ -347,7 +351,7 @@ class Fun(utils.BaseCog, name="fun"):
         """Play rock paper scissors with the bot!"""
 
         fmt = "What's your choice? Rock, Paper or Scissors..."
-        embed = KalDiscordUtils.Embed.default(
+        embed = Embed.default(
             ctx,
             description=fmt
         )
@@ -435,7 +439,7 @@ class Fun(utils.BaseCog, name="fun"):
             data = await r.json()
             image = data["link"]
 
-            embed = KalDiscordUtils.Embed.default(ctx)
+            embed = Embed.default(ctx)
             embed.set_image(url=image)
             await ctx.send(embed=embed)
 
@@ -451,7 +455,7 @@ class Fun(utils.BaseCog, name="fun"):
             data = await r.json()
             quote = data["quote"]
 
-            embed = KalDiscordUtils.Embed.default(
+            embed = Embed.default(
                 ctx,
                 title=f'"{quote}" - Kanye West'
             )
@@ -496,7 +500,7 @@ class Fun(utils.BaseCog, name="fun"):
             data = await r.json()
             fact = data["text"]
 
-            embed = KalDiscordUtils.Embed.default(
+            embed = Embed.default(
                 ctx,
                 description=fact
             )

@@ -7,11 +7,12 @@ import cse
 import contextlib
 from contextlib import asynccontextmanager
 
-import KalDiscordUtils
 from decouple import config
 from discord.ext import commands, menus
 
 import utils
+
+from utils.embed import Embed
 
 from currency_converter import CurrencyConverter
 
@@ -94,8 +95,9 @@ class TodoList(menus.ListPageSource):
         super().__init__(data, per_page=10)
 
     async def format_page(self, menu: menus.Menu, page: list):
-        embed = KalDiscordUtils.Embed.default(menu.ctx)
-        embed.description = "\n".join([f"`{index + 1}`. {task}" for index, task in enumerate(page)])
+        embed = Embed.default(menu.ctx)
+        embed.description = "\n".join(
+            [f"`{index + 1}`. {task}" for index, task in enumerate(page)])
 
         return embed
 
@@ -106,7 +108,8 @@ class Meta(utils.BaseCog, name="meta"):
     def __init__(self, bot, show_name):
         self.bot: utils.MyBot = bot
         self.show_name = show_name
-        self.logger = utils.create_logger(self.__class__.__name__, logging.INFO)
+        self.logger = utils.create_logger(
+            self.__class__.__name__, logging.INFO)
 
         self.weather_api_key = config("WEATHER_API_KEY")
 
@@ -131,7 +134,8 @@ class Meta(utils.BaseCog, name="meta"):
         try:
             resultant_task = all_tasks[enumerated_id - 1]
         except IndexError:
-            raise commands.BadArgument("You do not have a task that corresponds with that ID.")
+            raise commands.BadArgument(
+                "You do not have a task that corresponds with that ID.")
 
         return resultant_task["id"]
 
@@ -146,7 +150,8 @@ class Meta(utils.BaseCog, name="meta"):
         """Adds a task to your to-do list."""
 
         if len(task) > 100:
-            raise commands.BadArgument("Your task can not be longer than 100 characters.")
+            raise commands.BadArgument(
+                "Your task can not be longer than 100 characters.")
 
         sql = "INSERT INTO todos VALUES(DEFAULT, $1, $2)"
         values = (ctx.author.id, task)
@@ -161,13 +166,15 @@ class Meta(utils.BaseCog, name="meta"):
         `{prefix}to-do bulkadd "Wow one task here" "Wow here's another task"`."""
 
         if len(tasks) > 10:
-            raise commands.BadArgument("You can not insert more than 10 tasks at a time.")
+            raise commands.BadArgument(
+                "You can not insert more than 10 tasks at a time.")
 
         values = []
 
         for task in tasks:
             if len(task) > 100:
-                raise commands.BadArgument("I couldn't add one of your tasks as they were above 100 characters.")
+                raise commands.BadArgument(
+                    "I couldn't add one of your tasks as they were above 100 characters.")
 
             values.append((ctx.author.id, task))
 
@@ -214,7 +221,8 @@ class Meta(utils.BaseCog, name="meta"):
             try:
                 args = parser.parse_args([flag])
             except SystemExit:
-                raise commands.BadArgument("The only available flags are `--alphabetical` and `--size`.")
+                raise commands.BadArgument(
+                    "The only available flags are `--alphabetical` and `--size`.")
 
             if args.alphabetical:
                 sql += " ORDER BY task ASC"
@@ -273,7 +281,7 @@ class Meta(utils.BaseCog, name="meta"):
             embeds = []
 
             for result in results:
-                embed = KalDiscordUtils.Embed.default(ctx)
+                embed = Embed.default(ctx)
                 embed.title = result.title
                 embed.description = result.snippet
                 embed.url = result.link
@@ -296,7 +304,7 @@ class Meta(utils.BaseCog, name="meta"):
         rgb = colour.to_rgb()
         url = f"https://kal-byte.co.uk/colour/{'/'.join([str(x) for x in rgb])}"
 
-        embed = KalDiscordUtils.Embed.default(
+        embed = Embed.default(
             ctx,
             colour=discord.Colour.from_rgb(*rgb)
         )
@@ -312,7 +320,7 @@ class Meta(utils.BaseCog, name="meta"):
 
         member = member or ctx.author
 
-        embed = KalDiscordUtils.Embed.default(ctx)
+        embed = Embed.default(ctx)
         embed.set_author(name=member, icon_url=member.avatar_url)
         embed.set_image(url=member.avatar_url_as(
             static_format="png", size=1024))
@@ -322,7 +330,7 @@ class Meta(utils.BaseCog, name="meta"):
     async def info(self, ctx: utils.CustomContext):
         """Get basic info on the bot."""
 
-        embed = KalDiscordUtils.Embed.default(ctx)
+        embed = Embed.default(ctx)
 
         embed.set_thumbnail(url=str(self.bot.user.avatar_url_as(
             format="png",
@@ -368,7 +376,7 @@ class Meta(utils.BaseCog, name="meta"):
 
         for _ in range(len(emojis)):
             emoji = emojis[_]
-            embed = KalDiscordUtils.Embed.default(
+            embed = Embed.default(
                 ctx,
                 title=f"Showing for {emoji.name}",
                 description=f"ID: {emoji.id}"
@@ -492,7 +500,7 @@ class Meta(utils.BaseCog, name="meta"):
             ["Features", "\n".join(guild_features) or "None", False],
         ]
 
-        embed = KalDiscordUtils.Embed.default(
+        embed = Embed.default(
             ctx,
             title=title,
             description=f"**ID:** {ctx.guild.id}\n**Owner:** {ctx.guild.owner}",
@@ -511,7 +519,7 @@ class Meta(utils.BaseCog, name="meta"):
 
         channel = channel or ctx.channel
 
-        embed = KalDiscordUtils.Embed.default(
+        embed = Embed.default(
             ctx,
             title=f"Information on {channel.name}"
         )
@@ -578,7 +586,7 @@ class Meta(utils.BaseCog, name="meta"):
                     "The lookup for this word is way too big to show."
                 )
 
-            embed = KalDiscordUtils.Embed.default(
+            embed = Embed.default(
                 ctx,
                 title=f"Definition of {word}"
             )
@@ -608,7 +616,7 @@ class Meta(utils.BaseCog, name="meta"):
         if "x" in equation:
             equation = equation.replace("x", "*")
         result = numexpr.evaluate(str(equation)).item()
-        embed = KalDiscordUtils.Embed.default(
+        embed = Embed.default(
             ctx,
             title=f"Result of {equation}:",
             description=f"{result}"
@@ -622,7 +630,7 @@ class Meta(utils.BaseCog, name="meta"):
 
         user = user or ctx.author
         colour = self._get_top_coloured_role(user)
-        embed = KalDiscordUtils.Embed.default(ctx)
+        embed = Embed.default(ctx)
         embed.colour = colour
         embed.title = f"About {user.name}"
         embed.description = (
@@ -704,7 +712,7 @@ class Meta(utils.BaseCog, name="meta"):
                 ["Description", description],
             ]
 
-            embed = KalDiscordUtils.Embed.default(
+            embed = Embed.default(
                 ctx,
                 title=f"Weather in {data['name']}"
             )
@@ -735,7 +743,7 @@ class Meta(utils.BaseCog, name="meta"):
                 ["Language Spoken:", data["languages"][0]["nativeName"]],
             ]
 
-            embed = KalDiscordUtils.Embed.default(ctx)
+            embed = Embed.default(ctx)
             [embed.add_field(name=n, value=str(v)) for n, v in fields]
 
             await ctx.send(embed=embed)
@@ -762,9 +770,9 @@ class Meta(utils.BaseCog, name="meta"):
                 "9️⃣",
                 "🔟",
             ]
-            embed = KalDiscordUtils.Embed.default(ctx,
-                                                  title=multi[0],
-                                                  description="")
+            embed = Embed.default(ctx,
+                                  title=multi[0],
+                                  description="")
             choices = multi[1].split(", ")
             for i in range(len(choices)):
                 embed.description += f"{emojis[i]} {choices[i]}\n"
@@ -778,8 +786,8 @@ class Meta(utils.BaseCog, name="meta"):
                 "\N{THUMBS UP SIGN}",
                 "\N{THUMBS DOWN SIGN}"
             ]
-            embed = KalDiscordUtils.Embed.default(ctx,
-                                                  title=query)
+            embed = Embed.default(ctx,
+                                  title=query)
 
             msg = await ctx.send(embed=embed)
 
