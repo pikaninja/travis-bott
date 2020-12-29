@@ -4,12 +4,10 @@ import random
 import re
 import textwrap
 import typing
-import KalDiscordUtils
 import asyncdagpi
 import discord
 import twemoji_parser
 
-from twemoji_parser import emoji_to_url
 from io import BytesIO
 from asyncdagpi import ImageFeatures
 from decouple import config
