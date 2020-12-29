@@ -17,7 +17,7 @@ class CustomContext(commands.Context):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.timeit = timeit(self)
+        self.timeit = TimeIt(self)
 
     async def _owoify(self, method, *args, **kwargs):
         if embed := kwargs.get("embed", None):
@@ -74,14 +74,14 @@ class CustomContext(commands.Context):
             pass
 
 
-class timeit(ContextDecorator):
+class TimeIt(ContextDecorator):
     def __init__(self, ctx):
         self.ctx = ctx
 
     async def __aenter__(self):
         self.start = time.perf_counter()
 
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
+    async def __aexit__(self, *args):
         self.end = time.perf_counter()
 
         await self.ctx.send(f"Finished in `{self.end - self.start:,.2f}` seconds",
