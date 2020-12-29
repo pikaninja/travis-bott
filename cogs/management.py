@@ -14,10 +14,12 @@ from utils.embed import Embed
 
 
 class Prefix(commands.Converter):
-    async def convert(self, ctx, argument):
+    async def convert(self, ctx: utils.CustomContext, argument: str):
         if len(argument) == 0:
             return "tb!"
 
+        if argument.startswith(" "):
+            return "".join(argument.split()) + " " if argument.endswith(" ") else ""
         if argument == "None":
             return "tb!"
         if argument == "[BLANK]":
