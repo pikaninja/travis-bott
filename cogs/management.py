@@ -266,6 +266,7 @@ class Management(utils.BaseCog, name="management"):
             "guild_prefix": "Current Prefix",
             "mute_role_id": "Mute Role ID",
             "log_channel": "Logging Channel ID",
+            "owoify": "Owoified Texts",
         }
 
         for k, v in self.bot.config[ctx.guild.id].items():

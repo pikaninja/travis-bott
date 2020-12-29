@@ -213,6 +213,14 @@ class Moderation(utils.BaseCog, name="moderation"):
 
     @commands.command()
     @commands.guild_only()
+    @commands.has_permissions(ban_members=True)
+    @commands.bot_has_permissions(ban_members=True)
+    async def tempban(self, ctx: utils.CustomContext):
+        """Tempbans a user for a certain amount of time.
+        e.g. `{prefix}tempban @kal#1806 5d Doing bad things excessively.`"""
+
+    @commands.command()
+    @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
     @commands.bot_has_permissions(manage_roles=True)
     async def mute(self, ctx: utils.CustomContext,

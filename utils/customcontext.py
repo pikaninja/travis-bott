@@ -27,8 +27,11 @@ class CustomContext(commands.Context):
 
         text = utils.owoify_text(str(*args))
         message = await method(content=text, **kwargs)
+
         if self.author.id in self.bot.owner_ids:
-            self.bot.ctx_cache[self.message.id] = message
+            if not getattr(message, "edited_at", None):
+                self.bot.ctx_cache[self.message.id] = message
+
         return message
 
     async def send(self, *args, **kwargs):

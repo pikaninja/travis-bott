@@ -123,7 +123,10 @@ class Fun(utils.BaseCog, name="fun"):
         """Owoifies a given piece of text."""
 
         owoified = utils.owoify_text(text)
-        await ctx.send(owoified)
+        await ctx.send(
+            owoified,
+            allowed_mentions=discord.AllowedMentions.none()
+        )
 
     @commands.command(aliases=["cb"], cooldown_after_parsing=True)
     @commands.max_concurrency(1, commands.BucketType.channel)

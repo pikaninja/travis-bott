@@ -21,6 +21,8 @@ class TopGG(utils.BaseCog):
     @tasks.loop(minutes=30)
     async def update_stats(self):
         await self.bot.wait_until_ready()
+        if self.bot.user.id != 706530005169209386:
+            return
 
         try:
             server_count = len(self.bot.guilds)
