@@ -103,9 +103,9 @@ class MyBot(commands.AutoShardedBot):
         return self.get_user(self.owner_id)
 
     async def close(self):
-        await super().close()
         await self.session.close()
         await self.pool.close()
+        await super().close()
 
     async def do_prep(self):
         await self.wait_until_ready()
