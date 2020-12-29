@@ -126,7 +126,9 @@ class Fun(utils.BaseCog, name="fun"):
     async def owo_text(self, ctx: utils.CustomContext, *, text: commands.clean_content):
         """Owoifies a given piece of text."""
 
-        owoified = utils.owoify_text(text) if not self.bot.config[ctx.guild.id]["owoify"] else text
+        owoified = utils.owoify_text(
+            text) if not self.bot.config[ctx.guild.id]["owoify"] else text
+
         await ctx.send(
             owoified,
             allowed_mentions=discord.AllowedMentions.none()

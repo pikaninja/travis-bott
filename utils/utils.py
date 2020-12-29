@@ -30,8 +30,6 @@ OWO_REPL = {
     r"the": "thuwu"
 }
 
-OWO_CHOICES = ("owo", "uwu")
-
 
 def _maintain_case_replace(sub: str, repl: str, text: str):
     def _repl(match: re.Match):
@@ -51,7 +49,7 @@ def owoify_text(text: str):
     for sub, repl in OWO_REPL.items():
         text = _maintain_case_replace(sub, repl, text)
 
-    return text + " " + random.choice(OWO_CHOICES)
+    return text + " " + random.choice(("owo", "uwu"))
 
 
 def owoify_embed(embed: discord.Embed):
