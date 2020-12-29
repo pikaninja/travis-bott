@@ -9,6 +9,7 @@ from contextlib import asynccontextmanager
 
 from decouple import config
 from discord.ext import commands, menus
+from PIL import ImageColor
 
 import utils
 
@@ -82,12 +83,20 @@ class ColourConverter(commands.Converter):
             return discord.Colour.from_rgb(*rgb)
 
         converter = commands.ColourConverter()
-        result = await converter.convert(ctx, argument)
+
+        try:
+            result = await converter.convert(ctx, argument)
+        except commands.BadColourArgument:
+            try:
+                colour = ImageColor.getrgb(argument)
+                result = discord.Colour.from_rgb(*colour)
+            except ValueError:
+                result = None
 
         if result:
             return result
 
-        raise commands.BadArgument("Couldn't find anything matching that.")
+        raise commands.BadArgument(f"Couldn't find a colour value matching `{argument}`.")
 
 
 class TodoList(menus.ListPageSource):
@@ -374,8 +383,7 @@ class Meta(utils.BaseCog, name="meta"):
         if len(emojis) == 0:
             return await ctx.send_help(ctx.command)
 
-        for _ in range(len(emojis)):
-            emoji = emojis[_]
+        for emoji in emojis:
             embed = Embed.default(
                 ctx,
                 title=f"Showing for {emoji.name}",
@@ -654,7 +662,7 @@ class Meta(utils.BaseCog, name="meta"):
         roles.reverse()
         roles = [r.mention for r in roles][:30]
 
-        async def get_boost(u: discord.Member):
+        def get_boost(u: discord.Member):
             """Quick function to check if a user is boosting."""
 
             if u.premium_since is None:
@@ -662,7 +670,7 @@ class Meta(utils.BaseCog, name="meta"):
             else:
                 return f"{utils.format_time(u.premium_since)['date']} ({humanize.naturaltime(u.premium_since)})"
 
-        boost = await get_boost(user)
+        boost = get_boost(user)
 
         embed.add_field(name="Account created",
                         value=f"{created_at}")
@@ -758,29 +766,30 @@ class Meta(utils.BaseCog, name="meta"):
         """
 
         if len(multi := query.split(" ? ")) > 1:
-            emojis = [
-                "1️⃣",
-                "2️⃣",
-                "3️⃣",
-                "4️⃣",
-                "5️⃣",
-                "6️⃣",
-                "7️⃣",
-                "8️⃣",
-                "9️⃣",
-                "🔟",
-            ]
+            emojis = []
+
+            for i in range(11):
+                if i == 10:
+                    emojis.append("\N{KEYCAP TEN}")
+
+                emojis.append(f"{i}\N{VARIATION SELECTOR-16}\N{COMBINING ENCLOSING KEYCAP}")
+
             embed = Embed.default(ctx,
                                   title=multi[0],
                                   description="")
+
             choices = multi[1].split(", ")
-            for i in range(len(choices)):
-                embed.description += f"{emojis[i]} {choices[i]}\n"
+
+            if len(choices) > 11:
+                raise commands.BadArgument("You can not provide more than 10 options!")
+
+            for index, choice in enumerate(choices):
+                embed.description += f"{emojis[index]} {choice}\n"
 
             msg = await ctx.send(embed=embed)
 
-            for i in range(len(choices)):
-                await msg.add_reaction(emojis[i])
+            for index, choice in enumerate(choices):
+                await msg.add_reaction(emojis[index])
         else:
             emojis = [
                 "\N{THUMBS UP SIGN}",
