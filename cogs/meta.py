@@ -237,7 +237,7 @@ class Meta(utils.BaseCog, name="meta"):
         for item in results:
             todo_list.append(item["task"])
 
-        source = utils.GeneralPageSource(todo_list)
+        source = utils.GeneralPageSource(todo_list, per_page=10)
         paginator = utils.KalPages(source)
 
         await paginator.start(ctx)

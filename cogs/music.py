@@ -284,7 +284,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin, name="music"):
 
         # noinspection PyProtectedMember
         entries = [track.title for track in player.queue._queue]
-        pages = utils.GeneralPageSource(entries=entries)
+        pages = utils.GeneralPageSource(entries=entries, per_page=10)
         paginator = utils.KalPages(pages)
 
         await paginator.start(ctx)

@@ -279,7 +279,7 @@ class Fun(utils.BaseCog, name="fun"):
             user = self.bot.get_user(field["user_id"])
             desc.append(f"{user} - {field['cookies']} cookies")
 
-        source = utils.GeneralPageSource(desc)
+        source = utils.GeneralPageSource(desc, per_page=10)
         pages = menus.MenuPages(source=source, clear_reactions_after=True)
         await pages.start(ctx)
 

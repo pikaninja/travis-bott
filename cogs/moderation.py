@@ -433,7 +433,8 @@ class Moderation(utils.BaseCog, name="moderation"):
                 f"Warned At: **{date_warned}** - Reason:\n{info['warn_reason']}"
             )
         fmt = ["No warnings for this user."] if len(warns) == 0 else warns
-        menu = utils.KalPages(utils.GeneralPageSource(fmt), clear_reactions_after=True)
+        source = utils.GeneralPageSource(fmt, per_page=5)
+        menu = utils.KalPages(source, clear_reactions_after=True)
         await menu.start(ctx)
 
     @commands.command(aliases=["unbanall"])
