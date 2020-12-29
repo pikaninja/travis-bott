@@ -40,8 +40,9 @@ class CustomContext(commands.Context):
 
             message = self.bot.ctx_cache[self.message.id]
 
-            if self.bot.config[self.guild.id]["owoify"]:
-                return await self._owoify(message.edit, *args, **kwargs)
+            if self.guild:
+                if self.bot.config[self.guild.id]["owoify"]:
+                    return await self._owoify(message.edit, *args, **kwargs)
 
             await message.edit(content=str(*args), **kwargs)
             return message
@@ -49,8 +50,9 @@ class CustomContext(commands.Context):
             if kwargs.get("new_message"):
                 kwargs.pop("new_message")
 
-            if self.bot.config[self.guild.id]["owoify"]:
-                return await self._owoify(super().send, *args, **kwargs)
+            if self.guild:
+                if self.bot.config[self.guild.id]["owoify"]:
+                    return await self._owoify(super().send, *args, **kwargs)
 
             message = await super().send(*args, **kwargs)
 
