@@ -24,16 +24,15 @@ class CommandsPaginator(menus.ListPageSource):
         return embed
 
 
-class LPS(menus.ListPageSource):
-    def __init__(self, ctx, data):
-        super().__init__(data, per_page=10)
-        self.ctx = ctx
+class GeneralPageSource(menus.ListPageSource):
+    def __init__(self, data: list, *, per_page: int):
+        super().__init__(data, per_page=per_page)
 
-    async def format_page(self, menu, entries):
-        embed = Embed.default(
-            self.ctx,
-            description="\n".join(entries)
-        )
+    async def format_page(self, menu: menus.Menu, page: list):
+        embed = Embed.default(menu.ctx)
+        embed.description = "\n".join(
+            [f"`{index}`. {item}" for index, item in enumerate(page, 1)])
+        
         return embed
 
 

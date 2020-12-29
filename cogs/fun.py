@@ -22,20 +22,6 @@ from utils.embed import Embed
 standard_cooldown = 3.0
 
 
-class CookiesLBPage(menus.ListPageSource):
-    def __init__(self, ctx, data):
-        super().__init__(data, per_page=10)
-        self.ctx = ctx
-
-    async def format_page(self, menu, entries):
-        embed = Embed.default(
-            self.ctx,
-            title="Cookie Leaderboard",
-            description="\n".join(entries)
-        )
-        return embed
-
-
 class EmotionConverter(commands.Converter):
     async def convert(self, ctx: utils.CustomContext, argument: str):
         available_emotions = {
@@ -293,8 +279,8 @@ class Fun(utils.BaseCog, name="fun"):
             user = self.bot.get_user(field["user_id"])
             desc.append(f"{user} - {field['cookies']} cookies")
 
-        pages = menus.MenuPages(source=CookiesLBPage(
-            ctx, desc), clear_reactions_after=True)
+        source = utils.GeneralPageSource(desc)
+        pages = menus.MenuPages(source=source, clear_reactions_after=True)
         await pages.start(ctx)
 
     @commands.command(aliases=["fban"])

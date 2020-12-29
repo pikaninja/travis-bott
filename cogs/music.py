@@ -53,18 +53,6 @@ class Player(wavelink.Player):
             pass
 
 
-class PaginatorSource(menus.ListPageSource):
-    def __init__(self, entries):
-        super().__init__(entries, per_page=8)
-
-    async def format_page(self, menu, page):
-        embed = Embed.default(menu.ctx)
-        embed.description = "\n".join(
-            f"`{index}. {title}`" for index, title in enumerate(page, 1))
-
-        return embed
-
-
 # noinspection PyUnresolvedReferences
 class Music(commands.Cog, wavelink.WavelinkMixin, name="music"):
     """Music Commands"""
@@ -296,7 +284,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin, name="music"):
 
         # noinspection PyProtectedMember
         entries = [track.title for track in player.queue._queue]
-        pages = PaginatorSource(entries=entries)
+        pages = utils.GeneralPageSource(entries=entries)
         paginator = utils.KalPages(pages)
 
         await paginator.start(ctx)

@@ -100,18 +100,6 @@ class ColourConverter(commands.Converter):
             f"Couldn't find a colour value matching `{argument}`.")
 
 
-class TodoList(menus.ListPageSource):
-    def __init__(self, data):
-        super().__init__(data, per_page=10)
-
-    async def format_page(self, menu: menus.Menu, page: list):
-        embed = Embed.default(menu.ctx)
-        embed.description = "\n".join(
-            [f"`{index + 1}`. {task}" for index, task in enumerate(page)])
-
-        return embed
-
-
 class Meta(utils.BaseCog, name="meta"):
     """General and utility commands"""
 
@@ -249,7 +237,7 @@ class Meta(utils.BaseCog, name="meta"):
         for item in results:
             todo_list.append(item["task"])
 
-        source = TodoList(todo_list)
+        source = utils.GeneralPageSource(todo_list)
         paginator = utils.KalPages(source)
 
         await paginator.start(ctx)

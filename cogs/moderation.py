@@ -113,17 +113,6 @@ class Role(commands.Converter):
         return role
 
 
-class WarnsMenu(menus.ListPageSource):
-    def __init__(self, data, *, per_page=10):
-        super().__init__(data, per_page=per_page)
-
-    async def format_page(self, menu: menus.Menu, page):
-        embed = Embed.default(menu.ctx)
-        embed.description = "\n".join(page)
-
-        return embed
-
-
 class ModerationsMenu(menus.ListPageSource):
     def __init__(self, data, *, per_page=5):
         super().__init__(data, per_page=per_page)
@@ -444,7 +433,7 @@ class Moderation(utils.BaseCog, name="moderation"):
                 f"Warned At: **{date_warned}** - Reason:\n{info['warn_reason']}"
             )
         fmt = ["No warnings for this user."] if len(warns) == 0 else warns
-        menu = utils.KalPages(WarnsMenu(fmt), clear_reactions_after=True)
+        menu = utils.KalPages(utils.GeneralPageSource(fmt), clear_reactions_after=True)
         await menu.start(ctx)
 
     @commands.command(aliases=["unbanall"])
