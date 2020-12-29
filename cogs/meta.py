@@ -339,7 +339,9 @@ class Meta(utils.BaseCog, name="meta"):
     async def info(self, ctx: utils.CustomContext):
         """Get basic info on the bot."""
 
+        astro = await self.bot.fetch_user(285506580919877633)
         embed = Embed.default(ctx)
+        embed.description = f"Thank you to {astro} for designing the bots profile pictures!"
 
         embed.set_thumbnail(url=str(self.bot.user.avatar_url_as(
             format="png",
