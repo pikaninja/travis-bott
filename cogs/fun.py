@@ -142,13 +142,15 @@ class Fun(utils.BaseCog, name="fun"):
             except asyncio.TimeoutError:
                 await cb.close()
                 not_ended = False
-                return await ctx.send("You took a very long time to talk to the bot, so I ended the session.")
+                return await ctx.send("You took a very long time to talk to the bot, so I ended the session.",
+                                      new_message=True)
             else:
                 async with ctx.typing():
                     if message.content.lower() == "cancel":
                         await cb.close()
                         not_ended = False
-                        return await ctx.send("Good bye! \N{SLIGHTLY SMILING FACE}")
+                        return await ctx.send("Good bye! \N{SLIGHTLY SMILING FACE}",
+                                              new_message=True)
                     response = await cb.ask(message.content, ctx.author.id, emotion=emotion)
                     await message.reply(response.text)
 
