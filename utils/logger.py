@@ -4,10 +4,10 @@ import logging
 class CustomFormatter(logging.Formatter):
     """Logging Formatter that adds colours"""
 
-    grey = "\x1b[38;21m"
-    green = "\x1b[32;40m"
-    yellow = "\x1b[33;21m"
-    red = "\x1b[31;21m"
+    grey = "\x1b[38m"
+    green = "\x1b[32m"
+    yellow = "\x1b[33m"
+    red = "\x1b[31m"
     bold_red = "\x1b[31;1m"
     reset = "\x1b[0m"
     _format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s (%(filename)s:%(lineno)d)"
