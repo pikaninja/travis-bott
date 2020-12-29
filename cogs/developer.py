@@ -185,6 +185,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         user_count = sum(g.member_count for g in self.bot.guilds)
         command_count = sum(1 for cmd in self.bot.walk_commands())
         ping = round(self.bot.latency * 1000)
+        uptime = utils.format_time(self.bot.start_time)
 
         fields = [
             ["Server Count", server_count, True],
@@ -192,7 +193,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             ["Command Count", command_count, True],
             ["Command Usage (last restart)", self.bot.cmd_usage, True],
             ["Ping", ping, True],
-            ["Uptime", str(self.bot.get_uptime()), True],
+            ["Uptime", uptime["precise"], True],
             ["Code Count", f"```\n{code_count}```", False]
         ]
 

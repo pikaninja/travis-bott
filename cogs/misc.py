@@ -31,7 +31,6 @@ from jishaku.codeblocks import codeblock_converter
 from selenium import webdriver
 
 import utils
-import KalDiscordUtils
 
 from utils.paginator import KalPages
 from utils.embed import Embed
