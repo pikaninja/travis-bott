@@ -227,14 +227,6 @@ class MyBot(commands.AutoShardedBot):
 
         return timedelta(seconds=int((dt.now() - self.start_time).total_seconds()))
 
-    async def config(self, guild_id: int, table: str) -> str:
-        """Get all records of a specific guild at a specific table"""
-
-        records = await self.pool.fetch(
-            f"SELECT * FROM {table} WHERE guild_id = $1", guild_id
-        )
-        return records[0]
-
     async def reply(self, message_id, content=None, **kwargs):
         message = self._connection._get_message(message_id)
         await message.reply(content, **kwargs)
