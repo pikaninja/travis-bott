@@ -94,6 +94,10 @@ class Music(commands.Cog, wavelink.WavelinkMixin, name="music"):
     async def start_nodes(self):
         await self.bot.wait_until_ready()
 
+        if self.bot.user.id != 706530005169209386:
+            self.bot.unload_extension("cogs.music")
+            return
+
         await self.bot.wavelink.initiate_node(host="127.0.0.1",
                                               port=2333,
                                               rest_uri="http://127.0.0.1:2333",

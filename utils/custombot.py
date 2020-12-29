@@ -237,11 +237,6 @@ class MyBot(commands.AutoShardedBot):
 
         return False
 
-    def get_uptime(self) -> timedelta:
-        """Gets the uptime of the bot"""
-
-        return timedelta(seconds=int((dt.now() - self.start_time).total_seconds()))
-
     async def reply(self, message_id, content=None, **kwargs):
         message = self._connection._get_message(message_id)
         await message.reply(content, **kwargs)
