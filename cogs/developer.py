@@ -25,6 +25,8 @@ import os
 import traceback
 import re
 import typing
+import copy
+from utils.customcontext import CustomContext
 
 from jishaku.codeblocks import codeblock_converter
 from PIL import Image as PILImage
@@ -250,6 +252,17 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
         channel = channel or ctx.channel
         await channel.send(msg)
+
+    @dev.command(name="as")
+    async def dev_as(self, ctx: utils.CustomContext, user: discord.Member, *, cmd: str):
+        """Runs a command as another user."""
+
+        alt_message = copy.copy(ctx.message)
+        alt_message.author = user
+        alt_message.content = ctx.prefix + cmd
+
+        alt_context = await self.bot.get_context(alt_message, cls=type(ctx))
+        await self.bot.invoke(alt_context)
 
     @dev.command(name="reload", aliases=["r"])
     async def dev_reload(self, ctx: utils.CustomContext):
