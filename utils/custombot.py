@@ -175,10 +175,10 @@ class MyBot(commands.AutoShardedBot):
 
         await self.change_presence(activity=discord.Game(name=config("BOT_STATUS")))
 
-    async def get_context(self, message, *, cls=CustomContext):
+    async def get_context(self, message: discord.Message, *, cls=CustomContext):
         return await super().get_context(message, cls=cls)
 
-    async def on_message(self, message):
+    async def on_message(self, message: discord.Message):
         if not self.is_ready():
             return
 
@@ -235,12 +235,20 @@ class MyBot(commands.AutoShardedBot):
         await self.guild_webhook.send(content="\n".join(message),
                                       username="Removed from guild.")
 
-    async def on_message_edit(self, before, after):
+    async def on_message_edit(self, before: discord.Message, after: discord.Message):
         if after.attachments and before.attachments:
             return
 
         if after.author.id in self.owner_ids:
             await self.process_commands(after)
+
+    async def on_message_delete(self, message: discord.Message):
+        try:
+            cached_message = self.ctx_cache[message.id]
+        except KeyError:
+            return
+        
+        await cached_message.delete()
 
     async def command_check(self, ctx: CustomContext):
         if ctx.author.id in self.owner_ids:
@@ -256,11 +264,11 @@ class MyBot(commands.AutoShardedBot):
 
         return False
 
-    async def reply(self, message_id, content=None, **kwargs):
+    async def reply(self, message_id: int, content: str, **kwargs):
         message = self._connection._get_message(message_id)
         await message.reply(content, **kwargs)
 
-    async def add_delete_reaction(self, channel_id, message_id):
+    async def add_delete_reaction(self, channel_id: int, message_id: int):
         """Adds a reaction to delete the given message."""
 
         channel = self.get_channel(channel_id)
