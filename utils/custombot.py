@@ -240,12 +240,6 @@ class MyBot(commands.AutoShardedBot):
             return
 
         if after.author.id in self.owner_ids:
-            message = self.ctx_cache[after.id]
-            context = await self.get_context(message)
-            
-            if not context.valid:
-                await message.delete()
-
             await self.process_commands(after)
 
     async def on_message_delete(self, message: discord.Message):

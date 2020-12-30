@@ -45,7 +45,7 @@ class CustomContext(commands.Context):
         message = await method(content=text, **kwargs)
 
         if self.author.id in self.bot.owner_ids:
-            if not getattr(message, "edited_at", None):
+            if not getattr(message, "edited_at", message.edited_at or None):
                 self.bot.ctx_cache[self.message.id] = message
 
         return message
@@ -54,6 +54,8 @@ class CustomContext(commands.Context):
         try:
             if self.message.attachments or kwargs.get("file") or kwargs.get("files") or kwargs.get("new_message"):
                 raise KeyError
+
+            kwargs["embed"] = kwargs.get("embed") or None
 
             message = self.bot.ctx_cache[self.message.id]
 
