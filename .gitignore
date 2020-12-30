@@ -11,3 +11,4 @@ __pycache__/
 /utils/__pycache__/
 /logs/discord.log
 requirements.txt
+format.bat
