@@ -72,21 +72,23 @@ async def google_search(query: str):
 class AllConverter(commands.Converter):
     async def convert(self, ctx: utils.CustomContext, argument: str):
 
-        converters = [
-            commands.TextChannelConverter(),
-            commands.VoiceChannelConverter(),
-            commands.MemberConverter(),
-            commands.UserConverter(),
-            utils.RoleConverter(),
-        ]
+        converters = {
+            commands.TextChannelConverter(): "Text Channel",
+            commands.VoiceChannelConverter(): "Voice Channel",
+            commands.MemberConverter(): "Server Member",
+            commands.UserConverter(): "Discord User",
+            commands.PartialEmojiConverter(): "Emoji",
+            utils.RoleConverter(): "Server Role",
+        }        
 
-        for converter in converters:
+        for converter, title in converters.items():
             try:
                 convert = await converter.convert(ctx, argument)
-            except:
+                return convert.id, title
+            except Exception as e:
                 continue
 
-            return convert.id
+        raise commands.BadArgument("Couldn't find anything that matches that.")
 
 
 class ColourConverter(commands.Converter):
@@ -262,13 +264,15 @@ class Meta(utils.BaseCog, name="meta"):
 
     @commands.command(name="id", aliases=["idof"])
     async def _id(self, ctx: utils.CustomContext, *, thing: AllConverter):
-        """Gets the ID of a given user, role, text channel or voice channel."""
+        """Gets the ID of a given user, role, emoji (Custom only), text channel or voice channel."""
 
-        if thing is None:
-            fmt = f"I couldn't find the ID of that"
-            return await ctx.send(fmt)
+        embed = Embed.default(ctx)
+        embed.description = (
+            f"The type of that is: {thing[1]}\n"
+            f"The ID of it is: {thing[0]}"
+        )
 
-        await ctx.send(f"The ID of that is: {thing}")
+        await ctx.send(embed=embed)
 
     @commands.command()
     async def convert(self, ctx: utils.CustomContext, amount: float, cur_from: str, cur_to: str):
