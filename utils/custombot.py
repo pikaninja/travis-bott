@@ -46,7 +46,7 @@ async def get_prefix(bot: commands.AutoShardedBot, message: discord.Message):
         return commands.when_mentioned_or("")(bot, message)
 
     if message.guild is None:
-        return commands.when_mentioned_or("")(bot, message)
+        return commands.when_mentioned_or("tb!")(bot, message)
 
     try:
         prefix = bot.config[message.guild.id]["guild_prefix"]

@@ -417,7 +417,11 @@ class Management(utils.BaseCog, name="management"):
     async def prefix(self, ctx: utils.CustomContext):
         """Gets the current prefix."""
 
-        prefix = self.bot.config[ctx.guild.id]["guild_prefix"]
+        try:
+            prefix = self.bot.config[ctx.guild.id]["guild_prefix"]
+        except AttributeError:
+            prefix = "tb!"
+            
         await ctx.send(f"The current prefix for this server is: `{prefix}`")
 
     @prefix.command(name="set")
