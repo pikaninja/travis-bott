@@ -136,6 +136,10 @@ class NoTodoItems(commands.CheckFailure):
     pass
 
 
+class NotTagOwner(commands.CheckFailure):
+    pass
+
+
 async def set_giveaway(bot, end_time, channel_id, message_id):
     async def giveaway_task(bot, end_time, channel_id, message_id):
         now = datetime.datetime.utcnow().replace(tzinfo=pytz.UTC)

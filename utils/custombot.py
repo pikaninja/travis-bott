@@ -43,7 +43,7 @@ logger = create_logger("custom-bot", logging.INFO)
 
 async def get_prefix(bot: commands.AutoShardedBot, message: discord.Message):
     if await bot.is_owner(message.author) and message.content.startswith(("dev", "jsk")):
-        return ""
+        return commands.when_mentioned_or("")(bot, message)
 
     if message.guild is None:
         return commands.when_mentioned_or("")(bot, message)

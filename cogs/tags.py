@@ -16,6 +16,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from inspect import TPFLAGS_IS_ABSTRACT
 import uuid
 import typing
 import logging
@@ -43,12 +44,8 @@ class TagsListPageSource(menus.ListPageSource):
         return embed
 
 
-class TagContent(commands.Converter):
-    def __init__(self, tag_type: typing.Literal['title', 'content']):
-        self.tag_type: str = tag_type.lower()
-
-    async def convert(self, ctx, argument):
-        if self.tag_type == 'title':
+class TagTitle(commands.Converter):
+    async def convert(self, ctx: utils.CustomContext, argument: str):
             reserved_names: list = ['create', 'make', 'add', 'list', 'delete']
             if len(argument) > 32:
                 raise commands.BadArgument(
@@ -58,15 +55,6 @@ class TagContent(commands.Converter):
             else:
                 return argument
 
-        if self.tag_type == 'content':
-            if len(argument) > 2016:
-                raise commands.BadArgument(
-                    'The content must not be longer than 2016 characters.')
-            else:
-                return argument
-        else:
-            raise Exception(
-                'How the fuck did you fuck up this bad and not get "title" or "content"?')
 
 
 class Tags(utils.BaseCog, name="tags"):
@@ -77,12 +65,26 @@ class Tags(utils.BaseCog, name="tags"):
         self.logger = utils.create_logger(
             self.__class__.__name__, logging.INFO)
 
+    async def cog_check(self, ctx: utils.CustomContext):
+        return True if ctx.guild else False
+
+    def _is_privileged(self, ctx: utils.CustomContext):
+        return ctx.author.guild_permissions.manage_messages
+
     @commands.group(invoke_without_command=True)
-    async def tag(self, ctx: utils.CustomContext):
+    async def tag(self, ctx: utils.CustomContext, tag: str = None):
         """The base command for everything to do with tags.
         Note: These tags are not global and only stay within the server they're created in."""
 
-        await ctx.send_help(ctx.command)
+        if tag is None:
+            return await ctx.send_help(ctx.command)
+
+        tag = await self.bot.pool.fetchrow('SELECT * FROM tags WHERE title = $1', tag)
+
+        if tag is None:
+            raise commands.BadArgument('I could not find that tag.')
+
+        await ctx.send(tag['content'])
 
     @tag.command(name="list")
     async def tag_list(self, ctx: utils.CustomContext, *, user: typing.Optional[discord.Member]):
@@ -99,7 +101,7 @@ class Tags(utils.BaseCog, name="tags"):
 
         all_tags = []
         for i, tag in enumerate(all_user_tags):
-            all_tags.append(f'{i} - {tag["title"]}')
+            all_tags.append(f'`{i + 1}`. {tag["title"]}')
 
         source = TagsListPageSource(user.name, all_tags)
         menu = utils.KalPages(source)
@@ -109,12 +111,42 @@ class Tags(utils.BaseCog, name="tags"):
     @tag.command(name='create', aliases=['make', 'add'])
     async def tag_create(self,
                          ctx: utils.CustomContext,
-                         tag_name: TagContent('title'),
-                         *, tag_content: TagContent('content')):
+                         tag_name: TagTitle,
+                         *, tag_content: commands.clean_content):
         """Creates a tag with a given name and gives it the given content.
         Example: `{prefix}tag create "kal is the best" this is a very true statement.`"""
 
         tag_id = uuid.uuid4()
+        check_sql = 'SELECT COUNT(*) FROM tags WHERE title = $1'
+        count = await self.bot.pool.fetchval(check_sql, tag_name)
+
+        if count > 0:
+            raise commands.BadArgument('There is already a tag with that name.')
+
+        sql = 'INSERT INTO tags VALUES($1, $2, $3, $4, $5, $6)'
+        values = (str(tag_id), ctx.guild.id, ctx.author.id, tag_name, tag_content, 0)
+        await self.bot.pool.execute(sql, *values)
+
+        await ctx.send('Successfully added that tag.')
+
+    @tag.command(name='remove', aliases=['delete', 'del'])
+    async def tag_remove(self, ctx: utils.CustomContext, *, tag_name: TagTitle):
+        """Removes a given tag by it's name.
+        You can only remove it if you're server staff (Manage Messages) or you own the tag."""
+
+        tag = await self.bot.pool.fetchrow('SELECT * FROM tags WHERE title = $1', tag_name)
+
+        if tag is None:
+            raise commands.BadArgument('There is no tag found that has that name.')
+
+        if not tag['author'] == ctx.author.id or not self._is_privileged(ctx):
+            raise utils.NotTagOwner('You do not have sufficient permissions to remove this tag.')
+
+        sql = 'DELETE FROM tags WHERE id = $1'
+        await self.bot.pool.execute(sql, tag['id'])
+
+        fmt = 'Successfully removed that tag.'
+        await ctx.send(fmt)
 
 
 def setup(bot):
