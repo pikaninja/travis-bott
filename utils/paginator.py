@@ -50,7 +50,7 @@ class GeneralPageSource(menus.ListPageSource):
         embed = Embed.default(menu.ctx)
         embed.description = "\n".join(
             [f"`{index}`. {item}" for index, item in enumerate(page, 1)])
-        
+
         return embed
 
 

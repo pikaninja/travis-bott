@@ -169,7 +169,10 @@ class Fun(utils.BaseCog, name="fun"):
                         return await ctx.send("Good bye! \N{SLIGHTLY SMILING FACE}",
                                               new_message=True)
                     response = await cb.ask(message.content, ctx.author.id, emotion=emotion)
-                    await message.reply(response.text)
+                    text = utils.owoify_text(
+                        response.text) if self.bot.config[ctx.guild.id]["owoify"] else response.text
+
+                    await message.reply(text)
 
     @commands.command()
     async def chimprate(self, ctx: utils.CustomContext, user: discord.Member = None):

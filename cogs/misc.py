@@ -16,6 +16,11 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from typing import Union
+from collections import namedtuple
+import jishaku.exception_handling
+import jishaku.paginators
+import contextlib
 import io
 import json
 import logging
@@ -40,11 +45,6 @@ from utils.embed import Embed
 This Jishaku stuff was gracefully stolen from Stella
 """
 
-import contextlib
-import jishaku.paginators
-import jishaku.exception_handling
-from collections import namedtuple
-from typing import Union
 
 EmojiSettings = namedtuple('EmojiSettings', 'start back forward end close')
 

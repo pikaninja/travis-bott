@@ -118,7 +118,7 @@ class MyBot(commands.AutoShardedBot):
             if get_guild is None:
                 await self.pool.execute(
                     "INSERT INTO guild_settings VALUES($1, DEFAULT, $2, $3, $4)",
-                    guild.id, None, None, None
+                    guild.id, None, None, False
                 )
 
         verification_config = await self.pool.fetch("SELECT message_id, role_id FROM guild_verification")
@@ -194,9 +194,10 @@ class MyBot(commands.AutoShardedBot):
 
     async def on_guild_join(self, guild: discord.Guild):
         await self.pool.execute(
-            "INSERT INTO guild_settings(guild_id, guild_prefix) VALUES($1, $2)",
+            "INSERT INTO guild_settings(guild_id, guild_prefix, owoify) VALUES($1, $2, $3)",
             guild.id,
             "tb!",
+            False,
         )
         self.config[guild.id] = {
             "guild_prefix": "tb!",
@@ -247,7 +248,7 @@ class MyBot(commands.AutoShardedBot):
             cached_message = self.ctx_cache[message.id]
         except KeyError:
             return
-        
+
         await cached_message.delete()
 
     async def command_check(self, ctx: CustomContext):

@@ -46,15 +46,14 @@ class TagsListPageSource(menus.ListPageSource):
 
 class TagTitle(commands.Converter):
     async def convert(self, ctx: utils.CustomContext, argument: str):
-            reserved_names: list = ['create', 'make', 'add', 'list', 'delete']
-            if len(argument) > 32:
-                raise commands.BadArgument(
-                    'The title must not be longer than 32 characters.')
-            if argument in reserved_names:
-                raise commands.BadArgument('That tag name is reserved.')
-            else:
-                return argument
-
+        reserved_names: list = ['create', 'make', 'add', 'list', 'delete']
+        if len(argument) > 32:
+            raise commands.BadArgument(
+                'The title must not be longer than 32 characters.')
+        if argument in reserved_names:
+            raise commands.BadArgument('That tag name is reserved.')
+        else:
+            return argument
 
 
 class Tags(utils.BaseCog, name="tags"):
@@ -121,10 +120,12 @@ class Tags(utils.BaseCog, name="tags"):
         count = await self.bot.pool.fetchval(check_sql, tag_name)
 
         if count > 0:
-            raise commands.BadArgument('There is already a tag with that name.')
+            raise commands.BadArgument(
+                'There is already a tag with that name.')
 
         sql = 'INSERT INTO tags VALUES($1, $2, $3, $4, $5, $6)'
-        values = (str(tag_id), ctx.guild.id, ctx.author.id, tag_name, tag_content, 0)
+        values = (str(tag_id), ctx.guild.id,
+                  ctx.author.id, tag_name, tag_content, 0)
         await self.bot.pool.execute(sql, *values)
 
         await ctx.send('Successfully added that tag.')
@@ -137,10 +138,12 @@ class Tags(utils.BaseCog, name="tags"):
         tag = await self.bot.pool.fetchrow('SELECT * FROM tags WHERE title = $1', tag_name)
 
         if tag is None:
-            raise commands.BadArgument('There is no tag found that has that name.')
+            raise commands.BadArgument(
+                'There is no tag found that has that name.')
 
         if not tag['author'] == ctx.author.id or not self._is_privileged(ctx):
-            raise utils.NotTagOwner('You do not have sufficient permissions to remove this tag.')
+            raise utils.NotTagOwner(
+                'You do not have sufficient permissions to remove this tag.')
 
         sql = 'DELETE FROM tags WHERE id = $1'
         await self.bot.pool.execute(sql, tag['id'])

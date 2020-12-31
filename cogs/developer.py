@@ -182,7 +182,8 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
                     ctr['coroutine'] += line.startswith('async def')
                     ctr['comment'] += '#' in line
 
-        code_count = '\n'.join(f'{key.upper()}: {count}' for key, count in ctr.items())
+        code_count = '\n'.join(
+            f'{key.upper()}: {count}' for key, count in ctr.items())
         server_count = sum(1 for g in self.bot.guilds)
         user_count = sum(g.member_count for g in self.bot.guilds)
         command_count = sum(1 for cmd in self.bot.walk_commands())
@@ -311,7 +312,8 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         await ctx.send(f"I successfully loaded {', '.join(successful)}")
 
         if unsuccessful:
-            fmt = "\n".join([f"{key} - {value}" for key, value in unsuccessful.items()])
+            fmt = "\n".join([f"{key} - {value}" for key,
+                             value in unsuccessful.items()])
             await ctx.send(
                 "Though there were some errors loading something:\n" +
                 fmt
@@ -333,7 +335,8 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         await ctx.send(f"I successfully unloaded {', '.join(successful)}")
 
         if unsuccessful:
-            fmt = "\n".join([f"{key} - {value}" for key, value in unsuccessful.items()])
+            fmt = "\n".join([f"{key} - {value}" for key,
+                             value in unsuccessful.items()])
             await ctx.send(
                 "Though there were some errors unloading something:\n" +
                 fmt
