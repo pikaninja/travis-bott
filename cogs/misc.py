@@ -16,8 +16,6 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from typing import Union
-from collections import namedtuple
 import jishaku.exception_handling
 import jishaku.paginators
 import contextlib
@@ -27,66 +25,20 @@ import logging
 import time
 import typing
 import re
-
 import asynckapi
+
 from decouple import config
 import discord
 from discord.ext import commands, menus
 from jishaku.codeblocks import codeblock_converter
 from selenium import webdriver
+from typing import Union
+from collections import namedtuple
 
 import utils
 
 from utils.paginator import KalPages
 from utils.embed import Embed
-
-
-"""
-This Jishaku stuff was gracefully stolen from Stella
-"""
-
-
-EmojiSettings = namedtuple('EmojiSettings', 'start back forward end close')
-
-
-class FakeEmote(discord.PartialEmoji):
-
-    @classmethod
-    def from_name(cls, name):
-        emoji_name = re.sub("|<|>", "", name)
-        a, name, id = emoji_name.split(":")
-        return cls(name=name, id=int(id), animated=bool(a))
-
-
-emote = EmojiSettings(
-    start=FakeEmote.from_name("<:leftbigarrow:780746237766664192>"),
-    back=FakeEmote.from_name("<:leftarrow:780746237825646672>"),
-    forward=FakeEmote.from_name("<:righarrow:780746237807820800>"),
-    end=FakeEmote.from_name("<:rightarrowbig:780746237829840926>"),
-    close=FakeEmote.from_name("<:stop:780746237527064578>")
-)
-jishaku.paginators.EMOJI_DEFAULT = emote  # Overrides jishaku emojis
-
-
-# noinspection PyDictDuplicateKeys
-async def attempt_add_reaction(msg: discord.Message, reaction: Union[str, discord.Emoji]):
-    """
-    This is responsible for every add reaction happening in jishaku. Instead of replacing each emoji that it uses in
-    the source code, it will try to find the corresponding emoji that is being used instead.
-    """
-    reacts = {
-        "\N{WHITE HEAVY CHECK MARK}": "<:checkmark:783295580298018827>",
-        "\N{BLACK RIGHT-POINTING TRIANGLE}": emote.forward,
-        "\N{HEAVY EXCLAMATION MARK SYMBOL}": "<:exclamation:783295580545220618>",
-        "\N{DOUBLE EXCLAMATION MARK}": "<:doubleexclamation:783295580218064947>",
-        "\N{ALARM CLOCK}": emote.end
-    }
-    react = reacts[reaction] if reaction in reacts else reaction
-    with contextlib.suppress(discord.HTTPException):
-        return await msg.add_reaction(react)
-
-
-jishaku.exception_handling.attempt_add_reaction = attempt_add_reaction
 
 
 class CogConverter(commands.Converter):
