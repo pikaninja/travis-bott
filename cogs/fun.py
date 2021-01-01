@@ -1,6 +1,6 @@
 """
 Fun cog, provides fun commands to users.
-Copyright (C) 2020 kal-byte
+Copyright (C) 2021 kal-byte
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
