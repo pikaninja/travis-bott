@@ -16,6 +16,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import contextlib
 import logging
 import random
 
@@ -120,14 +121,12 @@ class Management(utils.BaseCog, name="management"):
         role_overwrites = channel.overwrites_for(role)
         role_overwrites.update(send_messages=False)
 
-        try:
+        with contextlib.suppress(discord.Forbidden, discord.HTTPException):
             await channel.set_permissions(
                 target=role,
                 overwrite=role_overwrites,
                 reason="Disable mute role permissions to talk in this channel."
             )
-        except:
-            pass
 
     @commands.Cog.listener()
     async def on_giveaway_end(self, message: discord.PartialMessage):

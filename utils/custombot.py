@@ -98,10 +98,6 @@ class MyBot(commands.AutoShardedBot):
         self.ctx_cache = {}
         self.cmd_usage = 0
 
-    @property
-    async def kal(self):
-        return self.get_user(self.owner_id)
-
     async def close(self):
         await self.session.close()
         await self.pool.close()
@@ -163,7 +159,7 @@ class MyBot(commands.AutoShardedBot):
 
         logger.info("Finished setting mutes.")
 
-        updates_channel = await self.fetch_channel(711586681580552232)
+        updates_channel = self.get_channel(711586681580552232)
         last_update = await updates_channel.fetch_message(updates_channel.last_message_id)
         cool = last_update.content.split("\n")
         update = {

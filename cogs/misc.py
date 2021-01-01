@@ -193,7 +193,7 @@ class Misc(utils.BaseCog, name="misc"):
         self.bot.cmd_usage += 1
         if ctx.guild:
             if not ctx.guild.chunked:
-                await ctx.guild.chunk(cache=True)
+                await ctx.guild.chunk()
 
     @commands.command()
     async def script(self, ctx: utils.CustomContext, *, script: codeblock_converter):
