@@ -79,7 +79,7 @@ class AllConverter(commands.Converter):
             commands.UserConverter(): "Discord User",
             commands.PartialEmojiConverter(): "Emoji",
             utils.RoleConverter(): "Server Role",
-        }        
+        }
 
         for converter, title in converters.items():
             try:
