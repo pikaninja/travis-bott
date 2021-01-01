@@ -116,8 +116,7 @@ def has_voted():
             has_user_voted = bool(data["voted"])
 
         if not has_user_voted:
-            raise UserNotVoted(
-                "You must vote for the bot via the vote command to use this command.")
+            raise UserNotVoted("[Vote for the bot here to use this command.](https://top.gg/bot/706530005169209386/vote)")
 
         return True
 
