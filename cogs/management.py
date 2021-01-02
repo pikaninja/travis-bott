@@ -17,8 +17,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import contextlib
+import io
 import logging
 import random
+from zipfile import ZipFile
 
 import dateparser
 
@@ -100,6 +102,19 @@ class Management(utils.BaseCog, name="management"):
         self.show_name = show_name
         self.logger = utils.create_logger(
             self.__class__.__name__, logging.INFO)
+
+    async def _zip_all_guild_emojis(self, guild: discord.Guild):
+        """Helper method to zip up all of the guilds emojis."""
+
+        buffer = io.BytesIO()
+        with ZipFile(buffer, "w") as zip_file:
+            for emoji in guild.emojis:
+                png_or_gif = "gif" if emoji.animated else "png"
+                emoji_bytes = await emoji.url.read()
+                zip_file.writestr(f"{emoji.name}.{png_or_gif}", emoji_bytes)
+            
+        buffer.seek(0)
+        return buffer
 
     # noinspection PyUnresolvedReferences
     @commands.Cog.listener("on_guild_channel_create")
@@ -202,6 +217,22 @@ class Management(utils.BaseCog, name="management"):
 
     #     instance = AutoReactMenu()
     #     await instance.paginate(ctx)
+
+    @commands.command(name="zipemojis", aliases=["zae"])
+    @commands.has_permissions(manage_guild=True)
+    @commands.bot_has_permissions(manage_emojis=True)
+    async def zip_all_emojis(self, ctx: utils.CustomContext):
+        """Compress all of the servers emojis into one ZIP file."""
+
+        async with ctx.timeit:
+            async with ctx.typing():
+                zip_file = await self._zip_all_guild_emojis(ctx.guild)
+                file = discord.File(zip_file, "emojis.zip")
+
+            await ctx.reply(
+                "Hey, here's all the guilds emojis you called for!",
+                file=file
+            )
 
     @commands.command(aliases=["sgw"])
     @commands.has_permissions(manage_guild=True)
