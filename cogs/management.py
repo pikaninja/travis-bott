@@ -220,7 +220,6 @@ class Management(utils.BaseCog, name="management"):
 
     @commands.command(name="zipemojis", aliases=["zae"])
     @commands.has_permissions(manage_guild=True)
-    @commands.bot_has_permissions(manage_emojis=True)
     async def zip_all_emojis(self, ctx: utils.CustomContext):
         """Compress all of the servers emojis into one ZIP file."""
 
