@@ -112,7 +112,7 @@ class Management(utils.BaseCog, name="management"):
                 png_or_gif = "gif" if emoji.animated else "png"
                 emoji_bytes = await emoji.url.read()
                 zip_file.writestr(f"{emoji.name}.{png_or_gif}", emoji_bytes)
-            
+
         buffer.seek(0)
         return buffer
 
@@ -222,6 +222,8 @@ class Management(utils.BaseCog, name="management"):
     @commands.has_permissions(manage_guild=True)
     async def zip_all_emojis(self, ctx: utils.CustomContext):
         """Compress all of the servers emojis into one ZIP file."""
+
+        await ctx.send("Alright, this may take a while!")
 
         async with ctx.timeit:
             async with ctx.typing():

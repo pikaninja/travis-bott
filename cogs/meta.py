@@ -367,7 +367,7 @@ class Meta(utils.BaseCog, name="meta"):
             member_count = sum(g.member_count for g in self.bot.guilds)
         except AttributeError:
             member_count = "There was an issue grabbing that information."
-        
+
         process = psutil.Process(os.getpid())
         memory_used = process.memory_info().rss / 1024 ** 2
         memory_info = psutil.virtual_memory()
