@@ -352,7 +352,9 @@ class Meta(utils.BaseCog, name="meta"):
 
         astro = await self.bot.fetch_user(285506580919877633)
         embed = Embed.default(ctx)
+        embed.title = "Info about Travis Bott"
         embed.description = f"Thank you to {astro} for designing the bots profile pictures!"
+        embed.url = "https://www.travisbott.rocks/"
 
         embed.set_thumbnail(url=str(self.bot.user.avatar_url_as(
             format="png",
