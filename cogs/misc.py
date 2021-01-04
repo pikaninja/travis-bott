@@ -132,8 +132,7 @@ class Misc(utils.BaseCog, name="misc"):
                           700745848119885845,
                           742262208167280641,
                           281111308844400660,
-                          510698308248010792,
-                          758861325039566868]
+                          510698308248010792]
         self.bot: utils.MyBot = bot
         self.show_name = show_name
 
