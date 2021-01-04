@@ -21,7 +21,7 @@ import datetime
 
 
 class Embed(BaseEmbed):
-    def __init__(self, colour=0x1e90ff, timestamp=None, **kwargs):
+    def __init__(self, colour=0x863EFF, timestamp=None, **kwargs):
         super(Embed, self).__init__(
             colour=colour,
             timestamp=timestamp or datetime.datetime.utcnow(),
