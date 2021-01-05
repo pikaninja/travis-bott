@@ -16,6 +16,8 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+from json.decoder import JSONDecodeError
+from discord.errors import HTTPException
 import jishaku.exception_handling
 import jishaku.paginators
 import contextlib
@@ -145,6 +147,24 @@ class Misc(utils.BaseCog, name="misc"):
         if ctx.guild:
             if not ctx.guild.chunked:
                 await ctx.guild.chunk()
+
+    @commands.command()
+    async def embedbuilder(self, ctx: utils.CustomContext, *, embed_code: codeblock_converter):
+        """Builds a given embed.
+        You can build the embed using this site:
+        https://embedbuilder.nadekobot.me/"""
+
+        try:
+            embed_json = json.loads(embed_code.content)
+        except JSONDecodeError:
+            raise commands.BadArgument("That was not valid Embed code. Use <https://embedbuilder.nadekobot.me/>")
+
+        embed = discord.Embed.from_dict(embed_json)
+
+        try:
+            await ctx.send(embed=embed)
+        except HTTPException:
+            raise commands.BadArgument("That was not valid Embed code. Use <https://embedbuilder.nadekobot.me/>")
 
     @commands.command()
     async def script(self, ctx: utils.CustomContext, *, script: codeblock_converter):
