@@ -221,6 +221,17 @@ class Meta(utils.BaseCog, name="meta"):
         await self.bot.pool.executemany(sql, values)
         await ctx.send(f"Successfully deleted {len(todo_ids)} of your tasks.")
 
+    @todo.command(name="edit")
+    async def todo_edit(self, ctx: utils.CustomContext, task_id: int, *, task: str):
+        """Edits a given task id with a new task description."""
+
+        _id = await self._get_task_by_enumeration(ctx.author, task_id)
+        sql = "UPDATE todos SET task = $1 WHERE id = $2"
+        values = (task, _id)
+        await self.bot.pool.execute(sql, *values)
+
+        await ctx.send("Alright, updated that task for you!")
+
     @todo.command(name="list")
     async def todo_list(self, ctx: utils.CustomContext, flag: str = None):
         """Gives a list of all of your currently set tasks.
