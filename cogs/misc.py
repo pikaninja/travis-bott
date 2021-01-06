@@ -157,14 +157,16 @@ class Misc(utils.BaseCog, name="misc"):
         try:
             embed_json = json.loads(embed_code.content)
         except JSONDecodeError:
-            raise commands.BadArgument("That was not valid Embed code. Use <https://embedbuilder.nadekobot.me/>")
+            raise commands.BadArgument(
+                "That was not valid Embed code. Use <https://embedbuilder.nadekobot.me/>")
 
         embed = discord.Embed.from_dict(embed_json)
 
         try:
             await ctx.send(embed=embed)
         except HTTPException:
-            raise commands.BadArgument("That was not valid Embed code. Use <https://embedbuilder.nadekobot.me/>")
+            raise commands.BadArgument(
+                "That was not valid Embed code. Use <https://embedbuilder.nadekobot.me/>")
 
     @commands.command()
     async def script(self, ctx: utils.CustomContext, *, script: codeblock_converter):
