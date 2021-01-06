@@ -189,6 +189,26 @@ class Misc(utils.BaseCog, name="misc"):
         await ctx.send(process.result)
 
     @commands.command()
+    async def supporters(self, ctx: utils.CustomContext):
+        """Gives a list of all the people who helped support and grow Travis Bott."""
+
+        pikaninja = await self.bot.fetch_user(678401615333556277)
+        astro = await self.bot.fetch_user(285506580919877633)
+
+        reasons = {
+            str(pikaninja): "Helping with growth on Travis Bott.",
+            str(astro): "Helping design all of the graphics for Travis Bott.",
+            "Everyone who gives valid suggestions": "A lot of the commands wouldn't have been made without you."
+        }
+
+        supporters = (
+            "Thank you to these people who've helped supported Travis Bott:\n",
+            "\n".join(f"{k} - {v}" for k, v in reasons.items())
+        )
+
+        await ctx.send("\n".join(supporters))
+
+    @commands.command()
     async def vote(self, ctx: utils.CustomContext):
         """Gives the link to vote for Travis"""
 
