@@ -26,39 +26,42 @@ import typing
 import Levenshtein
 import humanize
 
+import asyncpg
 import discord
 import pytz
 from decouple import config
 from discord import Embed
 from discord.ext import commands
 
-import utils
 from .customcontext import CustomContext
 
 UserObject = typing.Union[discord.Member, discord.User]
 UserSnowflake = typing.Union[UserObject, discord.Object]
 
 
+METHODS = {
+    str.islower: str.lower,
+    str.istitle: str.title,
+    str.isupper: str.upper
+}
 OWO_REPL = {
     r"\By": "wy",
     r"l": "w",
     r"er": "ew",
     r"row": "rowo",
     r"rus": "ruwus",
-    r"the": "thuwu"
+    r"the": "thuwu",
+    r"thi": "di"
 }
 
 
 def _maintain_case_replace(sub: str, repl: str, text: str):
     def _repl(match: re.Match):
         group = match.group()
-        # there has to be a better way to do this
-        if group.islower():
-            return repl.lower()
-        elif group.istitle():
-            return repl.title()
-        elif group.isupper():
-            return repl.upper()
+
+        for cond, method in METHODS.items():
+            if cond(group):
+                return method(group)
         return repl
     return re.sub(sub, _repl, text, flags=re.I)
 
@@ -72,20 +75,20 @@ def owoify_text(text: str):
 
 def owoify_embed(embed: discord.Embed):
     embed.title = owoify_text(embed.title) if embed.title else None
-    embed.description = owoify_text(
-        embed.description) if embed.description else None
+    embed.description = (owoify_text(embed.description)
+                         if embed.description else None)
     embed.set_footer(text=owoify_text(embed.footer.text),
                      icon_url=embed.footer.icon_url) if embed.footer else None
     embed.set_author(name=owoify_text(embed.author.name),
                      url=embed.author.url,
                      icon_url=embed.author.icon_url) if embed.author else None
     for i, field in enumerate(embed.fields):
-        kwargs = {
-            "name": owoify_text(field.name),
-            "value": owoify_text(field.value),
-            "inline": field.inline
-        }
-        embed.set_field_at(i, **kwargs)
+        embed.set_field_at(
+            i,
+            name=owoify_text(field.name),
+            value=owoify_text(field.value),
+            inline=field.inline
+        )
     return embed
 
 
@@ -152,7 +155,7 @@ async def set_giveaway(bot, end_time, channel_id, message_id):
             channel = await bot.fetch_channel(channel_id)
             message = discord.PartialMessage(channel=channel, id=message_id)
             bot.dispatch("giveaway_end", message)
-        except:
+        except asyncpg.PostgresError:
             pass
 
     bot.loop.create_task(giveaway_task(bot, end_time, channel_id, message_id))
@@ -170,7 +173,7 @@ async def set_mute(bot, guild_id, user_id, _time):
             mute_role = guild.get_role(bot.config[guild_id]["mute_role_id"])
 
             await member.remove_roles(mute_role, reason="Mute time is over.")
-        except:
+        except asyncpg.PostgresError:
             pass
 
     bot.loop.create_task(mute_task(bot, guild_id, user_id, _time))
