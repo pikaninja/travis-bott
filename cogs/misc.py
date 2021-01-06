@@ -137,6 +137,7 @@ class Misc(utils.BaseCog, name="misc"):
                           510698308248010792]
         self.bot: utils.MyBot = bot
         self.show_name = show_name
+        self.supporters = {}
 
         self.logger = utils.create_logger(
             self.__class__.__name__, logging.INFO)
@@ -194,18 +195,21 @@ class Misc(utils.BaseCog, name="misc"):
     async def supporters(self, ctx: utils.CustomContext):
         """Gives a list of all the people who helped support and grow Travis Bott."""
 
-        pikaninja = await self.bot.fetch_user(678401615333556277)
-        astro = await self.bot.fetch_user(285506580919877633)
+        if not self.supporters:
+            pikaninja = await self.bot.fetch_user(678401615333556277)
+            astro = await self.bot.fetch_user(285506580919877633)
+            cyrus = await self.bot.fetch_user(668906205799907348)
 
-        reasons = {
-            str(pikaninja): "Helping with growth on Travis Bott.",
-            str(astro): "Helping design all of the graphics for Travis Bott.",
-            "Everyone who gives valid suggestions": "A lot of the commands wouldn't have been made without you."
-        }
+            self.supporters = {
+                str(pikaninja): "Helping with growth on Travis Bott.",
+                str(astro): "Helping design all of the graphics for Travis Bott.",
+                str(cyrus): "Helping by contributing to the repository.",
+                "Everyone who gives valid suggestions": "A lot of the commands wouldn't have been made without you."
+            }
 
         supporters = (
             "Thank you to these people who've helped supported Travis Bott:\n",
-            "\n".join(f"{k} - {v}" for k, v in reasons.items())
+            "\n".join(f"{k} - {v}" for k, v in self.supporters.items())
         )
 
         await ctx.send("\n".join(supporters))
