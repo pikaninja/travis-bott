@@ -478,12 +478,12 @@ class Misc(utils.BaseCog, name="misc"):
     async def github(self, ctx: utils.CustomContext):
         """Sends the bots github repo"""
 
-        embed = Embed.default(
-            ctx,
-            title="Click here to view my source code."
+        embed = Embed.default(ctx)
+        embed.description = (
+            "Travis Bott has been set to be closed-source as of 07/01/2021. "
+            "If you'd still like to view the source please contact kal#1806 "
+            "with a valid reason as to why."
         )
-
-        embed.url = self.bot.github_url
 
         await ctx.send(embed=embed)
 
