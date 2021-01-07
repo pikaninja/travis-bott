@@ -111,14 +111,14 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             for command in self.bot.commands:
                 if not command.help or not command.cog or not hasattr(command.cog, "show_name"):
                     continue
-                
+
                 sig = f"tb!{command.qualified_name} {command.signature}"
                 ret = {
                     "command": sig,
                     "help": command.short_doc,
                 }
                 cmd_list.append(ret)
-            
+
             return cmd_list
 
     async def cog_check(self, ctx: utils.CustomContext):
