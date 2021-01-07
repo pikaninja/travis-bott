@@ -68,13 +68,13 @@ cogs = [
     "cogs.imagemanipulation",
     "cogs.misc",
     "cogs.music",
+    "cogs.jishaku",
     "cogs.beta",
     "cogs.topgg",
     "cogs.custom.motherrussia",
     "cogs.custom.scrib",
     "cogs.custom.antinuke",
     "cogs.custom.userrequests",
-    "jishaku",
 ]
 
 for cog in cogs:

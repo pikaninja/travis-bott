@@ -53,14 +53,15 @@ async def get_prefix(bot: commands.AutoShardedBot, message: discord.Message):
 
     base = [f"<@{bot.user.id}> ", f"<@!{bot.user.id}> "]
 
-    if await bot.is_owner(message.author):
-        base.append("")
-
     if message.guild is None:
         base.append("tb!")
         return base
 
     base.append(bot.config[message.guild.id]["guild_prefix"])
+
+    if await bot.is_owner(message.author):
+        base.append("")
+
     return base
 
 
