@@ -20,16 +20,13 @@ import asyncio
 import logging
 import re
 import time
-
 import asyncpg
-from decouple import config
 import discord
-from discord.ext import commands
-
-from datetime import datetime as dt
-from datetime import timedelta
-
 import aiohttp
+
+from discord.ext import commands
+from datetime import datetime as dt
+from decouple import config
 
 from .logger import create_logger
 from .customcontext import CustomContext
@@ -41,19 +38,30 @@ import config as cfg
 logger = create_logger("custom-bot", logging.INFO)
 
 
+try:
+    import uvloop # type: ignore[reportMissingImports]
+except ImportError:
+    logger.warning("Using default asyncio event loop.")
+    pass
+else:
+    logger.info("Using uvloop asyncio event loop.")
+    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
+
+
 async def get_prefix(bot: commands.AutoShardedBot, message: discord.Message):
-    if await bot.is_owner(message.author) and message.content.startswith(("dev", "jsk")):
-        return commands.when_mentioned_or("")(bot, message)
+    """This gets called every message to get the prefix of the given message."""
+
+    base = [f"<@{bot.user.id}> ", f"<@!{bot.user.id}> "]
+    
+    if await bot.is_owner(message.author):
+        base.append("")
 
     if message.guild is None:
-        return commands.when_mentioned_or("tb!")(bot, message)
+        base.append("tb!")
+        return base
 
-    try:
-        prefix = bot.config[message.guild.id]["guild_prefix"]
-    except KeyError:
-        return commands.when_mentioned(bot, message)
-
-    return commands.when_mentioned_or(prefix)(bot, message)
+    base.append(bot.config[message.guild.id]["guild_prefix"])
+    return base
 
 
 class MyBot(commands.AutoShardedBot):

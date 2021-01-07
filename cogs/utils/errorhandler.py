@@ -76,7 +76,7 @@ class ErrorHandler(Cog):
                 f"Message Content: {ctx.message.content}",
             )
 
-        await self.bot.error_webhook(embed=embed)
+        await self.bot.error_webhook.send(embed=embed)
 
     @Cog.listener()
     async def on_command_error(self, ctx, error):
