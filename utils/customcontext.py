@@ -16,6 +16,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import asyncio
 import time
 from contextlib import ContextDecorator
 
@@ -44,7 +45,7 @@ class CustomContext(commands.Context):
         text = utils.owoify_text(str(*args))
         message = await method(content=text, **kwargs)
 
-        if self.author.id in self.bot.owner_ids:
+        if await self.bot.is_owner(self.author):
             if not getattr(message, "edited_at", None):
                 self.bot.ctx_cache[self.message.id] = message
 
@@ -75,8 +76,14 @@ class CustomContext(commands.Context):
 
             message = await super().send(*args, **kwargs)
 
-            if self.author.id in self.bot.owner_ids:
+            if await self.bot.is_owner(self.author):
                 self.bot.ctx_cache[self.message.id] = message
+
+            async def cleanup():
+                await asyncio.sleep(300)
+                del self.bot.ctx_cache[self.message.id]
+            
+            self.bot.loop.create_task(cleanup())
 
             return message
 
