@@ -291,11 +291,13 @@ class Music(commands.Cog, wavelink.WavelinkMixin, name="music"):
         if not player.is_connected:
             return
 
-        if player.queue.qsize() == 0:
+        if not player.is_playing:
             return await ctx.send("There are no more songs in the queue...")
 
         # noinspection PyProtectedMember
-        entries = [track.title for track in player.queue._queue]
+        entries = list()
+        entries.append(player.current.title)
+        [entries.append(track.title) for track in player.queue._queue]
         pages = utils.GeneralPageSource(entries, per_page=10)
         paginator = utils.KalPages(pages)
 
