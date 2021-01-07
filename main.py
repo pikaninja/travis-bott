@@ -101,22 +101,5 @@ async def on_ready():
     logger.info(f"Client ID -> {bot.user.id}")
     logger.info(f"Guild Count -> {len(bot.guilds)}")
 
-
-@bot.ipc.route()
-async def get_stats(data):
-    return [
-        f"{len(bot.guilds):,}",
-        f"{sum(g.member_count for g in bot.guilds):,}",
-        f"{sum(1 for c in bot.walk_commands()):,}"
-    ]
-
-
-@bot.ipc.route()
-async def get_bot_id(data):
-    user = await bot.fetch_user(data.bot_id)
-    if not user.bot:
-        return "706530005169209386"
-    return user.id
-
 bot.ipc.start()
 bot.run(config("BOT_TOKEN"))

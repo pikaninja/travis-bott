@@ -89,6 +89,38 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         self.logger = utils.create_logger(
             self.__class__.__name__, logging.INFO)
 
+        @bot.ipc.route()
+        async def get_stats(data):
+            return [
+                f"{len(bot.guilds):,}",
+                f"{sum(g.member_count for g in bot.guilds):,}",
+                f"{sum(1 for c in bot.walk_commands()):,}"
+            ]
+
+        @bot.ipc.route()
+        async def get_bot_id(data):
+            user = await bot.fetch_user(data.bot_id)
+            if not user.bot:
+                return "706530005169209386"
+            return user.id
+
+        @bot.ipc.route()
+        async def get_bot_commands(data):
+            cmd_list = list()
+
+            for command in self.bot.commands:
+                if not command.help or not command.cog or not hasattr(command.cog, "show_name"):
+                    continue
+                
+                sig = f"tb!{command.qualified_name} {command.signature}"
+                ret = {
+                    "command": sig,
+                    "help": command.short_doc,
+                }
+                cmd_list.append(ret)
+            
+            return cmd_list
+
     async def cog_check(self, ctx: utils.CustomContext):
         return await self.bot.is_owner(ctx.author)
 
