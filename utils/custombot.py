@@ -39,7 +39,7 @@ logger = create_logger("custom-bot", logging.INFO)
 
 
 try:
-    import uvloop # type: ignore[reportMissingImports]
+    import uvloop  # type: ignore[reportMissingImports]
 except ImportError:
     logger.warning("Using default asyncio event loop.")
     pass
@@ -52,7 +52,7 @@ async def get_prefix(bot: commands.AutoShardedBot, message: discord.Message):
     """This gets called every message to get the prefix of the given message."""
 
     base = [f"<@{bot.user.id}> ", f"<@!{bot.user.id}> "]
-    
+
     if await bot.is_owner(message.author):
         base.append("")
 
