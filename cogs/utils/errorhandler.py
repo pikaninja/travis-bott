@@ -23,7 +23,7 @@ import prettify_exceptions
 from discord.ext import commands
 from discord.ext.commands import Cog
 
-from utils import utils
+import utils
 from utils.custombot import MyBot
 from utils.embed import Embed
 
@@ -54,7 +54,6 @@ class ErrorHandler(Cog):
         return None
 
     async def send_error(self, ctx, error):
-        error_log_channel = self.bot.get_channel(768497134751186954)
         embed = Embed.error(
             title="Something went wrong...",
             description=f"```py\nAn Error Occurred:\n{error}\n```",
@@ -77,7 +76,7 @@ class ErrorHandler(Cog):
                 f"Message Content: {ctx.message.content}",
             )
 
-        await error_log_channel.send(embed=embed)
+        await self.bot.error_webhook(embed=embed)
 
     @Cog.listener()
     async def on_command_error(self, ctx, error):
