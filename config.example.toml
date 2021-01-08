@@ -1,0 +1,33 @@
+[tokens]
+    main = ""
+    beta = ""
+
+[misc]
+    status = ""
+    secret_key = ""
+    wavelink_pass = ""
+    guild_webhook = ""
+    error_webhook = ""
+
+[database]
+    [database.main]
+    host = ""
+    database = ""
+    password = ""
+    user = ""
+
+    [database.beta]
+    host = ""
+    database = ""
+    password = ""
+    user = ""
+
+[api-keys]
+    weather_api = ""
+    ksoft_api = ""
+    dagpi = ""
+    google_cse = ""
+    second_google_cse = ""
+    top_gg_api = ""
+    chatbot_api = ""
+    github_api = ""
