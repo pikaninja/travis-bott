@@ -37,7 +37,6 @@ from wand.image import Image as WandImage
 from utils.embed import Embed
 
 
-
 async def do_dagpi_stuff(ctx: utils.CustomContext, user: discord.Member, feature: asyncdagpi.ImageFeatures) -> discord.File:
     dagpi = asyncdagpi.Client(ctx.bot.api_key_for("dagpi"))
     url = str(user.avatar_url_as(static_format="png"))
@@ -319,7 +318,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
 
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
-    async def swirl(self, ctx: utils.CustomContext, degrees: typing.Optional[int]=90, what: str=None):
+    async def swirl(self, ctx: utils.CustomContext, degrees: typing.Optional[int] = 90, what: str = None):
         """Adds a swirl affect to a given image."""
 
         async with ctx.timeit:

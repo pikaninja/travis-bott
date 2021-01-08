@@ -84,7 +84,7 @@ class CustomContext(commands.Context):
                     await asyncio.sleep(300)
                     with contextlib.suppress(KeyError):
                         del self.bot.ctx_cache[self.message.id]
-                
+
                 self.bot.loop.create_task(cleanup())
 
             return message

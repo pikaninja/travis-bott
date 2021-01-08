@@ -100,5 +100,6 @@ async def on_ready():
 
 bot.ipc.start()
 
-token = bot.bot_token_for("main") if os.name != "nt" else bot.bot_token_for("beta")
+token = bot.bot_token_for(
+    "main") if os.name != "nt" else bot.bot_token_for("beta")
 bot.run(token)

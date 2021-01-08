@@ -42,6 +42,7 @@ status_icons = {
     "offline": "<:offline:748253316533846179>",
 }
 
+
 class AllConverter(commands.Converter):
     async def convert(self, ctx: utils.CustomContext, argument: str):
 
@@ -109,7 +110,8 @@ class Meta(utils.BaseCog, name="meta"):
         """Context Manager to search for the CSE"""
 
         with contextlib.suppress(KeyError):
-            keys = [self.bot.api_key_for("google_cse"), self.bot.api_key_for("second_google_cse")]
+            keys = [self.bot.api_key_for(
+                "google_cse"), self.bot.api_key_for("second_google_cse")]
             results = []
             try:
                 engine = cse.Search(keys[0])

@@ -73,7 +73,8 @@ class MyBot(commands.AutoShardedBot):
 
         self.loop = asyncio.get_event_loop()
         self.pool = self.loop.run_until_complete(
-            asyncpg.create_pool(**self.database_for("main") if os.name != "nt" else self.database_for("beta"))
+            asyncpg.create_pool(**self.database_for("main")
+                                if os.name != "nt" else self.database_for("beta"))
         )
 
         self.session = aiohttp.ClientSession(loop=self.loop)

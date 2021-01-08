@@ -105,7 +105,8 @@ class Music(commands.Cog, wavelink.WavelinkMixin, name="music"):
         await self.bot.wavelink.initiate_node(host="127.0.0.1",
                                               port=2333,
                                               rest_uri="http://127.0.0.1:2333",
-                                              password=self.bot.from_config("wavelink_pass"),
+                                              password=self.bot.from_config(
+                                                  "wavelink_pass"),
                                               identifier="Travis",
                                               region="europe")
 
