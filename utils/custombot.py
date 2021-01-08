@@ -103,11 +103,18 @@ class MyBot(commands.AutoShardedBot):
 
         self.ctx_cache = {}
         self.cmd_usage = 0
+        self.loop.create_task(self.chunk_all_guilds())
 
     async def close(self):
         await self.session.close()
         await self.pool.close()
         await super().close()
+
+    async def chunk_all_guilds(self):
+        await self.wait_until_ready()
+
+        for guild in self.guilds:
+            await guild.chunk()
 
     async def do_prep(self):
         await self.wait_until_ready()

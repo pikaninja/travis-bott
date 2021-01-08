@@ -145,9 +145,9 @@ class Misc(utils.BaseCog, name="misc"):
     @commands.Cog.listener()
     async def on_command(self, ctx: utils.CustomContext):
         self.bot.cmd_usage += 1
-        if ctx.guild:
-            if not ctx.guild.chunked:
-                await ctx.guild.chunk()
+        # if ctx.guild:
+        #     if not ctx.guild.chunked:
+        #         await ctx.guild.chunk()
 
     @commands.command()
     async def embedbuilder(self, ctx: utils.CustomContext, *, embed_code: codeblock_converter):

@@ -310,8 +310,6 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
                 func = functools.partial(Manipulation.alwayshasbeen, text)
                 buffer = await self.bot.loop.run_in_executor(None, func)
 
-                self.ahb_cache[text] = buffer
-
                 embed = Embed.default(ctx)
 
                 file = discord.File(fp=buffer, filename="ahb.png")
