@@ -294,8 +294,6 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
         self.logger = utils.create_logger(
             self.__class__.__name__, logging.INFO)
 
-        self.ahb_cache = {}
-
     @commands.command(aliases=["ahb"])
     @commands.cooldown(1, 3, commands.BucketType.member)
     async def alwayshasbeen(self, ctx: utils.CustomContext, *, text: commands.clean_content = None):
@@ -305,39 +303,24 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
 
         async with ctx.timeit:
             async with ctx.typing():
+                if len(text) > 50:
+                    fmt = "<:smh:789142899290931241> it can't be any longer than 50 characters!"
+                    return await ctx.send(fmt)
 
-                try:
-                    cached = self.ahb_cache[text]
-                    cached.seek(0)
+                func = functools.partial(Manipulation.alwayshasbeen, text)
+                buffer = await self.bot.loop.run_in_executor(None, func)
 
-                    embed = Embed.default(ctx)
+                self.ahb_cache[text] = buffer
 
-                    file = discord.File(fp=cached, filename="ahb.png")
-                    embed.set_image(url="attachment://ahb.png")
+                embed = Embed.default(ctx)
 
-                    await ctx.send(
-                        file=file,
-                        embed=embed
-                    )
-                except KeyError:
-                    if len(text) > 50:
-                        fmt = "<:smh:789142899290931241> it can't be any longer than 50 characters!"
-                        return await ctx.send(fmt)
+                file = discord.File(fp=buffer, filename="ahb.png")
+                embed.set_image(url="attachment://ahb.png")
 
-                    func = functools.partial(Manipulation.alwayshasbeen, text)
-                    buffer = await self.bot.loop.run_in_executor(None, func)
-
-                    self.ahb_cache[text] = buffer
-
-                    embed = Embed.default(ctx)
-
-                    file = discord.File(fp=buffer, filename="ahb.png")
-                    embed.set_image(url="attachment://ahb.png")
-
-                    await ctx.send(
-                        file=file,
-                        embed=embed
-                    )
+                await ctx.send(
+                    file=file,
+                    embed=embed
+                )
 
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
