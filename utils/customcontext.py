@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import asyncio
+import contextlib
 import time
 from contextlib import ContextDecorator
 
@@ -79,11 +80,12 @@ class CustomContext(commands.Context):
             if await self.bot.is_owner(self.author):
                 self.bot.ctx_cache[self.message.id] = message
 
-            async def cleanup():
-                await asyncio.sleep(300)
-                del self.bot.ctx_cache[self.message.id]
-            
-            self.bot.loop.create_task(cleanup())
+                async def cleanup():
+                    await asyncio.sleep(300)
+                    with contextlib.suppress(KeyError):
+                        del self.bot.ctx_cache[self.message.id]
+                
+                self.bot.loop.create_task(cleanup())
 
             return message
 
