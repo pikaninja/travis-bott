@@ -18,16 +18,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 from json.decoder import JSONDecodeError
 from discord.errors import HTTPException
-import jishaku.exception_handling
 import jishaku.paginators
-import contextlib
 import io
 import json
 import logging
 import time
-import typing
 import re
-import asynckapi
 
 from decouple import config
 import discord
@@ -403,28 +399,6 @@ class Misc(utils.BaseCog, name="misc"):
 
         await message.edit(content=None,
                            embed=embed)
-
-    @commands.command()
-    async def password(self, ctx: utils.CustomContext, length: typing.Optional[int] = 8):
-        """Generates a password and sends it to you in DMs!"""
-
-        client = asynckapi.Client()
-        password = await client.password(length=length)
-        password = discord.utils.escape_markdown(password)
-
-        try:
-            fmt = (
-                "Here's your freshly baked password:\n"
-                f"{password}"
-            )
-            await ctx.author.send(fmt)
-            await ctx.send("Check your DMs to receive your freshly generated password.")
-
-        except (discord.HTTPException, discord.Forbidden):
-            await ctx.send("I couldn't DM you your password, sorry.")
-
-        finally:
-            await client.close()
 
     @commands.command(hidden=True, aliases=["hello"])
     async def hey(self, ctx: utils.CustomContext):

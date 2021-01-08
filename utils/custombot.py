@@ -224,6 +224,8 @@ class MyBot(commands.AutoShardedBot):
         await self.guild_webhook.send(content="\n".join(message),
                                       username="Added to guild.")
 
+        await guild.chunk()
+
     async def on_guild_remove(self, guild: discord.Guild):
         await self.pool.execute(
             "DELETE FROM guild_settings WHERE guild_id = $1", guild.id

@@ -29,7 +29,7 @@ from discord.flags import MemberCacheFlags
 
 logger = utils.create_logger("travis-bott", logging.INFO)
 
-my_mentions = AllowedMentions(everyone=False, roles=False, users=True)
+my_mentions = AllowedMentions(everyone=False, roles=False)
 
 my_intents = Intents.default()
 my_intents.members = True

@@ -387,12 +387,11 @@ class Meta(utils.BaseCog, name="meta"):
 
         cpu_percentage = psutil.cpu_percent()
         fields = [
-
             ["Invite", f"[Invite the bot here!]({self.bot.invite_url})", True],
             ["Need Support?",
                 f"[Join the support server here]({self.bot.support_url})", True],
-            ["Want to see the source?",
-                f"[Click here to view it]({self.bot.github_url})", True],
+            ["Want to support the bot?",
+                "[Click here!](https://top.gg/bot/706530005169209386)", True],
             ["Current Ping", f"{(self.bot.latency * 1000):,.2f} ms", True],
             ["Developer", f"{developer}", True],
             ["Guild Count", f"{guild_count}", True],
