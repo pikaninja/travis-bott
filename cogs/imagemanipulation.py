@@ -341,7 +341,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
 
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
-    async def swirl(self, ctx: utils.CustomContext, what: typing.Optional[str], degrees: int = 90):
+    async def swirl(self, ctx: utils.CustomContext, degrees: typing.Optional[int]=90, what: str=None):
         """Adds a swirl affect to a given image."""
 
         async with ctx.timeit:
