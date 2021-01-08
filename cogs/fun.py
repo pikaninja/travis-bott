@@ -20,20 +20,14 @@ import contextlib
 import datetime
 import logging
 import time
-
 import async_cleverbot
-
 import utils
-
 import asyncio
 import discord
 import typing
 import random
 import vacefron
-
-from decouple import config
 from discord.ext import commands, menus
-
 from utils.embed import Embed
 
 standard_cooldown = 3.0
@@ -144,7 +138,7 @@ class Fun(utils.BaseCog, name="fun"):
         """Starts an interactive session with the chat bot.
         Type `cancel` to quit talking to the bot."""
 
-        cb = async_cleverbot.Cleverbot(config("CHATBOT_API"))
+        cb = async_cleverbot.Cleverbot(self.bot.api_key_for("chatbot_api"))
         not_ended = True
 
         emotion = emotion or async_cleverbot.Emotion.neutral

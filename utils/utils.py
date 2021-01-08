@@ -29,7 +29,6 @@ import humanize
 import asyncpg
 import discord
 import pytz
-from decouple import config
 from discord import Embed
 from discord.ext import commands
 
@@ -111,7 +110,7 @@ class RoleConverter(commands.Converter):
 
 def has_voted():
     async def predicate(ctx: CustomContext):
-        hdrs = {"Authorization": config("TOP_GG_API")}
+        hdrs = {"Authorization": ctx.bot.api_key_for("top_gg_api")}
         url = f"https://top.gg/api/bots/{ctx.bot.user.id}/check?userId={ctx.author.id}"
 
         async with ctx.bot.session.get(url, headers=hdrs) as response:

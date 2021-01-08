@@ -20,26 +20,20 @@ import argparse
 import logging
 import os
 import re
-
+import utils
 import cse
 import contextlib
-from contextlib import asynccontextmanager
-
-from decouple import config
-from discord.ext import commands, menus
-from PIL import ImageColor
-
-import utils
-
-from utils.embed import Embed
-
-from currency_converter import CurrencyConverter
-
 import psutil
 import discord
 import typing
 import numexpr
 import humanize
+from contextlib import asynccontextmanager
+from discord.ext import commands, menus
+from PIL import ImageColor
+from utils.embed import Embed
+from currency_converter import CurrencyConverter
+
 
 status_icons = {
     "online": "<:online:748253316693098609>",
@@ -47,27 +41,6 @@ status_icons = {
     "idle": "<:away:748253316882104390>",
     "offline": "<:offline:748253316533846179>",
 }
-
-# Testing python-cse
-
-
-@asynccontextmanager
-async def google_search(query: str):
-    """Context Manager to search for the CSE"""
-
-    with contextlib.suppress(KeyError):
-        keys = [config("GOOGLE_CSE"), config("SECOND_GOOGLE_CSE")]
-        results = []
-        try:
-            engine = cse.Search(keys[0])
-            results = await engine.search(query, safe_search=True, max_results=10)
-        except cse.QuotaExceededError:
-            engine = cse.Search(keys[1])
-            results = await engine.search(query, safe_search=True, max_results=10)
-        finally:
-            await engine.close()
-            yield results
-
 
 class AllConverter(commands.Converter):
     async def convert(self, ctx: utils.CustomContext, argument: str):
@@ -129,7 +102,24 @@ class Meta(utils.BaseCog, name="meta"):
         self.logger = utils.create_logger(
             self.__class__.__name__, logging.INFO)
 
-        self.weather_api_key = config("WEATHER_API_KEY")
+        self.weather_api_key = self.bot.api_key_for("weather_api")
+
+    @asynccontextmanager
+    async def google_search(self, query: str):
+        """Context Manager to search for the CSE"""
+
+        with contextlib.suppress(KeyError):
+            keys = [self.bot.api_key_for("google_cse"), self.bot.api_key_for("second_google_cse")]
+            results = []
+            try:
+                engine = cse.Search(keys[0])
+                results = await engine.search(query, safe_search=True, max_results=10)
+            except cse.QuotaExceededError:
+                engine = cse.Search(keys[1])
+                results = await engine.search(query, safe_search=True, max_results=10)
+            finally:
+                await engine.close()
+                yield results
 
     def _get_top_coloured_role(self, target: discord.Member):
         """Helper method to get the users top role that has colour else no colour."""
@@ -305,7 +295,7 @@ class Meta(utils.BaseCog, name="meta"):
     async def google(self, ctx: utils.CustomContext, *, query: str):
         """Searches google for a given query."""
 
-        async with google_search(query) as results:
+        async with self.google_search(query) as results:
             if not results:
                 return await ctx.send("That query returned no results.")
 

@@ -1,8 +1,5 @@
 .idea/
 .vscode/
-.env
-/data/db/database.db
-config.py
 __pycache__/
 /cogs/__pycache__/
 /cogs/utils/__pycache__/
@@ -12,3 +9,4 @@ __pycache__/
 /logs/discord.log
 format.bat
 env/
+config.toml

@@ -17,14 +17,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import logging
-
 import utils
 import os
-
 from utils.custombot import MyBot
 from discord import Game, Status, AllowedMentions, Intents
 from discord.ext.ipc import Server
-from decouple import config
 from discord.flags import MemberCacheFlags
 
 logger = utils.create_logger("travis-bott", logging.INFO)
@@ -46,7 +43,7 @@ bot = MyBot(
     member_cache_flags=stuff_to_cache,
     chunk_guilds_at_startup=False,
 )
-bot.ipc = Server(bot, "0.0.0.0", 8765, config("SECRET_KEY"))
+bot.ipc = Server(bot, "0.0.0.0", 8765, bot.from_config("secret_key"))
 
 bot.version = "But Better"
 bot.description = (
@@ -102,4 +99,6 @@ async def on_ready():
     logger.info(f"Guild Count -> {len(bot.guilds)}")
 
 bot.ipc.start()
-bot.run(config("BOT_TOKEN"))
+
+token = bot.bot_token_for("main") if os.name != "nt" else bot.bot_token_for("beta")
+bot.run(token)

@@ -19,7 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import asyncio
 import discord
 from discord.ext import commands
-from decouple import config
 
 import math
 import logging
@@ -106,7 +105,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin, name="music"):
         await self.bot.wavelink.initiate_node(host="127.0.0.1",
                                               port=2333,
                                               rest_uri="http://127.0.0.1:2333",
-                                              password=config("WAVELINK_PASS"),
+                                              password=self.bot.from_config("wavelink_pass"),
                                               identifier="Travis",
                                               region="europe")
 

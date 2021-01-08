@@ -20,17 +20,12 @@ import contextlib
 import io
 import logging
 import random
-from zipfile import ZipFile
-
 import dateparser
-
 import discord
-
 import utils
 import asyncio
-
 from discord.ext import commands
-
+from zipfile import ZipFile
 from utils.embed import Embed
 
 

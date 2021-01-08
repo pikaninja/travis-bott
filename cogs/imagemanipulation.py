@@ -26,23 +26,20 @@ import typing
 import asyncdagpi
 import discord
 import twemoji_parser
-
+import utils
 from io import BytesIO
 from asyncdagpi import ImageFeatures
-from decouple import config
 from discord.ext import commands
 from polaroid.polaroid import Image
 from PIL import Image as PILImage, ImageDraw, ImageFont
 from wand.color import Color
 from wand.image import Image as WandImage
-
 from utils.embed import Embed
 
-import utils
 
 
-async def do_dagpi_stuff(user, feature) -> discord.File:
-    dagpi = asyncdagpi.Client(config("DAGPI"))
+async def do_dagpi_stuff(ctx: utils.CustomContext, user: discord.Member, feature: asyncdagpi.ImageFeatures) -> discord.File:
+    dagpi = asyncdagpi.Client(ctx.bot.api_key_for("dagpi"))
     url = str(user.avatar_url_as(static_format="png"))
     img = await dagpi.image_process(feature, url)
     img_file = discord.File(fp=img.image, filename=f"image.{img.format}")
@@ -481,7 +478,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
         async with ctx.timeit:
             async with ctx.typing():
                 user = user or ctx.author
-                img_file = await do_dagpi_stuff(user, ImageFeatures.wanted())
+                img_file = await do_dagpi_stuff(ctx, user, ImageFeatures.wanted())
                 await ctx.send(content=f"Hands up **{user.name}!**", file=img_file)
 
     @commands.command(aliases=["colors"])
@@ -493,7 +490,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
         async with ctx.timeit:
             async with ctx.typing():
                 user = user or ctx.author
-                img_file = await do_dagpi_stuff(user, ImageFeatures.colors())
+                img_file = await do_dagpi_stuff(ctx, user, ImageFeatures.colors())
                 await ctx.send(
                     f"Top 5 Colours for {user}",
                     file=img_file
@@ -508,7 +505,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
         async with ctx.timeit:
             async with ctx.typing():
                 user = user or ctx.author
-                img_file = await do_dagpi_stuff(user, ImageFeatures.pixel())
+                img_file = await do_dagpi_stuff(ctx, user, ImageFeatures.pixel())
                 await ctx.send(file=img_file)
 
     @commands.command()
@@ -520,7 +517,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
         async with ctx.timeit:
             async with ctx.typing():
                 user = user or ctx.author
-                img_file = await do_dagpi_stuff(user, ImageFeatures.polaroid())
+                img_file = await do_dagpi_stuff(ctx, user, ImageFeatures.polaroid())
                 await ctx.send(
                     "*Look at this photograph*",
                     file=img_file

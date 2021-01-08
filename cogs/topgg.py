@@ -17,11 +17,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import logging
-
-from decouple import config
-from discord.ext import tasks
-
 import utils
+from discord.ext import tasks
 
 
 class TopGG(utils.BaseCog):
@@ -30,7 +27,7 @@ class TopGG(utils.BaseCog):
         self.logger = utils.create_logger(
             self.__class__.__name__, logging.INFO)
 
-        self.dbl_token = config("TOP_GG_API")
+        self.dbl_token = self.bot.api_key_for("top_gg_api")
         self.update_stats.start()
 
     def cog_unload(self):

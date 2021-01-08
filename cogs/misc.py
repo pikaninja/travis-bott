@@ -16,25 +16,18 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from json.decoder import JSONDecodeError
-from discord.errors import HTTPException
-import jishaku.paginators
 import io
 import json
 import logging
 import time
 import re
-
-from decouple import config
+import utils
 import discord
 from discord.ext import commands, menus
+from json.decoder import JSONDecodeError
+from discord.errors import HTTPException
 from jishaku.codeblocks import codeblock_converter
 from selenium import webdriver
-from typing import Union
-from collections import namedtuple
-
-import utils
-
 from utils.paginator import KalPages
 from utils.embed import Embed
 
