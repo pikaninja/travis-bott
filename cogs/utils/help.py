@@ -104,7 +104,6 @@ class BaseHelp(menus.Menu):
         return menu
 
     async def send_initial_message(self, ctx: utils.CustomContext, channel: discord.TextChannel):
-        reacts = []
         embed = Embed.default(ctx)
         embed.description = (
             "```fix\n"
@@ -117,7 +116,6 @@ class BaseHelp(menus.Menu):
 
         for title in self.data:
             modules.append(f"{title}")
-            reacts.append(title[:1])
 
         embed.add_field(
             name="Modules",
@@ -148,6 +146,11 @@ class BaseHelp(menus.Menu):
     @menus.button("\N{CROSSED SWORDS}")
     async def mod_help(self, payload):
         menu = await self._prepare_menu_for("moderation")
+        await menu.start(self.ctx)
+
+    @menus.button("\N{PARTY POPPER}")
+    async def fun_help(self, payload):
+        menu = await self._prepare_menu_for("fun")
         await menu.start(self.ctx)
 
     @menus.button("\N{EYE}")

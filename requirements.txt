@@ -1,5 +1,4 @@
 git+https://github.com/Rapptz/discord-ext-menus.git
-git+https://github.com/Ext-Creators/discord-ext-ipc.git
 git+https://github.com/Gorialis/jishaku.git
 git+https://github.com/XuaTheGrate/python-cse.git
 git+https://github.com/ShineyDev/prettify.py.git
@@ -25,3 +24,4 @@ Wand==0.6.5
 numexpr==2.7.2
 toml==0.10.2
 uvloop==0.14.0
+discord-ext-ipc==1.0

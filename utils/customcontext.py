@@ -19,12 +19,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import asyncio
 import contextlib
 import time
-from contextlib import ContextDecorator
-
-import discord
-from discord.ext import commands
-
 import utils
+import discord
+from contextlib import ContextDecorator, asynccontextmanager, contextmanager
+from discord.ext import commands
+from utils.embed import Embed
 
 
 class CommandConverter(commands.Converter):
@@ -51,6 +50,11 @@ class CustomContext(commands.Context):
                 self.bot.ctx_cache[self.message.id] = message
 
         return message
+
+    @contextmanager
+    def embed(self, **kwargs):
+        embed = Embed.default(self, **kwargs)
+        yield embed
 
     async def send(self, *args, **kwargs):
         try:

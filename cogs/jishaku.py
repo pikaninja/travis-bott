@@ -117,10 +117,9 @@ class Jishaku(*OPTIONAL_FEATURES, *STANDARD_FEATURES):
         summary.append(
             f"Average websocket latency: {self.bot.latency * 1000:,.2f}ms")
 
-        embed = Embed.default(ctx)
-        embed.description = "\n".join(summary)
-
-        await ctx.send(embed=embed)
+        with ctx.embed() as embed:
+            embed.description = "\n".join(summary)
+            await ctx.send(embed=embed)
 
 
 def setup(bot: commands.Bot):
