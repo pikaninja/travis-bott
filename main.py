@@ -64,7 +64,6 @@ cogs = [
     "cogs.fun",
     "cogs.imagemanipulation",
     "cogs.misc",
-    "cogs.music",
     "cogs.jishaku",
     "cogs.beta",
     "cogs.topgg",
