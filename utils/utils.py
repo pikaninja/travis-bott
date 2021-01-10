@@ -91,6 +91,10 @@ def owoify_embed(embed: discord.Embed):
     return embed
 
 
+def codeblock(content: str, language: str="py"):
+    return f"```{language}\n{content}```"
+
+
 class RoleConverter(commands.Converter):
     async def convert(self, ctx, argument):
         try:

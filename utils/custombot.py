@@ -210,7 +210,8 @@ class MyBot(commands.AutoShardedBot):
         self.config[guild.id] = {
             "guild_prefix": "tb!",
             "mute_role_id": None,
-            "log_channel": None
+            "log_channel": None,
+            "owoify": False,
         }
 
         message = [

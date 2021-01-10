@@ -280,6 +280,10 @@ class Manipulation:
         buffer.seek(0)
         return buffer
 
+    @staticmethod
+    def changemymind(txt: str):
+        ...
+
 
 class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
     """Image Manipulation"""

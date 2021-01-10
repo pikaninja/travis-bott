@@ -206,6 +206,10 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
         ctr = collections.Counter()
         for ctr['file'], f in enumerate(glob.glob('./**/*.py', recursive=True)):
+            if f.startswith("./env"):
+                ctr['file'] -= 1
+                continue
+
             with open(f) as fp:
                 for ctr['line'], line in enumerate(fp, ctr['line']):
                     line = line.strip()
@@ -232,11 +236,9 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             ["Code Count", f"```\n{code_count}```", False]
         ]
 
-        embed = Embed.default(ctx, title="Dev Stats")
-
-        [embed.add_field(name=n, value=v, inline=i) for n, v, i in fields]
-
-        await ctx.send(embed=embed)
+        with ctx.embed() as embed:
+            [embed.add_field(name=n, value=v, inline=i) for n, v, i in fields]
+            await ctx.send(embed=embed)
 
     @dev.command(name="leave")
     async def dev_leave(self, ctx: utils.CustomContext):
