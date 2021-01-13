@@ -208,13 +208,14 @@ class Misc(utils.BaseCog, name="misc"):
         """Gives the link to vote for Travis"""
 
         fmt = (
-            f"[Click here to vote for Travis Bott :)](https://top.gg/bot/706530005169209386)\n"
-            "If you genuinely enjoy the bot make sure to leave an honest review, thank you for using Travis Bott."
+            f"[Click here to vote for Travis Bott on top.gg](https://top.gg/bot/706530005169209386)\n"
+            f"[Click here to vote for Travis Bott on discord.boats](https://discord.boats/bot/706530005169209386)\n"
+            "If you genuinely enjoy the bot make sure to leave an honest review, thank you for using Travis Bott on top.gg."
         )
-        embed = Embed.default(ctx)
-        embed.description = fmt
 
-        await ctx.send(embed=embed)
+        with ctx.embed() as embed:
+            embed.description = fmt
+            await ctx.send(embed=embed)
 
     @commands.command(aliases=["ss"])
     @commands.is_nsfw()

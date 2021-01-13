@@ -282,7 +282,10 @@ class Manipulation:
 
     @staticmethod
     def changemymind(txt: str):
-        ...
+        PILImage.MAX_IMAGE_PIXELS = (1200 * 1000)
+
+        with PILImage.open("./data/changemymind.png") as img:
+            ...
 
 
 class ImageManipulation(utils.BaseCog, name="imagemanipulation"):

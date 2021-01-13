@@ -24,6 +24,7 @@ import time
 import typing
 
 import Levenshtein
+import dateparser
 import humanize
 
 import asyncpg
@@ -93,6 +94,57 @@ def owoify_embed(embed: discord.Embed):
 
 def codeblock(content: str, language: str="py"):
     return f"```{language}\n{content}```"
+
+
+class TimeConverter(commands.Converter):
+    async def convert(self, ctx: CustomContext, argument: str):
+        DAY_REGEX = re.compile(r"^(?i)(\d){1,3}d$")
+        MONTH_REGEX = re.compile(r"^(?i)(\d){1,3}mo$")
+        YEAR_REGEX = re.compile(r"^(?i)(\d){1,3}y$")
+
+        if DAY_REGEX.match(argument):
+            argument = argument.strip("d")
+            parsed = dateparser.parse(f"in {argument} days")
+
+            if not parsed:
+                raise commands.BadArgument("I couldn't resolve that given time.")
+
+            if parsed < datetime.datetime.utcnow():
+                raise commands.BadArgument("I couldn't resolve that given time.")
+
+            return parsed
+
+        elif MONTH_REGEX.match(argument):
+            argument = argument.strip("mo")
+            parsed = dateparser.parse(f"in {argument} months")
+            
+            if not parsed:
+                raise commands.BadArgument("I couldn't resolve that given time.")
+
+            if parsed < datetime.datetime.utcnow():
+                raise commands.BadArgument("I couldn't resolve that given time.")
+
+            return parsed
+
+        elif YEAR_REGEX.match(argument):
+            argument = argument.strip("y")
+            parsed = dateparser.parse(f"in {argument} years")
+
+            if not parsed:
+                raise commands.BadArgument("I couldn't resolve that given time.")
+
+            if parsed < datetime.datetime.utcnow():
+                raise commands.BadArgument("I couldn't resolve that given time.")
+
+            return parsed
+        
+        argument = argument if argument.startswith("in ") else f"in {argument}"
+        parsed = dateparser.parse(argument)
+
+        if not parsed:
+            raise commands.BadArgument("I couldn't resolve that given time.")
+
+        return parsed
 
 
 class RoleConverter(commands.Converter):

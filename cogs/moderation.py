@@ -16,6 +16,7 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
+import datetime
 import humanize
 
 import utils
@@ -219,13 +220,28 @@ class Moderation(utils.BaseCog, name="moderation"):
         mute_role = member.guild.get_role(role_id=mute_role_id)
         await member.add_roles(mute_role, reason="Mute Role Persist")
 
-    @commands.command(hidden=True)
+    @commands.command(aliases=["tban"])
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
-    @commands.bot_has_permissions(ban_members=True)
-    async def tempban(self, ctx: utils.CustomContext):
+    async def tempban(self, ctx: utils.CustomContext, user: NotStaffMember, how_long: utils.TimeConverter, *, reason: str):
         """Tempbans a user for a certain amount of time.
         e.g. `{prefix}tempban @kal#1806 5d Doing bad things excessively.`"""
+
+        format_time = humanize.naturaldelta(how_long)
+        await user.send(
+            f"You were temporarily banned by {ctx.author} for the reason: {reason}. This ban expires in {format_time}"
+        )
+
+        sql = "INSERT INTO temp_bans VALUES($1, $2, $3, $4, $5, $6);"
+        values = (str(uuid.uuid4()), ctx.guild.id, ctx.author.id, user.id, reason, how_long)
+        await self.bot.pool.execute(sql, *values)
+
+        await user.ban(reason=reason)
+
+        fmt = f"{user} was banned by {ctx.author} for {format_time} for the reason: {reason}"
+        await ctx.send(fmt)
+
+        ctx.bot.dispatch("mod_cmd", ctx, "temp-ban", ctx.author, user, reason)
 
     @commands.command()
     @commands.guild_only()
