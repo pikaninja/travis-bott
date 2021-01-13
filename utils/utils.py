@@ -61,7 +61,7 @@ def _maintain_case_replace(sub: str, repl: str, text: str):
 
         for cond, method in METHODS.items():
             if cond(group):
-                return method(group)
+                return method(repl)
         return repl
     return re.sub(sub, _repl, text, flags=re.I)
 
@@ -117,7 +117,7 @@ class TimeConverter(commands.Converter):
         elif MONTH_REGEX.match(argument):
             argument = argument.strip("mo")
             parsed = dateparser.parse(f"in {argument} months")
-            
+
             if not parsed:
                 raise commands.BadArgument("I couldn't resolve that given time.")
 
@@ -137,7 +137,7 @@ class TimeConverter(commands.Converter):
                 raise commands.BadArgument("I couldn't resolve that given time.")
 
             return parsed
-        
+
         argument = argument if argument.startswith("in ") else f"in {argument}"
         parsed = dateparser.parse(argument)
 
