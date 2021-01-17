@@ -20,6 +20,8 @@ import argparse
 import logging
 import os
 import re
+
+from jishaku.codeblocks import codeblock_converter
 import utils
 import cse
 import contextlib
@@ -148,6 +150,63 @@ class Meta(utils.BaseCog, name="meta"):
                 "You do not have a task that corresponds with that ID.")
 
         return resultant_task["id"]
+
+    @commands.command(name="run")
+    async def _run(self, ctx: utils.CustomContext, *, code: codeblock_converter):
+        """Runs a given piece of code.
+        Use the given syntax modifier in the codeblock to determine the language."""
+
+        short_hand = {
+            "py": "python",
+            "c++": "cpp",
+            "ts": "typescript",
+            "js": "javascript",
+        }
+
+        lang = code.language.lower()
+
+        if (new_lang := short_hand.get(lang, None)):
+            lang = new_lang
+
+        content = code.content
+        url = "https://emkc.org/api/v1/piston/execute"
+
+        if lang.lower() == "java":
+            lines = content.splitlines()
+            base = ["public class temp extends Object {public static void main(String[] args) {"]
+            for line in lines:
+                base.append(line)
+            base.append("}}")
+
+            content = "\n".join(base)
+
+        data = {
+            "language": lang,
+            "source": content,
+            "args": [],
+        }
+
+        async with ctx.timeit:
+            async with ctx.typing():
+                async with self.bot.session.post(url, json=data) as res:
+                    res_data = await res.json()
+                    if res.status != 200:
+                        return await ctx.send(f"{res.status} - {res_data['message']}")
+
+                    with ctx.embed() as embed:
+                        if (stdout := res_data["stdout"]):
+                            embed.add_field(
+                                name="Stdout",
+                                value=utils.codeblock(stdout, lang)
+                            )
+
+                        if (stdout := res_data["stderr"]):
+                            embed.add_field(
+                                name="Stderr",
+                                value=utils.codeblock(stdout, lang)
+                            )
+                        
+                        await ctx.send(embed=embed)
 
     @commands.group(aliases=["to-do"], invoke_without_command=True)
     async def todo(self, ctx: utils.CustomContext):
