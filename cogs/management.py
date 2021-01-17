@@ -294,14 +294,14 @@ class Management(utils.BaseCog, name="management"):
 
         await utils.set_giveaway(self.bot, time_end, channel.id, message.id)
 
-    @commands.group(invoke_without_command=True)
-    @commands.guild_only()
-    @commands.has_permissions(manage_guild=True)
-    @commands.bot_has_permissions(manage_roles=True)
-    async def roles(self, ctx: utils.CustomContext):
-        """Set up for premium roles for the guild"""
+    # @commands.group(invoke_without_command=True)
+    # @commands.guild_only()
+    # @commands.has_permissions(manage_guild=True)
+    # @commands.bot_has_permissions(manage_roles=True)
+    # async def roles(self, ctx: utils.CustomContext):
+    #     """Set up for premium roles for the guild"""
 
-        await ctx.send_help(ctx.command)
+    #     await ctx.send_help(ctx.command)
 
     @commands.command(aliases=["cfg"])
     @commands.guild_only()

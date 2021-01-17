@@ -16,12 +16,13 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from discord import Embed as BaseEmbed
+import os
 import datetime
+from discord import Embed as BaseEmbed
 
 
 class Embed(BaseEmbed):
-    def __init__(self, colour=0x863EFF, timestamp=None, **kwargs):
+    def __init__(self, colour=0x863EFF if os.name != "nt" else 0xEAC208, timestamp=None, **kwargs):
         super(Embed, self).__init__(
             colour=colour,
             timestamp=timestamp or datetime.datetime.utcnow(),

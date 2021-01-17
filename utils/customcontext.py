@@ -21,7 +21,7 @@ import contextlib
 import time
 import utils
 import discord
-from contextlib import ContextDecorator, asynccontextmanager, contextmanager
+from contextlib import ContextDecorator, asynccontextmanager, contextmanager, suppress
 from discord.ext import commands
 from utils.embed import Embed
 
@@ -38,7 +38,7 @@ class CustomContext(commands.Context):
         self.timeit = TimeIt(self)
 
     async def _owoify(self, method, *args, **kwargs):
-        if embed := kwargs.get("embed", None):
+        if embed := kwargs.pop("embed", None):
             embed = utils.owoify_embed(embed)
             kwargs["embed"] = embed
 
@@ -61,7 +61,7 @@ class CustomContext(commands.Context):
             if self.message.attachments or kwargs.get("file") or kwargs.get("files") or kwargs.get("new_message"):
                 raise KeyError
 
-            kwargs["embed"] = kwargs.get("embed") or None
+            kwargs["embed"] = kwargs.pop("embed", None)
 
             message = self.bot.ctx_cache[self.message.id]
 
@@ -72,8 +72,7 @@ class CustomContext(commands.Context):
             await message.edit(content=str(*args), **kwargs)
             return message
         except KeyError:
-            if kwargs.get("new_message"):
-                kwargs.pop("new_message")
+            kwargs.pop("new_message", None)
 
             if self.guild:
                 if self.bot.config[self.guild.id]["owoify"]:

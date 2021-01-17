@@ -23,6 +23,7 @@ import time
 import re
 import utils
 import discord
+import ksoftapi
 from discord.ext import commands, menus
 from json.decoder import JSONDecodeError
 from discord.errors import HTTPException
@@ -78,13 +79,25 @@ class CommandsList(menus.ListPageSource):
 
 class RawMessagePaginator(menus.ListPageSource):
     def __init__(self, raw_message: list):
-        super().__init__(raw_message, per_page=20)
+        super().__init__(raw_message, per_page=16)
 
     async def format_page(self, menu: menus.Menu, page: list):
         embed = Embed.default(menu.ctx)
-        embed.description = "```json\n" + "\n".join(page) + "```"
+        embed.description = "```json\n" + "\n".join(page).replace("`", "`\N{ZERO WIDTH SPACE}") + "```"
 
         return embed
+
+
+class LyricsPaginator(menus.ListPageSource):
+    def __init__(self, lyrics: list):
+        super().__init__(lyrics, per_page=20)
+
+    async def format_page(self, menu: menus.Menu, page: list):
+        with menu.ctx.embed() as e:
+            e.set_author(name=f"Page {menu.current_page + 1}/{self.get_max_pages()}")
+            e.set_footer(text="Lyrics provided by KSoft.Si.")
+            e.description = "\n".join(page)
+            return e
 
 
 class BlockingFunctions:
@@ -137,6 +150,25 @@ class Misc(utils.BaseCog, name="misc"):
         # if ctx.guild:
         #     if not ctx.guild.chunked:
         #         await ctx.guild.chunk()
+
+    @commands.command()
+    async def lyrics(self, ctx: utils.CustomContext, *, song_name: str):
+        """Get the lyrics to any given song, if the song is found."""
+
+        ksoft = ksoftapi.Client(self.bot.api_key_for("ksoft_api"))
+        try:
+            results = await ksoft.music.lyrics(song_name)
+        except ksoftapi.NoResults:
+            return await ctx.send(f"No lyrics found for {song_name}.")
+        
+        await ksoft.close()
+        
+        first = results[0]
+        lyrics = first.lyrics.splitlines()
+
+        source = LyricsPaginator(lyrics)
+        menu = utils.KalPages(source)
+        await menu.start(ctx)
 
     @commands.command()
     async def embedbuilder(self, ctx: utils.CustomContext, *, embed_code: codeblock_converter):

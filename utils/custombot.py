@@ -113,6 +113,9 @@ class MyBot(commands.AutoShardedBot):
         await self.wait_until_ready()
 
         for guild in self.guilds:
+            if guild.unavailable:
+                continue
+            
             await guild.chunk()
 
     async def do_prep(self):

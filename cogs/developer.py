@@ -152,6 +152,18 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
     async def dev(self, ctx: utils.CustomContext):
         pass
 
+    @dev.command(name="unavailable")
+    async def dev_unavailable(self, ctx: utils.CustomContext):
+        """Provides a list of all unavailable guilds on the bot."""
+
+        await ctx.send(**{"embed": Embed.default(ctx, title="List of all current unavailable guilds", description="\n".join(str(x.id) for x in self.bot.guilds if x.unavailable))})
+
+    @dev.command(name="chunked")
+    async def dev_chunked(self, ctx: utils.CustomContext):
+        """Gives a list of all currently chunked guilds."""
+
+        await ctx.send(**{"embed": Embed.default(ctx, description=f"There are currently {sum(g.chunked for g in self.bot.guilds)} guilds chunked.")})
+
     @dev.command(name="blacklist")
     async def dev_blacklist(self, ctx: utils.CustomContext, user: discord.Member, *, reason: str = "None"):
         """Blacklists a user from using the bot globally."""
