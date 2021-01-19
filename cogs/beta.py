@@ -62,7 +62,7 @@ class Beta(utils.BaseCog, name="beta", command_attrs=dict(hidden=True)):
 
         content = code.content
         url = "https://emkc.org/api/v1/piston/execute"
-        
+
         data = {
             "language": lang,
             "source": content,
@@ -88,9 +88,8 @@ class Beta(utils.BaseCog, name="beta", command_attrs=dict(hidden=True)):
                                 name="Stderr",
                                 value=utils.codeblock(stdout, lang)
                             )
-                        
-                        await ctx.send(embed=embed)
 
+                        await ctx.send(embed=embed)
 
     # @beta.command(name="neofetch")
     # async def beta_neofetch(self, ctx: utils.CustomContext):

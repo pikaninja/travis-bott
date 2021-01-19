@@ -124,7 +124,8 @@ class BaseHelp(menus.Menu):
 
         embed.add_field(
             name="News",
-            value=self.bot.announcement["title"] + "\n" + self.bot.announcement["message"].format(prefix=self.prefix)
+            value=self.bot.announcement["title"] + "\n" +
+            self.bot.announcement["message"].format(prefix=self.prefix)
         )
 
         self.message = await channel.send(embed=embed)
@@ -194,7 +195,7 @@ class CustomHelp(commands.HelpCommand):
         if sort:
             ret.sort(key=key)
         return ret
-    
+
     async def send_bot_help(self, mapping: Mapping[commands.Cog, List[commands.Command]]):
         titles = []
         for cog, all_commands in mapping.items():
@@ -204,7 +205,7 @@ class CustomHelp(commands.HelpCommand):
                 continue
 
             titles.append(cog.show_name)
-        
+
         menu = BaseHelp(titles, self.clean_prefix)
         await menu.start(self.context)
 
@@ -227,8 +228,10 @@ class CustomHelp(commands.HelpCommand):
             return await self.send_error_message(self.command_not_found())
 
         sorted = await self.filter_commands(group.commands, sort=True)
-        menu = utils.KalPages(GroupHelp(group, sorted, prefix=self.clean_prefix))
+        menu = utils.KalPages(
+            GroupHelp(group, sorted, prefix=self.clean_prefix))
         await menu.start(self.context)
+
 
 class Help(commands.Cog, command_attrs=dict(hidden=True)):
     def __init__(self, bot):

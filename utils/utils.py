@@ -92,7 +92,7 @@ def owoify_embed(embed: discord.Embed):
     return embed
 
 
-def codeblock(content: str, language: str="py"):
+def codeblock(content: str, language: str = "py"):
     return f"```{language}\n{content}```"
 
 
@@ -107,10 +107,12 @@ class TimeConverter(commands.Converter):
             parsed = dateparser.parse(f"in {argument} days")
 
             if not parsed:
-                raise commands.BadArgument("I couldn't resolve that given time.")
+                raise commands.BadArgument(
+                    "I couldn't resolve that given time.")
 
             if parsed < datetime.datetime.utcnow():
-                raise commands.BadArgument("I couldn't resolve that given time.")
+                raise commands.BadArgument(
+                    "I couldn't resolve that given time.")
 
             return parsed
 
@@ -119,10 +121,12 @@ class TimeConverter(commands.Converter):
             parsed = dateparser.parse(f"in {argument} months")
 
             if not parsed:
-                raise commands.BadArgument("I couldn't resolve that given time.")
+                raise commands.BadArgument(
+                    "I couldn't resolve that given time.")
 
             if parsed < datetime.datetime.utcnow():
-                raise commands.BadArgument("I couldn't resolve that given time.")
+                raise commands.BadArgument(
+                    "I couldn't resolve that given time.")
 
             return parsed
 
@@ -131,10 +135,12 @@ class TimeConverter(commands.Converter):
             parsed = dateparser.parse(f"in {argument} years")
 
             if not parsed:
-                raise commands.BadArgument("I couldn't resolve that given time.")
+                raise commands.BadArgument(
+                    "I couldn't resolve that given time.")
 
             if parsed < datetime.datetime.utcnow():
-                raise commands.BadArgument("I couldn't resolve that given time.")
+                raise commands.BadArgument(
+                    "I couldn't resolve that given time.")
 
             return parsed
 

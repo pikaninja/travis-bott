@@ -17,7 +17,8 @@ class DebugCog(utils.BaseCog):
         """Base Command for the Debug cog."""
 
         description = list()
-        description.append(f"This bot runs on Python {platform.python_version()} `[{platform.python_compiler()}]`\n")
+        description.append(
+            f"This bot runs on Python {platform.python_version()} `[{platform.python_compiler()}]`\n")
 
         process = psutil.Process(os.getpid())
         memory_used = process.memory_info().rss / 1024 ** 2

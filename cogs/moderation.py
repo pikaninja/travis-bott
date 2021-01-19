@@ -233,7 +233,8 @@ class Moderation(utils.BaseCog, name="moderation"):
         )
 
         sql = "INSERT INTO temp_bans VALUES($1, $2, $3, $4, $5, $6);"
-        values = (str(uuid.uuid4()), ctx.guild.id, ctx.author.id, user.id, reason, how_long)
+        values = (str(uuid.uuid4()), ctx.guild.id,
+                  ctx.author.id, user.id, reason, how_long)
         await self.bot.pool.execute(sql, *values)
 
         await user.ban(reason=reason)

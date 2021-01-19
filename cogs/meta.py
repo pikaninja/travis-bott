@@ -173,7 +173,8 @@ class Meta(utils.BaseCog, name="meta"):
 
         if lang.lower() == "java":
             lines = content.splitlines()
-            base = ["public class temp extends Object {public static void main(String[] args) {"]
+            base = [
+                "public class temp extends Object {public static void main(String[] args) {"]
             for line in lines:
                 base.append(line)
             base.append("}}")
@@ -205,7 +206,7 @@ class Meta(utils.BaseCog, name="meta"):
                                 name="Stderr",
                                 value=utils.codeblock(stdout, lang)
                             )
-                        
+
                         await ctx.send(embed=embed)
 
     @commands.group(aliases=["to-do"], invoke_without_command=True)
@@ -427,7 +428,8 @@ class Meta(utils.BaseCog, name="meta"):
 
         guild_count = len(self.bot.guilds)
 
-        member_count = sum(g.member_count for g in self.bot.guilds if not g.unavailable)
+        member_count = sum(
+            g.member_count for g in self.bot.guilds if not g.unavailable)
 
         process = psutil.Process(os.getpid())
         memory_used = process.memory_info().rss / 1024 ** 2

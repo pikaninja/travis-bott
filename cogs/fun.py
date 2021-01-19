@@ -21,7 +21,6 @@ import datetime
 import logging
 import time
 import async_cleverbot
-from discord.ext.commands.errors import BadBoolArgument
 import utils
 import asyncio
 import discord
@@ -75,8 +74,8 @@ class RockPaperScissors(menus.Menu):
         return "tie" if author_choice == bot_choice else (author_choice - bot_choice) % 3
 
     async def send_initial_message(self,
-        ctx: utils.CustomContext,
-        channel: discord.TextChannel) -> discord.Message:
+                                   ctx: utils.CustomContext,
+                                   channel: discord.TextChannel) -> discord.Message:
         """Sends the initial message which tells the user to click on a certain reaction."""
 
         embed = Embed.default(self.ctx)

@@ -83,7 +83,8 @@ class RawMessagePaginator(menus.ListPageSource):
 
     async def format_page(self, menu: menus.Menu, page: list):
         embed = Embed.default(menu.ctx)
-        embed.description = "```json\n" + "\n".join(page).replace("`", "`\N{ZERO WIDTH SPACE}") + "```"
+        embed.description = "```json\n" + \
+            "\n".join(page).replace("`", "`\N{ZERO WIDTH SPACE}") + "```"
 
         return embed
 
@@ -94,7 +95,8 @@ class LyricsPaginator(menus.ListPageSource):
 
     async def format_page(self, menu: menus.Menu, page: list):
         with menu.ctx.embed() as e:
-            e.set_author(name=f"Page {menu.current_page + 1}/{self.get_max_pages()}")
+            e.set_author(
+                name=f"Page {menu.current_page + 1}/{self.get_max_pages()}")
             e.set_footer(text="Lyrics provided by KSoft.Si.")
             e.description = "\n".join(page)
             return e
@@ -160,9 +162,9 @@ class Misc(utils.BaseCog, name="misc"):
             results = await ksoft.music.lyrics(song_name)
         except ksoftapi.NoResults:
             return await ctx.send(f"No lyrics found for {song_name}.")
-        
+
         await ksoft.close()
-        
+
         first = results[0]
         lyrics = first.lyrics.splitlines()
 
