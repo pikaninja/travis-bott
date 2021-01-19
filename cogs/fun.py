@@ -21,6 +21,7 @@ import datetime
 import logging
 import time
 import async_cleverbot
+from discord.ext.commands.errors import BadBoolArgument
 import utils
 import asyncio
 import discord
@@ -53,6 +54,71 @@ class EmotionConverter(commands.Converter):
                 f"Please pick one of these available emotions: {', '.join(available_emotions)}")
 
         return available_emotions.get(argument)
+
+
+class RockPaperScissors(menus.Menu):
+    def __init__(self, **kwargs):
+        kwargs["clear_reactions_after"] = True
+        super().__init__(**kwargs)
+
+    def _get_bot_choice(self) -> int:
+        """Decides the choice the bot has.
+        1 - Rock
+        2 - Paper
+        3 - Scissors"""
+
+        return random.choice([1, 2, 3])
+
+    def _get_winner(self, author_choice, bot_choice) -> typing.Union[int, str]:
+        """Gets the winner of the given match, tie if they're the same."""
+
+        return "tie" if author_choice == bot_choice else (author_choice - bot_choice) % 3
+
+    async def send_initial_message(self,
+        ctx: utils.CustomContext,
+        channel: discord.TextChannel) -> discord.Message:
+        """Sends the initial message which tells the user to click on a certain reaction."""
+
+        embed = Embed.default(self.ctx)
+        embed.description = "Click on Rock, Paper or Scissors and let the council decide your fate."
+        return await ctx.send(embed=embed)
+
+    async def _handle_tie(self) -> any:
+        embed = Embed.default(self.ctx)
+        embed.description = "We appeared to have tied... maybe I'll win next time. \N{THINKING FACE}"
+
+        await self.message.edit(embed=embed)
+        return self.stop()
+
+    async def _handle_winner(self, winner: int) -> any:
+        embed = Embed.default(self.ctx)
+        if winner == 1:
+            embed.description = "Congratulations, I guess - you won! I better get you next time."
+        elif winner == 2:
+            embed.description = "Congratulations... to me! I win haha!"
+        else:
+            return await self._handle_tie()
+
+        await self.message.edit(embed=embed)
+        return self.stop()
+
+    @menus.button("\U0001faa8")
+    async def rock_button(self, payload) -> any:
+        player_choice, bot_choice = 1, self._get_bot_choice()
+        winner = self._get_winner(player_choice, bot_choice)
+        return await self._handle_winner(winner)
+
+    @menus.button("\U0001f4f0")
+    async def paper_button(self, payload) -> any:
+        player_choice, bot_choice = 2, self._get_bot_choice()
+        winner = self._get_winner(player_choice, bot_choice)
+        return await self._handle_winner(winner)
+
+    @menus.button("\U00002702")
+    async def scissors_button(self, payload) -> any:
+        player_choice, bot_choice = 3, self._get_bot_choice()
+        winner = self._get_winner(player_choice, bot_choice)
+        return await self._handle_winner(winner)
 
 
 class Fun(utils.BaseCog, name="fun"):
@@ -358,68 +424,8 @@ class Fun(utils.BaseCog, name="fun"):
     async def rockpaperscissors(self, ctx: utils.CustomContext):
         """Play rock paper scissors with the bot!"""
 
-        fmt = "What's your choice? Rock, Paper or Scissors..."
-        embed = Embed.default(
-            ctx,
-            description=fmt
-        )
-
-        msg = await ctx.send(embed=embed)
-
-        # Rock  # Paper  # Scissors
-        emojis = ["\U0001faa8", "\U0001f4f0", "\U00002702"]
-
-        bots_choice = random.choice(emojis)
-
-        for _ in emojis:
-            await msg.add_reaction(_)
-
-        def check(reaction, user):
-            return (
-                user == ctx.author
-                and str(reaction.emoji) in emojis
-                and reaction.message == msg
-            )
-
-        try:
-            reaction, user = await self.bot.wait_for(
-                "reaction_add", timeout=30.0, check=check
-            )
-        except asyncio.TimeoutError:
-            try:
-                await msg.clear_reactions()
-            except discord.Forbidden:
-                pass
-
-            embed.description = "You ran out of time!"
-            await msg.edit(embed=embed)
-        else:
-            if str(reaction) == bots_choice:
-                embed.description = f"You drew!"
-                embed.colour = 0x0000FF
-
-            elif str(reaction) == emojis[0] and bots_choice == emojis[2]:
-                embed.description = f"You win! the bot chose {bots_choice}"
-                embed.colour = 0x00FF00
-
-            elif str(reaction) == emojis[1] and bots_choice == emojis[0]:
-                embed.description = f"You win! the bot chose {bots_choice}"
-                embed.colour = 0x00FF00
-
-            elif str(reaction) == emojis[2] and bots_choice == emojis[1]:
-                embed.description = f"You win! the bot chose {bots_choice}"
-                embed.colour = 0x00FF00
-
-            else:
-                embed.description = f"You lost :( the bot chose {bots_choice}"
-                embed.colour = 0xFF0000
-
-            try:
-                await msg.clear_reactions()
-            except discord.Forbidden:
-                pass
-
-            await msg.edit(embed=embed)
+        game = RockPaperScissors()
+        await game.start(ctx)
 
     @commands.command(aliases=["pp"])
     @commands.cooldown(1, standard_cooldown, commands.BucketType.member)

@@ -98,9 +98,9 @@ def codeblock(content: str, language: str="py"):
 
 class TimeConverter(commands.Converter):
     async def convert(self, ctx: CustomContext, argument: str):
-        DAY_REGEX = re.compile(r"^(?i)(\d){1,3}d$")
-        MONTH_REGEX = re.compile(r"^(?i)(\d){1,3}mo$")
-        YEAR_REGEX = re.compile(r"^(?i)(\d){1,3}y$")
+        DAY_REGEX = re.compile(r"^(?i)(\d{1,3}d)$")
+        MONTH_REGEX = re.compile(r"^(?i)(\d{1,3}mo)$")
+        YEAR_REGEX = re.compile(r"^(?i)(\d{1,3}y)$")
 
         if DAY_REGEX.match(argument):
             argument = argument.strip("d")
