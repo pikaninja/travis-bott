@@ -163,6 +163,10 @@ class Meta(utils.BaseCog, name="meta"):
             "js": "javascript",
         }
 
+        if not hasattr(code, "language"):
+            raise commands.BadArgument(
+                "You must provide a codeblock with a certain language.")
+
         lang = code.language.lower()
 
         if (new_lang := short_hand.get(lang, None)):
@@ -196,17 +200,37 @@ class Meta(utils.BaseCog, name="meta"):
 
                     with ctx.embed() as embed:
                         if (stdout := res_data["stdout"]):
+                            if len(stdout) > 1500:
+                                bin_link = await utils.mystbin(
+                                    self.bot.session,
+                                    stdout
+                                )
+
+                                value = f"Result too long... {bin_link}.{lang}"
+                            else:
+                                value = utils.codeblock(stdout, lang)
+
                             embed.add_field(
                                 name="Stdout",
-                                value=utils.codeblock(stdout, lang)
+                                value=value
                             )
 
-                        if (stdout := res_data["stderr"]):
+                        if (stderr := res_data["stderr"]):
+                            if len(stderr) > 1500:
+                                bin_link = await utils.mystbin(
+                                    self.bot.session,
+                                    stderr
+                                )
+
+                                value = f"Result too long... {bin_link}.{lang}"
+                            else:
+                                value = utils.codeblock(stderr, lang)
+
                             embed.add_field(
                                 name="Stderr",
-                                value=utils.codeblock(stdout, lang)
+                                value=value
                             )
-
+                            
                         await ctx.send(embed=embed)
 
     @commands.group(aliases=["to-do"], invoke_without_command=True)

@@ -281,11 +281,42 @@ class Manipulation:
         return buffer
 
     @staticmethod
+    def rainbowify(b: bytes):
+        with WandImage(file=BytesIO(b)) as img:
+            if (img.width * img.height) >= (1200 * 1000):
+                raise commands.BadArgument(
+                    "That image is a little too large and may crashy washy my botty wotty 🥺")
+        
+        img = Image(b)
+        img.apply_gradient()
+
+        save_bytes = img.save_bytes()
+        io_bytes = BytesIO(save_bytes)
+
+        return io_bytes
+
+    @staticmethod
     def changemymind(txt: str):
         PILImage.MAX_IMAGE_PIXELS = (1200 * 1000)
 
         with PILImage.open("./data/changemymind.png") as img:
             ...
+
+
+async def do_polaroid_image(ctx: utils.CustomContext, method: callable, image: bytes, name: str, *args):
+    async with ctx.timeit:
+        async with ctx.typing():
+            func = functools.partial(method, image)
+            buffer = await ctx.bot.loop.run_in_executor(None, func, *args)
+
+            embed = Embed.default(ctx)
+            file = discord.File(fp=buffer, filename=f"{name}.png")
+            embed.set_image(url=f"attachment://{name}.png")
+
+            await ctx.send(
+                file=file,
+                embed=embed
+            )
 
 
 class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
@@ -296,6 +327,14 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
         self.show_name = show_name
         self.logger = utils.create_logger(
             self.__class__.__name__, logging.INFO)
+
+    @commands.command()
+    @commands.cooldown(1, 3, commands.BucketType.member)
+    async def rainbow(self, ctx: utils.CustomContext, what: str = None):
+        """Applies a rainbow effect to a given image."""
+
+        image = await get_image(ctx, what)
+        await do_polaroid_image(ctx, Manipulation.rainbowify, image, "rainbowify")
 
     @commands.command(aliases=["ahb"])
     @commands.cooldown(1, 3, commands.BucketType.member)

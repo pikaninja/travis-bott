@@ -21,6 +21,7 @@ import collections
 import glob
 import io
 import logging
+import inspect
 import os
 import traceback
 import re
@@ -124,7 +125,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
     async def cog_check(self, ctx: utils.CustomContext):
         return await self.bot.is_owner(ctx.author)
 
-    def _exec_then_eval(self, ctx: utils.CustomContext, code):
+    async def _exec_then_eval(self, ctx: utils.CustomContext, code):
         """Helper method to help evaluate python code."""
 
         block = ast.parse(code, mode="exec")
@@ -144,8 +145,13 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         _globals.update(globals())
         _locals = {}
 
+        _eval = eval(compile(last, "<string>", mode="eval"), _globals, _locals)
+
         exec(compile(block, "<string>", mode="exec"), _globals, _locals)
-        return eval(compile(last, "<string>", mode="eval"), _globals, _locals)
+        if inspect.isawaitable(_eval):
+            return await _eval
+        else:
+            return _eval
 
     @group(invoke_without_command=True)
     @is_owner()
@@ -393,21 +399,24 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         """Evaluates Python Code."""
 
         try:
-            result = self._exec_then_eval(ctx, code.content)
+            result = await self._exec_then_eval(ctx, code.content)
         except Exception as e:
-            await ctx.message.add_reaction("<:doubleexclamation:783295580218064947>")
+            await ctx.message.add_reaction("\N{THUMBS DOWN SIGN}")
             fmt_exc = f"{type(e).__name__}: {e}"
             return await ctx.send(
                 f"```py\n{''.join(traceback.format_tb(e.__traceback__))}\n{fmt_exc}```"
             )
 
-        await ctx.message.add_reaction("<:checkmark:783295580298018827>")
+        await ctx.message.add_reaction("\N{OK HAND SIGN}")
         self._last_result = result
 
         if isinstance(result, discord.Embed):
             return await ctx.send(embed=result)
 
-        return await ctx.send(result)
+        if not isinstance(result, (str, discord.Message)):
+            return await ctx.send(repr(result))
+
+        return await ctx.send(result, new_message=True)
 
 
 def setup(bot):

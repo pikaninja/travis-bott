@@ -58,6 +58,10 @@ async def get_prefix(bot: commands.AutoShardedBot, message: discord.Message):
 
     base.append(bot.config[message.guild.id]["guild_prefix"])
 
+    if await bot.is_owner(message.author):
+        if message.content.startswith(("jsk", "dev")):
+            base.append("")
+
     return base
 
 
@@ -115,7 +119,7 @@ class MyBot(commands.AutoShardedBot):
         for guild in self.guilds:
             if guild.unavailable:
                 continue
-
+            
             await guild.chunk()
 
     async def do_prep(self):

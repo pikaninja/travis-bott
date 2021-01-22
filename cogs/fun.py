@@ -27,6 +27,8 @@ import discord
 import typing
 import random
 import vacefron
+import io
+import gtts
 from discord.ext import commands, menus
 from utils.embed import Embed
 
@@ -183,6 +185,34 @@ class Fun(utils.BaseCog, name="fun"):
                 "UPDATE cookies SET cookies = cookies + 1 WHERE user_id = $1",
                 user.id
             )
+
+    @commands.group(name="bottom", invoke_without_command=True)
+    async def bottom_group(self, ctx: utils.CustomContext):
+        """Base command for all things to do with bottoms."""
+
+        ...
+
+    @bottom_group.command(name="encode")
+    async def bottom_encode(self, ctx: utils.CustomContext, *, text: str):
+        """Encodes any given text into bottom language."""
+
+        encoded = utils.to_bottom(text)
+        if len(encoded) > 1998:
+            link = await utils.mystbin(self.bot.session, encoded)
+            await ctx.send(f"That was a little too large for discord to handle... {link}")
+        
+        await ctx.send(f"Here you go, filthy bottom:\n{encoded}")
+
+    @bottom_group.command(name="decode")
+    async def bottom_decode(self, ctx: utils.CustomContext, *, text: str):
+        """Decodes given bottom language text."""
+
+        decoded = utils.from_bottom(text)
+        if len(decoded) > 1998:
+            link = await utils.mystbin(self.bot.session, decoded)
+            await ctx.send(f"That was a little too large for discord to handle... {link}")
+        
+        await ctx.send(f"Here you go, filthy bottom:\n{decoded}")
 
     @commands.command(name="owo-text")
     async def owo_text(self, ctx: utils.CustomContext, *, text: commands.clean_content):
