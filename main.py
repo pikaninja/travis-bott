@@ -44,7 +44,7 @@ bot = MyBot(
     member_cache_flags=stuff_to_cache,
     chunk_guilds_at_startup=False,
 )
-bot.ipc = Server(bot, "0.0.0.0", 8765, bot.from_config("secret_key"))
+bot.ipc = Server(bot, "0.0.0.0", 8765, bot.settings["misc"]["secret_key"])
 
 bot.version = "But Better"
 bot.description = (
@@ -100,6 +100,5 @@ async def on_ready():
 
 bot.ipc.start()
 
-token = bot.bot_token_for(
-    "main") if os.name != "nt" else bot.bot_token_for("beta")
+token = bot.settings["tokens"]["main"] if os.name != "nt" else bot.settings["tokens"]["beta"]
 bot.run(token)

@@ -157,7 +157,7 @@ class Misc(utils.BaseCog, name="misc"):
     async def lyrics(self, ctx: utils.CustomContext, *, song_name: str):
         """Get the lyrics to any given song, if the song is found."""
 
-        ksoft = ksoftapi.Client(self.bot.api_key_for("ksoft_api"))
+        ksoft = ksoftapi.Client(self.bot.settings["keys"]["ksoft_api"])
         try:
             results = await ksoft.music.lyrics(song_name)
         except ksoftapi.NoResults:

@@ -22,19 +22,29 @@ import random
 import re
 import time
 import typing
-
 import Levenshtein
 import aiohttp
 import dateparser
 import humanize
-
 import asyncpg
 import discord
 import pytz
+import toml
 from discord import Embed
 from discord.ext import commands
 
 from .customcontext import CustomContext
+
+
+#  Settings based on a TOML file.
+class Settings:
+    def __init__(self, file: str) -> None:
+        self.file = file
+        with open(self.file) as f:
+            self._settings = toml.loads(f.read())
+    
+    def __getitem__(self, key: str) -> typing.Union[dict, str]:
+        return self._settings[key]
 
 
 CHARACTER_VALUES = {

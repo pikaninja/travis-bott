@@ -105,15 +105,14 @@ class Meta(utils.BaseCog, name="meta"):
         self.logger = utils.create_logger(
             self.__class__.__name__, logging.INFO)
 
-        self.weather_api_key = self.bot.api_key_for("weather_api")
+        self.weather_api_key = self.bot.settings["keys"]["weather_api"]
 
     @asynccontextmanager
     async def google_search(self, query: str):
         """Context Manager to search for the CSE"""
 
         with contextlib.suppress(KeyError):
-            keys = [self.bot.api_key_for(
-                "google_cse"), self.bot.api_key_for("second_google_cse")]
+            keys = [self.bot.settings["keys"]["google_cse"], self.bot.settings["keys"]["second_google_cse"]]
             results = []
             try:
                 engine = cse.Search(keys[0])

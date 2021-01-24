@@ -31,7 +31,7 @@ from datetime import datetime as dt
 
 from .logger import create_logger
 from .customcontext import CustomContext
-from .utils import set_mute, set_giveaway
+from .utils import set_mute, set_giveaway, Settings
 
 
 logger = create_logger("custom-bot", logging.INFO)
@@ -68,7 +68,8 @@ async def get_prefix(bot: commands.AutoShardedBot, message: discord.Message):
 class MyBot(commands.AutoShardedBot):
     def __init__(self, *args, **kwargs):
         super().__init__(get_prefix, *args, **kwargs)
-
+        
+        self.settings = Settings("config.toml")
         self.start_time = dt.now()
 
         self.config = {}
@@ -77,8 +78,7 @@ class MyBot(commands.AutoShardedBot):
 
         self.loop = asyncio.get_event_loop()
         self.pool = self.loop.run_until_complete(
-            asyncpg.create_pool(**self.database_for("main")
-                                if os.name != "nt" else self.database_for("beta"))
+            asyncpg.create_pool(**self.settings["database"]["main"] if os.name != "nt" else self.settings["database"]["beta"])
         )
 
         self.session = aiohttp.ClientSession(loop=self.loop)
@@ -96,11 +96,11 @@ class MyBot(commands.AutoShardedBot):
 
         self.blacklist = {}
         self.error_webhook = discord.Webhook.from_url(
-            self.from_config("error_webhook"),
+            self.settings["misc"]["error_webhook"],
             adapter=discord.AsyncWebhookAdapter(self.session)
         )
         self.guild_webhook = discord.Webhook.from_url(
-            self.from_config("guild_webhook"),
+            self.settings["misc"]["guild_webhook"],
             adapter=discord.AsyncWebhookAdapter(self.session)
         )
 
@@ -186,7 +186,7 @@ class MyBot(commands.AutoShardedBot):
 
         self.announcement = update
 
-        await self.change_presence(activity=discord.Game(name=self.from_config("status")))
+        await self.change_presence(activity=discord.Game(name=self.settings["misc"]["status"]))
 
     async def get_context(self, message: discord.Message, *, cls=CustomContext):
         return await super().get_context(message, cls=cls)
@@ -284,30 +284,6 @@ class MyBot(commands.AutoShardedBot):
     async def reply(self, message_id: int, content: str, **kwargs):
         message = self._connection._get_message(message_id)
         await message.reply(content, **kwargs)
-
-    def api_key_for(self, service: str) -> str:
-        config = toml.load("./config.toml")
-        api_keys = config["api-keys"]
-
-        return api_keys[service]
-
-    def bot_token_for(self, type: str) -> str:
-        config = toml.load("./config.toml")
-        tokens = config["tokens"]
-
-        return tokens[type]
-
-    def from_config(self, what: str) -> str:
-        config = toml.load("./config.toml")
-        misc = config["misc"]
-
-        return misc[what]
-
-    def database_for(self, what: str) -> dict:
-        config = toml.load("./config.toml")
-        database = config["database"]
-
-        return database[what]
 
     async def add_delete_reaction(self, channel_id: int, message_id: int):
         """Adds a reaction to delete the given message."""

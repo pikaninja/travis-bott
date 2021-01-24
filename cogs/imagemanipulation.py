@@ -38,7 +38,7 @@ from utils.embed import Embed
 
 
 async def do_dagpi_stuff(ctx: utils.CustomContext, user: discord.Member, feature: asyncdagpi.ImageFeatures) -> discord.File:
-    dagpi = asyncdagpi.Client(ctx.bot.api_key_for("dagpi"))
+    dagpi = asyncdagpi.Client(ctx.bot.settings["keys"]["dagpi"])
     url = str(user.avatar_url_as(static_format="png"))
     img = await dagpi.image_process(feature, url)
     img_file = discord.File(fp=img.image, filename=f"image.{img.format}")

@@ -27,7 +27,7 @@ class TopGG(utils.BaseCog):
         self.logger = utils.create_logger(
             self.__class__.__name__, logging.INFO)
 
-        self.dbl_token = self.bot.api_key_for("top_gg_api")
+        self.dbl_token = self.bot.settings["keys"]["top_gg_api"]
         self.update_stats.start()
 
     def cog_unload(self):
