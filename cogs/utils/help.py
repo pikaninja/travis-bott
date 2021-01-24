@@ -30,7 +30,7 @@ class GroupHelp(menus.ListPageSource):
         self.prefix = prefix
 
     async def format_page(self, menu, cmds):
-        embed = Embed.default(menu.ctx)
+        embed = self.bot.embed()
         command_name = f"{self.group.qualified_name}{'|' + '|'.join(self.group.aliases) if self.group.aliases else ''}"
         embed.title = f"{self.prefix}{command_name} {self.group.signature}"
         embed.description = (
@@ -63,7 +63,7 @@ class CogHelp(menus.ListPageSource):
         self.title = f"{self.cog.show_name} Commands"
 
     async def format_page(self, menu, cmds):
-        embed = Embed.default(self.ctx)
+        embed = self.ctx.bot.embed()
         embed.title = self.title
 
         for cmd in cmds:
@@ -104,7 +104,7 @@ class BaseHelp(menus.Menu):
         return menu
 
     async def send_initial_message(self, ctx: utils.CustomContext, channel: discord.TextChannel):
-        embed = Embed.default(ctx)
+        embed = self.bot.embed()
         embed.description = (
             "```fix\n"
             f"{self.bot.description}\n"
@@ -213,7 +213,7 @@ class CustomHelp(commands.HelpCommand):
         if not hasattr(command.cog, "show_name"):
             return await self.send_error_message(self.command_not_found())
 
-        embed = Embed.default(self.context)
+        embed = self.context.bot.embed()
         command_name = f"{command.qualified_name}{'|' + '|'.join(command.aliases) if command.aliases else ''}"
         embed.title = f"{self.clean_prefix}{command_name} {command.signature}"
         embed.description = (

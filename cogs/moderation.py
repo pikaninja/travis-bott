@@ -137,7 +137,7 @@ class ModerationsMenu(menus.ListPageSource):
         super().__init__(data, per_page=per_page)
 
     async def format_page(self, menu: menus.Menu, page):
-        embed = Embed.default(menu.ctx)
+        embed = menu.ctx.bot.embed()
         embed.title = "Active Mutes"
         embed.description = "\n".join(page)
 
@@ -196,8 +196,7 @@ class Moderation(utils.BaseCog, name="moderation"):
             await self.bot.pool.execute("UPDATE guild_settings SET log_channel = $1 WHERE guild_id = $2",
                                         None, ctx.guild.id)
 
-        embed = Embed.default(
-            ctx,
+        embed = self.bot.embed(
             title=f"Super Log",
             description=f"{moderator} to {user_affected}\n"
                         f"Command: {action_type}\n"
@@ -294,7 +293,7 @@ class Moderation(utils.BaseCog, name="moderation"):
         dt_obj = dt.fromtimestamp(timestamp)
         humanized = humanize.precisedelta(dt_obj, format="%0.0f")
 
-        embed = Embed.default(ctx)
+        embed = self.bot.embed()
         embed.description = (
             f"{ctx.author.mention} ({ctx.author}) has muted {user.mention} ({user}) for {humanized} for the reason: "
             f"{reason}"
@@ -327,7 +326,7 @@ class Moderation(utils.BaseCog, name="moderation"):
             return await ctx.send("That user does not have the guilds set muted role.")
 
         await user.remove_roles(mute_role, reason=f"Unmuted by: {ctx.author}")
-        embed = Embed.default(ctx)
+        embed = self.bot.embed()
         embed.description = f"{ctx.author.mention} ({ctx.author}) unmuted {user.mention} ({user})"
 
         await ctx.send(embed=embed)
@@ -584,8 +583,7 @@ class Moderation(utils.BaseCog, name="moderation"):
         if len("\n".join(columns[1])) > 1024:
             columns[1] = columns[1][:20]
 
-        embed = Embed.default(
-            ctx,
+        embed = self.bot.embed(
             title=f"Members in {role.name} [{sum(1 for m in role.members)}]"
         )
         [
@@ -661,8 +659,7 @@ class Moderation(utils.BaseCog, name="moderation"):
         await user.edit(roles=current_roles)
         await ctx.thumbsup()
 
-        embed = Embed.default(
-            ctx,
+        embed = self.bot.embed(
             title="Updated Member Roles",
             description=f"{user.mention} | {' '.join(modifiers)}",
         )
@@ -760,8 +757,7 @@ class Moderation(utils.BaseCog, name="moderation"):
                 ["Permissions",
                     f"```\n{repr_permissions or 'Nothing special.'}```", False],
             ]
-            embed = Embed.default(
-                ctx,
+            embed = self.bot.embed(
                 colour=discord.Color.from_rgb(*role_colour)
             )
             [embed.add_field(name=n, value=v, inline=i) for n, v, i in fields]
@@ -792,7 +788,7 @@ class Moderation(utils.BaseCog, name="moderation"):
             role_names.append(f"{role.mention}")
             role_ids.append(f"{role.id}")
 
-        embed = Embed.default(ctx)
+        embed = self.bot.embed()
         embed.add_field(name="Names", value="\n".join(role_names))
         embed.add_field(name="IDs", value="\n".join(role_ids))
         await ctx.send(embed=embed)

@@ -353,7 +353,7 @@ class Meta(utils.BaseCog, name="meta"):
     async def _id(self, ctx: utils.CustomContext, *, thing: AllConverter):
         """Gets the ID of a given user, role, emoji (Custom only), text channel or voice channel."""
 
-        embed = Embed.default(ctx)
+        embed = self.bot.embed()
         embed.description = (
             f"The type of that is: {thing[1]}\n"
             f"The ID of it is: {thing[0]}"
@@ -388,7 +388,7 @@ class Meta(utils.BaseCog, name="meta"):
             embeds = []
 
             for result in results:
-                embed = Embed.default(ctx)
+                embed = self.bot.embed()
                 embed.title = result.title
                 embed.description = result.snippet
                 embed.url = result.link
@@ -411,8 +411,7 @@ class Meta(utils.BaseCog, name="meta"):
         rgb = colour.to_rgb()
         url = f"https://kal-byte.co.uk/colour/{'/'.join([str(x) for x in rgb])}"
 
-        embed = Embed.default(
-            ctx,
+        embed = self.bot.embed(
             colour=discord.Colour.from_rgb(*rgb)
         )
 
@@ -427,7 +426,7 @@ class Meta(utils.BaseCog, name="meta"):
 
         member = member or ctx.author
 
-        embed = Embed.default(ctx)
+        embed = self.bot.embed()
         embed.set_author(name=member, icon_url=member.avatar_url)
         embed.set_image(url=member.avatar_url_as(
             static_format="png", size=1024))
@@ -438,7 +437,7 @@ class Meta(utils.BaseCog, name="meta"):
         """Get basic info on the bot."""
 
         astro = await self.bot.fetch_user(285506580919877633)
-        embed = Embed.default(ctx)
+        embed = self.bot.embed()
         embed.title = "Info about Travis Bott"
         embed.description = f"Thank you to {astro} for designing the bots profile pictures!"
         embed.url = "https://www.travisbott.rocks/"
@@ -488,8 +487,7 @@ class Meta(utils.BaseCog, name="meta"):
             return await ctx.send_help(ctx.command)
 
         for emoji in emojis:
-            embed = Embed.default(
-                ctx,
+            embed = self.bot.embed(
                 title=f"Showing for {emoji.name}",
                 description=f"ID: {emoji.id}"
             )
@@ -612,8 +610,7 @@ class Meta(utils.BaseCog, name="meta"):
             ["Features", "\n".join(guild_features) or "None", False],
         ]
 
-        embed = Embed.default(
-            ctx,
+        embed = self.bot.embed(
             title=title,
             description=f"**ID:** {ctx.guild.id}\n**Owner:** {ctx.guild.owner}",
             thumbnail=icon if ctx.guild.icon else discord.Embed.Empty(),
@@ -631,8 +628,7 @@ class Meta(utils.BaseCog, name="meta"):
 
         channel = channel or ctx.channel
 
-        embed = Embed.default(
-            ctx,
+        embed = self.bot.embed(
             title=f"Information on {channel.name}"
         )
 
@@ -698,8 +694,7 @@ class Meta(utils.BaseCog, name="meta"):
                     "The lookup for this word is way too big to show."
                 )
 
-            embed = Embed.default(
-                ctx,
+            embed = self.bot.embed(
                 title=f"Definition of {word}"
             )
 
@@ -728,8 +723,7 @@ class Meta(utils.BaseCog, name="meta"):
         if "x" in equation:
             equation = equation.replace("x", "*")
         result = numexpr.evaluate(str(equation)).item()
-        embed = Embed.default(
-            ctx,
+        embed = self.bot.embed(
             title=f"Result of {equation}:",
             description=f"{result}"
         )
@@ -742,7 +736,7 @@ class Meta(utils.BaseCog, name="meta"):
 
         user = user or ctx.author
         colour = self._get_top_coloured_role(user)
-        embed = Embed.default(ctx)
+        embed = self.bot.embed()
         embed.colour = colour
         embed.title = f"About {user.name}"
         embed.description = (
@@ -824,8 +818,7 @@ class Meta(utils.BaseCog, name="meta"):
                 ["Description", description],
             ]
 
-            embed = Embed.default(
-                ctx,
+            embed = self.bot.embed(
                 title=f"Weather in {data['name']}"
             )
             embed.set_thumbnail(url=icon)
@@ -855,7 +848,7 @@ class Meta(utils.BaseCog, name="meta"):
                 ["Language Spoken:", data["languages"][0]["nativeName"]],
             ]
 
-            embed = Embed.default(ctx)
+            embed = self.bot.embed()
             [embed.add_field(name=n, value=str(v)) for n, v in fields]
 
             await ctx.send(embed=embed)
@@ -879,9 +872,8 @@ class Meta(utils.BaseCog, name="meta"):
                 emojis.append(
                     f"{i}\N{VARIATION SELECTOR-16}\N{COMBINING ENCLOSING KEYCAP}")
 
-            embed = Embed.default(ctx,
-                                  title=multi[0],
-                                  description="")
+            embed = self.bot.embed(title=multi[0],
+                                   description="")
 
             choices = multi[1].split(", ")
 
@@ -901,8 +893,7 @@ class Meta(utils.BaseCog, name="meta"):
                 "\N{THUMBS UP SIGN}",
                 "\N{THUMBS DOWN SIGN}"
             ]
-            embed = Embed.default(ctx,
-                                  title=query)
+            embed = self.bot.embed(title=query)
 
             msg = await ctx.send(embed=embed)
 

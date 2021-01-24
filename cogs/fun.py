@@ -27,10 +27,7 @@ import discord
 import typing
 import random
 import vacefron
-import io
-import gtts
 from discord.ext import commands, menus
-from utils.embed import Embed
 
 standard_cooldown = 3.0
 
@@ -80,19 +77,19 @@ class RockPaperScissors(menus.Menu):
                                    channel: discord.TextChannel) -> discord.Message:
         """Sends the initial message which tells the user to click on a certain reaction."""
 
-        embed = Embed.default(self.ctx)
+        embed = self.bot.embed()
         embed.description = "Click on Rock, Paper or Scissors and let the council decide your fate."
         return await ctx.send(embed=embed)
 
     async def _handle_tie(self) -> any:
-        embed = Embed.default(self.ctx)
+        embed = self.bot.embed()
         embed.description = "We appeared to have tied... maybe I'll win next time. \N{THINKING FACE}"
 
         await self.message.edit(embed=embed)
         return self.stop()
 
     async def _handle_winner(self, winner: int) -> any:
-        embed = Embed.default(self.ctx)
+        embed = self.bot.embed()
         if winner == 1:
             embed.description = "Congratulations, I guess - you won! I better get you next time."
         elif winner == 2:
@@ -309,9 +306,8 @@ class Fun(utils.BaseCog, name="fun"):
                     if not ctx.channel.is_nsfw():
                         return await ctx.send("Bonk! Go to horny jail.")
 
-                embed = Embed.default(ctx,
-                                      title=title,
-                                      url=f"https://www.reddit.com{perma_link}")
+                embed = self.bot.embed(title=title,
+                                       url=f"https://www.reddit.com{perma_link}")
 
                 embed.add_field(name="\N{UPWARDS BLACK ARROW}",
                                 value=ups)
@@ -333,8 +329,7 @@ class Fun(utils.BaseCog, name="fun"):
 
         with contextlib.suppress(discord.NotFound):
             timer = 3
-            embed = Embed.default(
-                ctx,
+            embed = self.bot.embed(
                 description="First person to click wins..."
             )
 
@@ -483,7 +478,7 @@ class Fun(utils.BaseCog, name="fun"):
             data = await r.json()
             image = data["link"]
 
-            embed = Embed.default(ctx)
+            embed = self.bot.embed()
             embed.set_image(url=image)
             await ctx.send(embed=embed)
 
@@ -499,8 +494,7 @@ class Fun(utils.BaseCog, name="fun"):
             data = await r.json()
             quote = data["quote"]
 
-            embed = Embed.default(
-                ctx,
+            embed = self.bot.embed(
                 title=f'"{quote}" - Kanye West'
             )
             await ctx.send(embed=embed)
@@ -544,8 +538,7 @@ class Fun(utils.BaseCog, name="fun"):
             data = await r.json()
             fact = data["text"]
 
-            embed = Embed.default(
-                ctx,
+            embed = self.bot.embed(
                 description=fact
             )
             await ctx.send(embed=embed)

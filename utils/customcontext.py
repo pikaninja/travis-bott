@@ -53,7 +53,7 @@ class CustomContext(commands.Context):
 
     @contextmanager
     def embed(self, **kwargs):
-        embed = Embed.default(self, **kwargs)
+        embed = self.bot.embed(**kwargs)
         yield embed
 
     async def send(self, *args, **kwargs):

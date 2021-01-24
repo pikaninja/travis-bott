@@ -265,7 +265,7 @@ class Management(utils.BaseCog, name="management"):
         role_needed = what_is_needed['role_needed']
         channel = what_is_needed['channel']
 
-        embed = Embed.default(ctx)
+        embed = self.bot.embed()
         embed.title = f"Giveaway for {what_is_needed['prize']}"
 
         fmt = f"React to \N{PARTY POPPER} to be entered into the giveaway."
@@ -309,7 +309,7 @@ class Management(utils.BaseCog, name="management"):
     async def config(self, ctx: utils.CustomContext):
         """Shows you all of the configuration for the current server."""
 
-        embed = Embed.default(ctx)
+        embed = self.bot.embed()
 
         mapped_names = {
             "guild_prefix": "Current Prefix",
@@ -500,8 +500,7 @@ class Management(utils.BaseCog, name="management"):
         if check_guild:
             return await ctx.send("❌ Verification is already set up.")
 
-        embed = Embed.default(
-            ctx,
+        embed = self.bot.embed(
             title="Human Verification",
             description="React to this message to gain access to the rest of the server.",
         )

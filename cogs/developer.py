@@ -74,7 +74,7 @@ class SQLListPageSource(menus.ListPageSource):
         super().__init__(data, per_page=per_page)
 
     async def format_page(self, menu, page):
-        embed = Embed.default(menu.ctx)
+        embed = self.bot.embed(menu.ctx)
         embed.description = (f"```py\n" +
                              "\n".join(page) +
                              "```")
@@ -134,13 +134,13 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
     async def dev_unavailable(self, ctx: utils.CustomContext):
         """Provides a list of all unavailable guilds on the bot."""
 
-        await ctx.send(**{"embed": Embed.default(ctx, title="List of all current unavailable guilds", description="\n".join(str(x.id) for x in self.bot.guilds if x.unavailable))})
+        await ctx.send(**{"embed": self.bot.embed(title="List of all current unavailable guilds", description="\n".join(str(x.id) for x in self.bot.guilds if x.unavailable))})
 
     @dev.command(name="chunked")
     async def dev_chunked(self, ctx: utils.CustomContext):
         """Gives a list of all currently chunked guilds."""
 
-        await ctx.send(**{"embed": Embed.default(ctx, description=f"There are currently {sum(g.chunked for g in self.bot.guilds)} guilds chunked.")})
+        await ctx.send(**{"embed": self.bot.embed(ctx, description=f"There are currently {sum(g.chunked for g in self.bot.guilds)} guilds chunked.")})
 
     @dev.command(name="blacklist")
     async def dev_blacklist(self, ctx: utils.CustomContext, user: discord.Member, *, reason: str = "None"):
@@ -178,8 +178,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
 
             data = await self.bot.loop.run_in_executor(None, process_img, img_bytes)
 
-            embed = Embed.default(
-                ctx,
+            embed = self.bot.embed(
                 description=f"{data['text']}"
             )
 

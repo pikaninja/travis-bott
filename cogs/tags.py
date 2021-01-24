@@ -37,7 +37,7 @@ class TagsListPageSource(menus.ListPageSource):
         self.username: str = username
 
     async def format_page(self, menu: menus.Menu, all_tags: list):
-        embed = Embed.default(menu.ctx)
+        embed = menu.ctx.bot.embed()
         embed.title = f'{self.username}\'s tags'
         embed.description = "\n".join(all_tags)
 

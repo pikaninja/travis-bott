@@ -70,6 +70,7 @@ class MyBot(commands.AutoShardedBot):
         super().__init__(get_prefix, *args, **kwargs)
 
         self.settings = Settings("config.toml")
+        self.colour = 0x863EFF if os.name != "nt" else 0xEAC208
         self.start_time = dt.now()
 
         self.config = {}
@@ -188,6 +189,10 @@ class MyBot(commands.AutoShardedBot):
         self.announcement = update
 
         await self.change_presence(activity=discord.Game(name=self.settings["misc"]["status"]))
+
+    def embed(self, **kwargs):
+        kwargs["colour"] = kwargs.pop("colour", self.colour)
+        return discord.Embed(**kwargs)
 
     async def get_context(self, message: discord.Message, *, cls=CustomContext):
         return await super().get_context(message, cls=cls)

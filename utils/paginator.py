@@ -34,8 +34,7 @@ class CommandsPaginator(menus.ListPageSource):
         super().__init__(data.pages, per_page=1)
 
     async def format_page(self, menu: menus.Menu, page):
-        embed = Embed.default(menu.ctx,
-                              description=page)
+        embed = self.ctx.bot.embed(description=page)
         embed.set_footer(
             text=f"Page {menu.current_page + 1}/{self.get_max_pages()}")
 
@@ -47,7 +46,7 @@ class GeneralPageSource(menus.ListPageSource):
         super().__init__(data, per_page=per_page)
 
     async def format_page(self, menu: menus.Menu, page: list):
-        embed = Embed.default(menu.ctx)
+        embed = self.ctx.bot.embed()
         embed.description = "\n".join(
             [f"`{index}`. {item}" for index, item in enumerate(page, 1)])
 
@@ -91,8 +90,7 @@ class MainHelp(menus.ListPageSource):
         self.prefix = prefix
 
     async def format_page(self, menu, category):
-        embed = Embed.default(
-            self.ctx,
+        embed = self.ctx.bot.embed(
             title="Bot Help",
             description=(
                 f"{self.ctx.bot.description}\n"
@@ -118,7 +116,7 @@ class GroupHelp(menus.ListPageSource):
         self.prefix = prefix
 
     async def format_page(self, menu, cmds):
-        embed = Embed.default(self.ctx)
+        embed = self.ctx.bot.embed()
         embed.title = f"{self.prefix}{self.group.qualified_name} {self.group.signature}"
         embed.description = self.group.help.format(prefix=self.ctx.prefix)
 
@@ -146,7 +144,7 @@ class CogHelp(menus.ListPageSource):
         self.title = f"{self.cog.show_name} Commands"
 
     async def format_page(self, menu, cmds):
-        embed = Embed.default(self.ctx)
+        embed = self.ctx.bot.embed()
         embed.title = self.title
 
         for cmd in cmds:

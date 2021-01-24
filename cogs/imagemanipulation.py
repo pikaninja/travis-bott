@@ -309,7 +309,7 @@ async def do_polaroid_image(ctx: utils.CustomContext, method: callable, image: b
             func = functools.partial(method, image)
             buffer = await ctx.bot.loop.run_in_executor(None, func, *args)
 
-            embed = Embed.default(ctx)
+            embed = ctx.bot.embed()
             file = discord.File(fp=buffer, filename=f"{name}.png")
             embed.set_image(url=f"attachment://{name}.png")
 
@@ -352,7 +352,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
                 func = functools.partial(Manipulation.alwayshasbeen, text)
                 buffer = await self.bot.loop.run_in_executor(None, func)
 
-                embed = Embed.default(ctx)
+                embed = self.bot.embed()
 
                 file = discord.File(fp=buffer, filename="ahb.png")
                 embed.set_image(url="attachment://ahb.png")
@@ -375,7 +375,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
                 func = functools.partial(Manipulation.swirl, buffer, degrees)
                 buffer = await self.bot.loop.run_in_executor(None, func)
 
-                embed = Embed.default(ctx)
+                embed = self.bot.embed()
                 file = discord.File(fp=buffer, filename="swirl.png")
                 embed.set_image(url="attachment://swirl.png")
 
@@ -396,7 +396,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
                 func = functools.partial(Manipulation.chroma, buffer)
                 buffer = await self.bot.loop.run_in_executor(None, func)
 
-                embed = Embed.default(ctx)
+                embed = self.bot.embed()
                 file = discord.File(fp=buffer, filename="chroma.png")
                 embed.set_image(url="attachment://chroma.png")
 
@@ -418,7 +418,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
                 func = functools.partial(Manipulation.floor, buffer)
                 buffer = await self.bot.loop.run_in_executor(None, func)
 
-                embed = Embed.default(ctx)
+                embed = self.bot.embed()
                 file = discord.File(fp=buffer, filename="floor.png")
                 embed.set_image(url="attachment://floor.png")
 
@@ -440,7 +440,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
                 func = functools.partial(Manipulation.magik, buffer)
                 buffer = await self.bot.loop.run_in_executor(None, func)
 
-                embed = Embed.default(ctx)
+                embed = self.bot.embed()
                 file = discord.File(buffer, filename="magik.png")
                 embed.set_image(url="attachment://magik.png")
 
@@ -462,7 +462,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
                     Manipulation.facetime, what, author_image)
                 image_bytes = await self.bot.loop.run_in_executor(None, func)
 
-                embed = Embed.default(ctx)
+                embed = self.bot.embed()
                 file = discord.File(image_bytes, filename="facetime.png")
                 embed.set_image(url="attachment://facetime.png")
 
@@ -484,7 +484,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
                     Manipulation.brighten_image, what, amount)
                 image_bytes = await self.bot.loop.run_in_executor(None, func)
 
-                embed = Embed.default(ctx)
+                embed = self.bot.embed()
                 file = discord.File(image_bytes, filename="brightened.png")
                 embed.set_image(url="attachment://brightened.png")
 
@@ -505,7 +505,7 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
                 func = functools.partial(Manipulation.solarize_image, what)
                 image_bytes = await self.bot.loop.run_in_executor(None, func)
 
-                embed = Embed.default(ctx)
+                embed = self.bot.embed()
                 file = discord.File(image_bytes, filename="solarize.png")
                 embed.set_image(url="attachment://solarize.png")
 
