@@ -162,7 +162,10 @@ class Meta(utils.BaseCog, name="meta"):
             "js": "javascript",
         }
 
-        if not hasattr(code, "language"):
+        content = code.content
+        url = "https://emkc.org/api/v1/piston/execute"
+
+        if not code.language:
             raise commands.BadArgument(
                 "You must provide a codeblock with a certain language.")
 
@@ -171,11 +174,8 @@ class Meta(utils.BaseCog, name="meta"):
         if (new_lang := short_hand.get(lang, None)):
             lang = new_lang
 
-        content = code.content
-        url = "https://emkc.org/api/v1/piston/execute"
-
         if lang.lower() == "java":
-            lines = content.splitlines()
+            lines = code.content.splitlines()
             base = [
                 "public class temp extends Object {public static void main(String[] args) {"]
             for line in lines:
@@ -190,47 +190,29 @@ class Meta(utils.BaseCog, name="meta"):
             "args": [],
         }
 
-        async with ctx.timeit:
-            async with ctx.typing():
-                async with self.bot.session.post(url, json=data) as res:
-                    res_data = await res.json()
-                    if res.status != 200:
-                        return await ctx.send(f"{res.status} - {res_data['message']}")
+        async with ctx.typing():
+            async with self.bot.session.post(url, json=data) as res:
+                res_data = await res.json()
+                if res.status != 200:
+                    return await ctx.send(f"{res.status} - {res_data['message']}")
 
-                    with ctx.embed() as embed:
-                        if (stdout := res_data["stdout"]):
-                            if len(stdout) > 1500:
-                                bin_link = await utils.mystbin(
-                                    self.bot.session,
-                                    stdout
-                                )
+                embed = self.bot.embed(ctx)
 
-                                value = f"Result too long... {bin_link}.{lang}"
-                            else:
-                                value = utils.codeblock(stdout, lang)
+                if (stdout := res_data["stdout"]):
+                    value = stdout if len(stdout) < 1500 else await utils.mystbin(self.bot.session, stdout)
+                    embed.add_field(
+                        name="Stdout",
+                        value=utils.codeblock(value, language=code.language)
+                    )
 
-                            embed.add_field(
-                                name="Stdout",
-                                value=value
-                            )
+                if (stderr := res_data["stderr"]):
+                    value = stderr if len(stderr) < 1500 else await utils.mystbin(self.bot.session, stderr)
+                    embed.add_field(
+                        name="Stderr",
+                        value=utils.codeblock(value, language=code.language)
+                    )
 
-                        if (stderr := res_data["stderr"]):
-                            if len(stderr) > 1500:
-                                bin_link = await utils.mystbin(
-                                    self.bot.session,
-                                    stderr
-                                )
-
-                                value = f"Result too long... {bin_link}.{lang}"
-                            else:
-                                value = utils.codeblock(stderr, lang)
-
-                            embed.add_field(
-                                name="Stderr",
-                                value=value
-                            )
-
-                        await ctx.send(embed=embed)
+                await ctx.send(embed=embed)
 
     @commands.group(aliases=["to-do"], invoke_without_command=True)
     async def todo(self, ctx: utils.CustomContext):

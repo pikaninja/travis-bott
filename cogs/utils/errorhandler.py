@@ -49,36 +49,36 @@ class ErrorHandler(Cog):
             pass
         return None
 
-    async def send_error(self, ctx, error):
-        embed = self.self.setup_embed(
-            title="Something went wrong...",
-            description=f"```py\nAn Error Occurred:\n{error}\n```",
-        )
-        embed.set_author(
-            name=f"{ctx.author} | {ctx.author.id}", icon_url=ctx.author.avatar_url
-        )
-        if ctx.guild:
-            cmd = (
-                "None"
-                if isinstance(ctx.command, type(None))
-                else ctx.command.qualified_name
-            )
-            embed.set_thumbnail(url=ctx.guild.icon_url_as(size=512))
-            embed.add_field(
-                name="Key Information:",
-                value=f"Channel: {ctx.channel} {ctx.channel.id}\n"
-                f"Guild: {ctx.guild} {ctx.guild.id}\n"
-                f"Command: {cmd}\n"
-                f"Message Content: {ctx.message.content}",
-            )
-
-        await self.bot.error_webhook.send(embed=embed)
-
     @Cog.listener()
     async def on_command_error(self, ctx, error):
-        def setup_embed(self, **kwargs):
+        def setup_embed(**kwargs):
             kwargs["colour"] = 0xf5291b
             return self.bot.embed(ctx, **kwargs)
+
+        async def send_error(ctx, error):
+            embed = setup_embed(
+                title="Something went wrong...",
+                description=f"```py\nAn Error Occurred:\n{error}\n```",
+            )
+            embed.set_author(
+                name=f"{ctx.author} | {ctx.author.id}", icon_url=ctx.author.avatar_url
+            )
+            if ctx.guild:
+                cmd = (
+                    "None"
+                    if isinstance(ctx.command, type(None))
+                    else ctx.command.qualified_name
+                )
+                embed.set_thumbnail(url=ctx.guild.icon_url_as(size=512))
+                embed.add_field(
+                    name="Key Information:",
+                    value=f"Channel: {ctx.channel} {ctx.channel.id}\n"
+                    f"Guild: {ctx.guild} {ctx.guild.id}\n"
+                    f"Command: {cmd}\n"
+                    f"Message Content: {ctx.message.content}",
+                )
+
+            await self.bot.error_webhook.send(embed=embed)
 
         ignored_errors = (
             commands.CommandNotFound,
@@ -109,7 +109,7 @@ class ErrorHandler(Cog):
         elif isinstance(error, commands.MaxConcurrencyReached):
             return await self.send_to_ctx_or_author(
                 ctx,
-                embed=self.self.setup_embed(
+                embed=setup_embed(
                     description=f"{error}"
                 ),
                 delete_after=5.0,
@@ -131,7 +131,7 @@ class ErrorHandler(Cog):
             except KeyError:
                 return await self.send_to_ctx_or_author(
                     ctx,
-                    embed=self.self.setup_embed(
+                    embed=setup_embed(
                         description=f"{error}"
                     )
                 )
@@ -145,7 +145,7 @@ class ErrorHandler(Cog):
 
             return await self.send_to_ctx_or_author(
                 ctx,
-                embed=self.self.setup_embed(
+                embed=setup_embed(
                     description=f"{error}"
                 ),
                 delete_after=5.0,
@@ -155,7 +155,7 @@ class ErrorHandler(Cog):
         elif isinstance(error, commands.CommandOnCooldown):
             return await self.send_to_ctx_or_author(
                 ctx,
-                embed=self.self.setup_embed(
+                embed=setup_embed(
                     description=f"This command is on cooldown. **`{int(error.retry_after)}` seconds**"
                 ),
                 delete_after=5.0,
@@ -169,7 +169,7 @@ class ErrorHandler(Cog):
         elif isinstance(error, commands.MissingPermissions):
             return await self.send_to_ctx_or_author(
                 ctx,
-                embed=self.self.setup_embed(
+                embed=setup_embed(
                     description=f"You're missing the required permission: `{error.missing_perms[0]}`"
                 ),
             )
@@ -178,7 +178,7 @@ class ErrorHandler(Cog):
         elif isinstance(error, commands.BadArgument):
             return await self.send_to_ctx_or_author(
                 ctx,
-                embed=self.self.setup_embed(
+                embed=setup_embed(
                     description=f"{error}"
                 ),
             )
@@ -187,7 +187,7 @@ class ErrorHandler(Cog):
         elif isinstance(error, commands.BotMissingPermissions):
             return await self.send_to_ctx_or_author(
                 ctx,
-                embed=self.self.setup_embed(
+                embed=setup_embed(
                     description=f"I'm missing the required permission: `{error.missing_perms[0]}`"
                 ),
             )
@@ -196,7 +196,7 @@ class ErrorHandler(Cog):
         elif isinstance(error, commands.NotOwner):
             return await self.send_to_ctx_or_author(
                 ctx,
-                embed=self.self.setup_embed(
+                embed=setup_embed(
                     description="You must be the owner of the bot to run this."
                 ),
             )
@@ -205,7 +205,7 @@ class ErrorHandler(Cog):
         elif isinstance(error, commands.RoleNotFound):
             return await self.send_to_ctx_or_author(
                 ctx,
-                embed=self.self.setup_embed(
+                embed=setup_embed(
                     description=f"{error}"
                 ),
             )
@@ -214,7 +214,7 @@ class ErrorHandler(Cog):
         elif isinstance(error, utils.MemberIsStaff):
             return await self.send_to_ctx_or_author(
                 ctx,
-                embed=self.self.setup_embed(
+                embed=setup_embed(
                     description=f"{error}"
                 ),
             )
@@ -223,7 +223,7 @@ class ErrorHandler(Cog):
         elif isinstance(error, utils.UserNotVoted):
             return await self.send_to_ctx_or_author(
                 ctx,
-                embed=self.self.setup_embed(
+                embed=setup_embed(
                     description=f"{error}"
                 ),
             )
@@ -232,7 +232,7 @@ class ErrorHandler(Cog):
         elif isinstance(error, utils.NoTodoItems):
             return await self.send_to_ctx_or_author(
                 ctx,
-                embed=self.self.setup_embed(
+                embed=setup_embed(
                     description=f"{error}"
                 ),
             )
@@ -247,14 +247,14 @@ class ErrorHandler(Cog):
             await ctx.send("The error message is too big so I sent it just to the developer.")
             await self.send_error(ctx, error)
         else:
-            await self.send_to_ctx_or_author(ctx, embed=self.self.setup_embed(
+            await self.send_to_ctx_or_author(ctx, embed=setup_embed(
                 title="Uhoh an error has occurred...",
                 description=(
                     "Here's some details on it: ```py\n"
                     f"{tb}```"
                 )
             ))
-            await self.send_error(ctx, tb)
+            await send_error(ctx, tb)
 
         raise error
 
