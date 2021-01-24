@@ -409,7 +409,13 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             return await ctx.send(embed=result)
 
         if not isinstance(result, (str, discord.Message)):
-            content = utils.codeblock(repr(result))
+            result = repr(result)
+
+            if len(result) > 1500:
+                result = await self.bot.mystbin(self.bot.session,
+                                                result)
+
+            content = utils.codeblock(result)
             return await ctx.send(content)
 
         content = utils.codeblock(result)
