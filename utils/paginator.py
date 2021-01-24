@@ -45,9 +45,10 @@ class GeneralPageSource(menus.ListPageSource):
         super().__init__(data, per_page=per_page)
 
     async def format_page(self, menu: menus.Menu, page: list):
-        embed = menu.ctx.bot.embed()
+        offset = menu.current_page * self.per_page
+        embed = menu.ctx.bot.embed(menu.ctx)
         embed.description = "\n".join(
-            [f"`{index}`. {item}" for index, item in enumerate(page, 1)])
+            [f"`{index + 1}`. {item}" for index, item in enumerate(page, offset)])
 
         return embed
 
