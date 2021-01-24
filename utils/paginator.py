@@ -19,7 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import discord
 from discord.ext import commands, menus
 from utils import utils
-from utils.embed import Embed
 import asyncio
 
 LAST_PAGE = "\N{LEFTWARDS BLACK ARROW}"
@@ -70,7 +69,7 @@ class KalPages(menus.MenuPages):
     async def announcements(self, payload):
         """Announcements go here"""
 
-        embed = Embed.default(self.ctx)
+        embed = self.bot.embed(self.ctx)
         embed.title = self.bot.announcement["title"]
         embed.description = self.bot.announcement["message"]
 
@@ -287,7 +286,7 @@ class BetterPaginator:
         self.paginating = False
 
     async def info(self):
-        embed = Embed.default(self.ctx)
+        embed = self.ctx.bot.embed(self.ctx)
         embed.description = (
             f"{self.ctx.bot.description}\n"
             + "`<arg> | Required`\n"

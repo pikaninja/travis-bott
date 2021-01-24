@@ -1,5 +1,5 @@
 """
-Bot Subclass for more fine tuning within the bot itself.
+All the programmes subclasses live here.
 Copyright (C) 2021 kal-byte
 
 This program is free software: you can redistribute it and/or modify
@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import asyncio
+import contextlib
 import logging
 import os
 import re
@@ -24,14 +25,12 @@ import time
 import asyncpg
 import discord
 import aiohttp
-import toml
 
+from contextlib import ContextDecorator, contextmanager
 from discord.ext import commands
 from datetime import datetime as dt
-
+from . import utils
 from .logger import create_logger
-from .customcontext import CustomContext
-from .utils import set_mute, set_giveaway, Settings
 
 
 logger = create_logger("custom-bot", logging.INFO)
@@ -65,38 +64,140 @@ async def get_prefix(bot: commands.AutoShardedBot, message: discord.Message):
     return base
 
 
+class CustomContext(commands.Context):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.timeit = TimeIt(self)
+        self.bot: MyBot = self.bot
+
+    async def _owoify(self, method, *args, **kwargs):
+        if embed := kwargs.pop("embed", None):
+            embed = utils.owoify_embed(embed)
+            kwargs["embed"] = embed
+
+        text = utils.owoify_text(str(*args))
+        message = await method(content=text, **kwargs)
+
+        if await self.bot.is_owner(self.author):
+            if not getattr(message, "edited_at", None):
+                self.bot.ctx_cache[self.message.id] = message
+
+        return message
+
+    @contextmanager
+    def embed(self, **kwargs):
+        embed = self.bot.embed(self, **kwargs)
+        yield embed
+
+    async def send(self, *args, **kwargs):
+        try:
+            if self.message.attachments or kwargs.get("file") or kwargs.get("files") or kwargs.get("new_message"):
+                raise KeyError
+
+            kwargs["embed"] = kwargs.pop("embed", None)
+
+            message = self.bot.ctx_cache[self.message.id]
+
+            if self.guild:
+                if self.bot.config[self.guild.id]["owoify"]:
+                    return await self._owoify(message.edit, *args, **kwargs)
+
+            await message.edit(content=str(*args), **kwargs)
+            return message
+        except KeyError:
+            kwargs.pop("new_message", None)
+
+            if self.guild:
+                if self.bot.config[self.guild.id]["owoify"]:
+                    return await self._owoify(super().send, *args, **kwargs)
+
+            message = await super().send(*args, **kwargs)
+
+            if await self.bot.is_owner(self.author):
+                self.bot.ctx_cache[self.message.id] = message
+
+                async def cleanup():
+                    await asyncio.sleep(300)
+                    with contextlib.suppress(KeyError):
+                        del self.bot.ctx_cache[self.message.id]
+
+                self.bot.loop.create_task(cleanup())
+
+            return message
+
+    @property
+    def db(self):
+        """Returns bot.pool"""
+
+        return self.bot.pool
+
+    async def thumbsup(self):
+        """Adds a thumbs up emoji to a message"""
+
+        try:
+            return await self.message.add_reaction("\N{THUMBS UP SIGN}")
+        except discord.HTTPException:
+            pass
+
+
+class TimeIt(ContextDecorator):
+    def __init__(self, ctx):
+        self.ctx = ctx
+
+    async def __aenter__(self):
+        self.start = time.perf_counter()
+
+    async def __aexit__(self, *args):
+        self.end = time.perf_counter()
+
+        await self.ctx.send(f"Finished in `{self.end - self.start:,.2f}` seconds",
+                            new_message=True)
+
+
+class BaseCog(commands.Cog):
+    def __init__(self, bot, show_name):
+        super().__init__()
+        self.bot = bot
+        self.show_name = show_name
+
+
 class MyBot(commands.AutoShardedBot):
     def __init__(self, *args, **kwargs):
         super().__init__(get_prefix, *args, **kwargs)
 
-        self.settings = Settings("config.toml")
+        # Vars needed for some functionality.
+        self.settings = utils.Settings("config.toml")
         self.colour = 0x863EFF if os.name != "nt" else 0xEAC208
         self.start_time = dt.now()
+        self.support_url = "https://discord.gg/tKZbxAF"
+        self.invite_url = "https://kal-byte.co.uk/invite/706530005169209386/2080763126"
+        self.cmd_usage = 0
+        self.announcement = {
+            "title": None,
+            "message": None
+        }
 
-        self.config = {}
+        # Things for cache
         self.verification_config = {}
         self.giveaway_roles = {}
+        self.blacklist = {}
+        self.ctx_cache = {}
+        self.config = {}
 
+        # Stuff that requires the bots loop
         self.loop = asyncio.get_event_loop()
         self.pool = self.loop.run_until_complete(
             asyncpg.create_pool(
                 **self.settings["database"]["main"] if os.name != "nt" else self.settings["database"]["beta"])
         )
-
         self.session = aiohttp.ClientSession(loop=self.loop)
-        self.loop.create_task(self.do_prep())
-        self.announcement = {
-            "title": None,
-            "message": None
-        }
-        self.maintenance_mode = False
+
+        # Checks to disable functionality for certain things.
         self.add_check(self.command_check)
         self.add_check(self.blacklist_check)
 
-        self.support_url = "https://discord.gg/tKZbxAF"
-        self.invite_url = "https://kal-byte.co.uk/invite/706530005169209386/2080763126"
-
-        self.blacklist = {}
+        # Webhooks
         self.error_webhook = discord.Webhook.from_url(
             self.settings["misc"]["error_webhook"],
             adapter=discord.AsyncWebhookAdapter(self.session)
@@ -105,9 +206,9 @@ class MyBot(commands.AutoShardedBot):
             self.settings["misc"]["guild_webhook"],
             adapter=discord.AsyncWebhookAdapter(self.session)
         )
-
-        self.ctx_cache = {}
-        self.cmd_usage = 0
+        
+        # Some tasks that prep the bot to be used fully.
+        self.loop.create_task(self.do_prep())
         self.loop.create_task(self.chunk_all_guilds())
 
     async def close(self):
@@ -163,7 +264,7 @@ class MyBot(commands.AutoShardedBot):
             if entry["role_id"]:
                 self.giveaway_roles[entry["message_id"]] = entry["role_id"]
 
-            await set_giveaway(self, entry["ends_at"], entry["channel_id"], entry["message_id"])
+            await utils.set_giveaway(self, entry["ends_at"], entry["channel_id"], entry["message_id"])
 
         logger.info("Finished caching and setting giveaways")
 
@@ -171,10 +272,10 @@ class MyBot(commands.AutoShardedBot):
         for mute in mutes:
             now = time.time()
             seconds_left = mute["end_time"] - now
-            await set_mute(bot=self,
-                           guild_id=mute["guild_id"],
-                           user_id=mute["member_id"],
-                           _time=seconds_left)
+            await utils.set_mute(bot=self,
+                                 guild_id=mute["guild_id"],
+                                 user_id=mute["member_id"],
+                                 _time=seconds_left)
 
         logger.info("Finished setting mutes.")
 
@@ -190,11 +291,19 @@ class MyBot(commands.AutoShardedBot):
 
         await self.change_presence(activity=discord.Game(name=self.settings["misc"]["status"]))
 
-    def embed(self, **kwargs):
+    def embed(self, ctx: CustomContext = None, **kwargs):
         kwargs["timestamp"] = dt.utcnow()
         kwargs["colour"] = kwargs.pop("colour", self.colour)
         embed = discord.Embed(**kwargs)
-        embed.set_footer(text="Requested at")
+
+        if ctx:
+            embed.set_footer(
+                text=f"Requested by: {ctx.author}",
+                icon_url=str(ctx.author.avatar_url)
+            )
+        else:
+            embed.set_footer(text=f"Requested at")
+
         return embed
 
     async def get_context(self, message: discord.Message, *, cls=CustomContext):

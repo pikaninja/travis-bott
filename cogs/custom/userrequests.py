@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import random
 from discord.ext import commands
-from utils.embed import Embed
 
 
 class UserRequests(commands.Cog, command_attrs=dict(hidden=True)):
@@ -42,7 +41,7 @@ class UserRequests(commands.Cog, command_attrs=dict(hidden=True)):
         url = literal_balls_url if r == 1000 else random.choice(
             sports_balls_url)
 
-        embed = Embed.default(ctx, title="I was paid £5 to add this")
+        embed = self.bot.embed(ctx, title="I was paid £5 to add this")
         embed.set_image(url=url)
         await ctx.send(embed=embed)
 
@@ -62,7 +61,7 @@ class UserRequests(commands.Cog, command_attrs=dict(hidden=True)):
         literal_cock_url = "https://www.porn18sex.com/uploads/1img_1529100956_95794.jpg"
         url = literal_cock_url if r == 1000 else random.choice(chickens_url)
 
-        embed = Embed.default(ctx, title="I was paid £2.50 to add this")
+        embed = self.bot.embed(ctx, title="I was paid £2.50 to add this")
         embed.set_image(url=url)
         await ctx.send(embed=embed)
 

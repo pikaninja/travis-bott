@@ -1,7 +1,4 @@
-from .custombot import MyBot
-from .customcontext import CustomContext
-from .customcog import BaseCog
-from . import embed
+from .subclasses import MyBot, CustomContext, BaseCog
 from .paginator import *
 from .utils import *
 from .logger import *

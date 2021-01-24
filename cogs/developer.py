@@ -27,7 +27,6 @@ import traceback
 import re
 import typing
 import copy
-from utils.customcontext import CustomContext
 
 from jishaku.codeblocks import codeblock_converter
 from PIL import Image as PILImage
@@ -38,8 +37,6 @@ from discord.ext import menus
 from discord.ext.commands import (
     Cog, is_owner, BadArgument, group, Converter
 )
-
-from utils.embed import Embed
 
 import utils
 
@@ -134,7 +131,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
     async def dev_unavailable(self, ctx: utils.CustomContext):
         """Provides a list of all unavailable guilds on the bot."""
 
-        await ctx.send(**{"embed": self.bot.embed(title="List of all current unavailable guilds", description="\n".join(str(x.id) for x in self.bot.guilds if x.unavailable))})
+        await ctx.send(**{"embed": self.bot.embed(ctx, title="List of all current unavailable guilds", description="\n".join(str(x.id) for x in self.bot.guilds if x.unavailable))})
 
     @dev.command(name="chunked")
     async def dev_chunked(self, ctx: utils.CustomContext):
@@ -179,6 +176,7 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             data = await self.bot.loop.run_in_executor(None, process_img, img_bytes)
 
             embed = self.bot.embed(
+                ctx,
                 description=f"{data['text']}"
             )
 

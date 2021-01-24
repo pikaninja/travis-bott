@@ -19,7 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 from typing import List, Mapping
 import discord
 import utils
-from utils.embed import Embed
 from discord.ext import commands, menus
 
 
@@ -30,7 +29,7 @@ class GroupHelp(menus.ListPageSource):
         self.prefix = prefix
 
     async def format_page(self, menu, cmds):
-        embed = self.bot.embed()
+        embed = self.bot.embed(menu.ctx)
         command_name = f"{self.group.qualified_name}{'|' + '|'.join(self.group.aliases) if self.group.aliases else ''}"
         embed.title = f"{self.prefix}{command_name} {self.group.signature}"
         embed.description = (
@@ -63,7 +62,7 @@ class CogHelp(menus.ListPageSource):
         self.title = f"{self.cog.show_name} Commands"
 
     async def format_page(self, menu, cmds):
-        embed = self.ctx.bot.embed()
+        embed = self.ctx.bot.embed(menu.ctx)
         embed.title = self.title
 
         for cmd in cmds:
@@ -104,7 +103,7 @@ class BaseHelp(menus.Menu):
         return menu
 
     async def send_initial_message(self, ctx: utils.CustomContext, channel: discord.TextChannel):
-        embed = self.bot.embed()
+        embed = self.bot.embed(ctx)
         embed.description = (
             "```fix\n"
             f"{self.bot.description}\n"
@@ -196,6 +195,10 @@ class CustomHelp(commands.HelpCommand):
             ret.sort(key=key)
         return ret
 
+    def command_not_found(self, string):
+        string = string[:15] + "..." if len(string) > 15 else string
+        return f"Couldn't find the help for `{string}`"
+
     async def send_bot_help(self, mapping: Mapping[commands.Cog, List[commands.Command]]):
         titles = []
         for cog, all_commands in mapping.items():
@@ -211,9 +214,9 @@ class CustomHelp(commands.HelpCommand):
 
     async def send_command_help(self, command: commands.Command):
         if not hasattr(command.cog, "show_name"):
-            return await self.send_error_message(self.command_not_found())
+            return await self.send_error_message(self.command_not_found(command.qualified_name))
 
-        embed = self.context.bot.embed()
+        embed = self.context.bot.embed(self.context)
         command_name = f"{command.qualified_name}{'|' + '|'.join(command.aliases) if command.aliases else ''}"
         embed.title = f"{self.clean_prefix}{command_name} {command.signature}"
         embed.description = (
@@ -225,7 +228,7 @@ class CustomHelp(commands.HelpCommand):
 
     async def send_group_help(self, group: commands.Group):
         if not hasattr(group.cog, "show_name"):
-            return await self.send_error_message(self.command_not_found())
+            return await self.send_error_message(self.command_not_found(group.qualified_name))
 
         sorted = await self.filter_commands(group.commands, sort=True)
         menu = utils.KalPages(

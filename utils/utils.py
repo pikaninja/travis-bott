@@ -33,8 +33,6 @@ import toml
 from discord import Embed
 from discord.ext import commands
 
-from .customcontext import CustomContext
-
 
 #  Settings based on a TOML file.
 class Settings:
@@ -162,7 +160,7 @@ async def mystbin(session: aiohttp.ClientSession(), content: str):
 
 
 class TimeConverter(commands.Converter):
-    async def convert(self, ctx: CustomContext, argument: str):
+    async def convert(self, ctx, argument: str):
         DAY_REGEX = re.compile(r"^(?i)(\d{1,3}d)$")
         MONTH_REGEX = re.compile(r"^(?i)(\d{1,3}mo)$")
         YEAR_REGEX = re.compile(r"^(?i)(\d{1,3}y)$")
@@ -236,7 +234,7 @@ class RoleConverter(commands.Converter):
 
 
 def has_voted():
-    async def predicate(ctx: CustomContext):
+    async def predicate(ctx):
         hdrs = {"Authorization": ctx.bot.api_key_for("top_gg_api")}
         url = f"https://top.gg/api/bots/706530005169209386/check?userId={ctx.author.id}"
 

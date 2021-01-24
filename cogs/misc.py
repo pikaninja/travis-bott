@@ -30,7 +30,6 @@ from discord.errors import HTTPException
 from jishaku.codeblocks import codeblock_converter
 from selenium import webdriver
 from utils.paginator import KalPages
-from utils.embed import Embed
 
 
 class CogConverter(commands.Converter):
@@ -53,6 +52,7 @@ class CommandCatList(menus.ListPageSource):
 
     async def format_page(self, menu, cmds):
         embed = menu.ctx.bot.embed(
+            menu.ctx,
             title=self.cog_name,
             description="\n".join(cmds)
         )
@@ -68,6 +68,7 @@ class CommandsList(menus.ListPageSource):
 
     async def format_page(self, menu, cmds):
         embed = menu.ctx.bot.embed(
+            menu.ctx,
             title=cmds[0][0],
             description="\n".join([c[1] for c in cmds])
         )
@@ -80,7 +81,7 @@ class RawMessagePaginator(menus.ListPageSource):
         super().__init__(raw_message, per_page=16)
 
     async def format_page(self, menu: menus.Menu, page: list):
-        embed = menu.ctx.bot.embed()
+        embed = menu.ctx.bot.embed(menu.ctx)
         embed.description = "```json\n" + \
             "\n".join(page).replace("`", "`\N{ZERO WIDTH SPACE}") + "```"
 
@@ -258,7 +259,7 @@ class Misc(utils.BaseCog, name="misc"):
 
         async with ctx.typing():
             obj = await self.bot.loop.run_in_executor(None, BlockingFunctions.screenshot, url)
-            embed = self.bot.embed()
+            embed = self.bot.embed(ctx)
 
             file = discord.File(obj, filename="scrape.png")
             embed.set_image(url="attachment://scrape.png")
@@ -353,6 +354,7 @@ class Misc(utils.BaseCog, name="misc"):
 
             if len(timestamp) < 17:
                 main_embed = self.bot.embed(
+                    ctx,
                     title="Current Status for Discord.",
                     description=(
                         "```\n" +
@@ -387,6 +389,7 @@ class Misc(utils.BaseCog, name="misc"):
                 return msg
 
             components_embed = self.bot.embed(
+                ctx,
                 title="Components",
                 description=format_comp(components)
             )
@@ -418,7 +421,7 @@ class Misc(utils.BaseCog, name="misc"):
             ["Database Latency", f"{db_fmt} ms"]
         ]
 
-        embed = self.bot.embed()
+        embed = self.bot.embed(ctx)
         [embed.add_field(name=k, value=v) for k, v in pings]
 
         await message.edit(content=None,
@@ -448,6 +451,7 @@ class Misc(utils.BaseCog, name="misc"):
         """Sends an link to invite the bot to your server."""
 
         embed = self.bot.embed(
+            ctx,
             title="Invite the bot to your server here!"
         )
 
@@ -475,7 +479,7 @@ class Misc(utils.BaseCog, name="misc"):
     async def github(self, ctx: utils.CustomContext):
         """Sends the bots github repo"""
 
-        embed = self.bot.embed()
+        embed = self.bot.embed(ctx)
         embed.description = (
             "Travis Bott has been set to be closed-source as of 07/01/2021. "
             "If you'd still like to view the source please contact kal#1806 "

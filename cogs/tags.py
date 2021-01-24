@@ -16,7 +16,6 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-from inspect import TPFLAGS_IS_ABSTRACT
 import uuid
 import typing
 import logging
@@ -27,8 +26,6 @@ import utils
 
 from discord.ext import commands, menus
 
-from utils.embed import Embed
-
 
 class TagsListPageSource(menus.ListPageSource):
     def __init__(self, username: str, all_tags: list, *, per_page: int = 10):
@@ -37,7 +34,7 @@ class TagsListPageSource(menus.ListPageSource):
         self.username: str = username
 
     async def format_page(self, menu: menus.Menu, all_tags: list):
-        embed = menu.ctx.bot.embed()
+        embed = menu.ctx.bot.embed(menu.ctx)
         embed.title = f'{self.username}\'s tags'
         embed.description = "\n".join(all_tags)
 

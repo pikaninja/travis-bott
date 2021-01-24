@@ -77,19 +77,19 @@ class RockPaperScissors(menus.Menu):
                                    channel: discord.TextChannel) -> discord.Message:
         """Sends the initial message which tells the user to click on a certain reaction."""
 
-        embed = self.bot.embed()
+        embed = self.bot.embed(ctx)
         embed.description = "Click on Rock, Paper or Scissors and let the council decide your fate."
         return await ctx.send(embed=embed)
 
     async def _handle_tie(self) -> any:
-        embed = self.bot.embed()
+        embed = self.bot.embed(self.ctx)
         embed.description = "We appeared to have tied... maybe I'll win next time. \N{THINKING FACE}"
 
         await self.message.edit(embed=embed)
         return self.stop()
 
     async def _handle_winner(self, winner: int) -> any:
-        embed = self.bot.embed()
+        embed = self.bot.embed(self.ctx)
         if winner == 1:
             embed.description = "Congratulations, I guess - you won! I better get you next time."
         elif winner == 2:
@@ -306,7 +306,8 @@ class Fun(utils.BaseCog, name="fun"):
                     if not ctx.channel.is_nsfw():
                         return await ctx.send("Bonk! Go to horny jail.")
 
-                embed = self.bot.embed(title=title,
+                embed = self.bot.embed(ctx,
+                                       title=title,
                                        url=f"https://www.reddit.com{perma_link}")
 
                 embed.add_field(name="\N{UPWARDS BLACK ARROW}",
@@ -330,6 +331,7 @@ class Fun(utils.BaseCog, name="fun"):
         with contextlib.suppress(discord.NotFound):
             timer = 3
             embed = self.bot.embed(
+                ctx,
                 description="First person to click wins..."
             )
 
@@ -478,7 +480,7 @@ class Fun(utils.BaseCog, name="fun"):
             data = await r.json()
             image = data["link"]
 
-            embed = self.bot.embed()
+            embed = self.bot.embed(ctx)
             embed.set_image(url=image)
             await ctx.send(embed=embed)
 
@@ -495,6 +497,7 @@ class Fun(utils.BaseCog, name="fun"):
             quote = data["quote"]
 
             embed = self.bot.embed(
+                ctx,
                 title=f'"{quote}" - Kanye West'
             )
             await ctx.send(embed=embed)
@@ -539,6 +542,7 @@ class Fun(utils.BaseCog, name="fun"):
             fact = data["text"]
 
             embed = self.bot.embed(
+                ctx,
                 description=fact
             )
             await ctx.send(embed=embed)

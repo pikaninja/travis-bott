@@ -19,7 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import ast
 import logging
-from utils.embed import Embed
 
 import discord
 from jishaku.codeblocks import codeblock_converter
@@ -42,54 +41,6 @@ class Beta(utils.BaseCog, name="beta", command_attrs=dict(hidden=True)):
         """Some beta commands that are not ready for release quite yet."""
 
         await ctx.send_help(ctx.command)
-
-    @beta.command(name="run")
-    async def beta_run(self, ctx: utils.CustomContext, *, code: codeblock_converter):
-        """Runs a given piece of code.
-        Use the given syntax modifier in the codeblock to determine the language."""
-
-        short_hand = {
-            "py": "python",
-            "c++": "cpp",
-            "ts": "typescript",
-            "js": "javascript",
-        }
-
-        lang = code.language
-
-        if (new_lang := short_hand.get(lang, None)):
-            lang = new_lang
-
-        content = code.content
-        url = "https://emkc.org/api/v1/piston/execute"
-
-        data = {
-            "language": lang,
-            "source": content,
-            "args": [],
-        }
-
-        async with ctx.timeit:
-            async with ctx.typing():
-                async with self.bot.session.post(url, json=data) as res:
-                    res_data = await res.json()
-                    if res.status != 200:
-                        return await ctx.send(f"{res.status} - {res_data['message']}")
-
-                    with ctx.embed() as embed:
-                        if (stdout := res_data["stdout"]):
-                            embed.add_field(
-                                name="Stdout",
-                                value=utils.codeblock(stdout, lang)
-                            )
-
-                        if (stdout := res_data["stderr"]):
-                            embed.add_field(
-                                name="Stderr",
-                                value=utils.codeblock(stdout, lang)
-                            )
-
-                        await ctx.send(embed=embed)
 
     # @beta.command(name="neofetch")
     # async def beta_neofetch(self, ctx: utils.CustomContext):

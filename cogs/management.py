@@ -26,7 +26,6 @@ import utils
 import asyncio
 from discord.ext import commands
 from zipfile import ZipFile
-from utils.embed import Embed
 
 
 class Prefix(commands.Converter):
@@ -148,13 +147,13 @@ class Management(utils.BaseCog, name="management"):
             random_user = random.choice(users)
         except IndexError:
             fmt = f"No one entered into [this]({message.jump_url}) giveaway :("
-            embed = discord.Embed()
+            embed = self.bot.embed()
             embed.description = fmt
 
             return await message.channel.send(embed=embed)
 
         fmt = f"The winner of [this]({message.jump_url}) giveaway is: {random_user.mention}"
-        embed = discord.Embed()
+        embed = self.bot.embed()
         embed.description = fmt
 
         await message.channel.send(
@@ -265,7 +264,7 @@ class Management(utils.BaseCog, name="management"):
         role_needed = what_is_needed['role_needed']
         channel = what_is_needed['channel']
 
-        embed = self.bot.embed()
+        embed = self.bot.embed(ctx)
         embed.title = f"Giveaway for {what_is_needed['prize']}"
 
         fmt = f"React to \N{PARTY POPPER} to be entered into the giveaway."
@@ -309,7 +308,7 @@ class Management(utils.BaseCog, name="management"):
     async def config(self, ctx: utils.CustomContext):
         """Shows you all of the configuration for the current server."""
 
-        embed = self.bot.embed()
+        embed = self.bot.embed(ctx)
 
         mapped_names = {
             "guild_prefix": "Current Prefix",

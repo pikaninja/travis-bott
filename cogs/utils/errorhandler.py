@@ -17,17 +17,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import logging
-
 import discord
 import prettify_exceptions
+import utils
+import typing
 from discord.ext import commands
 from discord.ext.commands import Cog
-
-import utils
-from utils.custombot import MyBot
-from utils.embed import Embed
-
-import typing
+from utils import MyBot
 
 
 class ErrorHandler(Cog):
@@ -35,10 +31,6 @@ class ErrorHandler(Cog):
         self.bot: MyBot = bot
         self.logger = utils.create_logger(
             self.__class__.__name__, logging.INFO)
-
-    def setup_embed(self, **kwargs):
-        kwargs["colour"] = 0xf5291b
-        return self.bot.embed(**kwargs)
 
     async def send_to_ctx_or_author(
         self, ctx, text: str = None, *args, **kwargs
@@ -58,7 +50,7 @@ class ErrorHandler(Cog):
         return None
 
     async def send_error(self, ctx, error):
-        embed = self.setup_embed(
+        embed = self.self.setup_embed(
             title="Something went wrong...",
             description=f"```py\nAn Error Occurred:\n{error}\n```",
         )
@@ -84,6 +76,10 @@ class ErrorHandler(Cog):
 
     @Cog.listener()
     async def on_command_error(self, ctx, error):
+        def setup_embed(self, **kwargs):
+            kwargs["colour"] = 0xf5291b
+            return self.bot.embed(ctx, **kwargs)
+
         ignored_errors = (
             commands.CommandNotFound,
         )
@@ -113,7 +109,7 @@ class ErrorHandler(Cog):
         elif isinstance(error, commands.MaxConcurrencyReached):
             return await self.send_to_ctx_or_author(
                 ctx,
-                embed=self.setup_embed(
+                embed=self.self.setup_embed(
                     description=f"{error}"
                 ),
                 delete_after=5.0,
@@ -126,9 +122,8 @@ class ErrorHandler(Cog):
                        "bug or something that requires the bot to be contained. The bots functionality "
                        "outside of commands will still work though, sorry for the inconvenience.\n"
                        f"For more updates you may join the support server: {self.bot.support_url}")
-                embed = Embed.default(ctx,
-                                      title="\N{WARNING SIGN} | Maintenance Mode",
-                                      description=fmt)
+                embed = self.bot.embed(title="\N{WARNING SIGN} | Maintenance Mode",
+                                       description=fmt)
                 return await ctx.send(embed=embed)
 
             try:
@@ -136,7 +131,7 @@ class ErrorHandler(Cog):
             except KeyError:
                 return await self.send_to_ctx_or_author(
                     ctx,
-                    embed=self.setup_embed(
+                    embed=self.self.setup_embed(
                         description=f"{error}"
                     )
                 )
@@ -150,7 +145,7 @@ class ErrorHandler(Cog):
 
             return await self.send_to_ctx_or_author(
                 ctx,
-                embed=self.setup_embed(
+                embed=self.self.setup_embed(
                     description=f"{error}"
                 ),
                 delete_after=5.0,
@@ -160,7 +155,7 @@ class ErrorHandler(Cog):
         elif isinstance(error, commands.CommandOnCooldown):
             return await self.send_to_ctx_or_author(
                 ctx,
-                embed=self.setup_embed(
+                embed=self.self.setup_embed(
                     description=f"This command is on cooldown. **`{int(error.retry_after)}` seconds**"
                 ),
                 delete_after=5.0,
@@ -174,7 +169,7 @@ class ErrorHandler(Cog):
         elif isinstance(error, commands.MissingPermissions):
             return await self.send_to_ctx_or_author(
                 ctx,
-                embed=self.setup_embed(
+                embed=self.self.setup_embed(
                     description=f"You're missing the required permission: `{error.missing_perms[0]}`"
                 ),
             )
@@ -183,7 +178,7 @@ class ErrorHandler(Cog):
         elif isinstance(error, commands.BadArgument):
             return await self.send_to_ctx_or_author(
                 ctx,
-                embed=self.setup_embed(
+                embed=self.self.setup_embed(
                     description=f"{error}"
                 ),
             )
@@ -192,7 +187,7 @@ class ErrorHandler(Cog):
         elif isinstance(error, commands.BotMissingPermissions):
             return await self.send_to_ctx_or_author(
                 ctx,
-                embed=self.setup_embed(
+                embed=self.self.setup_embed(
                     description=f"I'm missing the required permission: `{error.missing_perms[0]}`"
                 ),
             )
@@ -201,7 +196,7 @@ class ErrorHandler(Cog):
         elif isinstance(error, commands.NotOwner):
             return await self.send_to_ctx_or_author(
                 ctx,
-                embed=self.setup_embed(
+                embed=self.self.setup_embed(
                     description="You must be the owner of the bot to run this."
                 ),
             )
@@ -210,7 +205,7 @@ class ErrorHandler(Cog):
         elif isinstance(error, commands.RoleNotFound):
             return await self.send_to_ctx_or_author(
                 ctx,
-                embed=self.setup_embed(
+                embed=self.self.setup_embed(
                     description=f"{error}"
                 ),
             )
@@ -219,7 +214,7 @@ class ErrorHandler(Cog):
         elif isinstance(error, utils.MemberIsStaff):
             return await self.send_to_ctx_or_author(
                 ctx,
-                embed=self.setup_embed(
+                embed=self.self.setup_embed(
                     description=f"{error}"
                 ),
             )
@@ -228,7 +223,7 @@ class ErrorHandler(Cog):
         elif isinstance(error, utils.UserNotVoted):
             return await self.send_to_ctx_or_author(
                 ctx,
-                embed=self.setup_embed(
+                embed=self.self.setup_embed(
                     description=f"{error}"
                 ),
             )
@@ -237,7 +232,7 @@ class ErrorHandler(Cog):
         elif isinstance(error, utils.NoTodoItems):
             return await self.send_to_ctx_or_author(
                 ctx,
-                embed=self.setup_embed(
+                embed=self.self.setup_embed(
                     description=f"{error}"
                 ),
             )
@@ -252,7 +247,7 @@ class ErrorHandler(Cog):
             await ctx.send("The error message is too big so I sent it just to the developer.")
             await self.send_error(ctx, error)
         else:
-            await self.send_to_ctx_or_author(ctx, embed=self.setup_embed(
+            await self.send_to_ctx_or_author(ctx, embed=self.self.setup_embed(
                 title="Uhoh an error has occurred...",
                 description=(
                     "Here's some details on it: ```py\n"

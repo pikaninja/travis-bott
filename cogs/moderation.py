@@ -16,11 +16,9 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
-import datetime
 import humanize
 
 import utils
-from utils.embed import Embed
 
 from time import time as t
 
@@ -137,7 +135,7 @@ class ModerationsMenu(menus.ListPageSource):
         super().__init__(data, per_page=per_page)
 
     async def format_page(self, menu: menus.Menu, page):
-        embed = menu.ctx.bot.embed()
+        embed = menu.ctx.bot.embed(menu.ctx)
         embed.title = "Active Mutes"
         embed.description = "\n".join(page)
 
@@ -197,6 +195,7 @@ class Moderation(utils.BaseCog, name="moderation"):
                                         None, ctx.guild.id)
 
         embed = self.bot.embed(
+            ctx,
             title=f"Super Log",
             description=f"{moderator} to {user_affected}\n"
                         f"Command: {action_type}\n"
@@ -293,7 +292,7 @@ class Moderation(utils.BaseCog, name="moderation"):
         dt_obj = dt.fromtimestamp(timestamp)
         humanized = humanize.precisedelta(dt_obj, format="%0.0f")
 
-        embed = self.bot.embed()
+        embed = self.bot.embed(ctx)
         embed.description = (
             f"{ctx.author.mention} ({ctx.author}) has muted {user.mention} ({user}) for {humanized} for the reason: "
             f"{reason}"
@@ -326,7 +325,7 @@ class Moderation(utils.BaseCog, name="moderation"):
             return await ctx.send("That user does not have the guilds set muted role.")
 
         await user.remove_roles(mute_role, reason=f"Unmuted by: {ctx.author}")
-        embed = self.bot.embed()
+        embed = self.bot.embed(ctx)
         embed.description = f"{ctx.author.mention} ({ctx.author}) unmuted {user.mention} ({user})"
 
         await ctx.send(embed=embed)
@@ -584,6 +583,7 @@ class Moderation(utils.BaseCog, name="moderation"):
             columns[1] = columns[1][:20]
 
         embed = self.bot.embed(
+            ctx,
             title=f"Members in {role.name} [{sum(1 for m in role.members)}]"
         )
         [
@@ -660,6 +660,7 @@ class Moderation(utils.BaseCog, name="moderation"):
         await ctx.thumbsup()
 
         embed = self.bot.embed(
+            ctx,
             title="Updated Member Roles",
             description=f"{user.mention} | {' '.join(modifiers)}",
         )
@@ -758,6 +759,7 @@ class Moderation(utils.BaseCog, name="moderation"):
                     f"```\n{repr_permissions or 'Nothing special.'}```", False],
             ]
             embed = self.bot.embed(
+                ctx,
                 colour=discord.Color.from_rgb(*role_colour)
             )
             [embed.add_field(name=n, value=v, inline=i) for n, v, i in fields]
@@ -788,7 +790,7 @@ class Moderation(utils.BaseCog, name="moderation"):
             role_names.append(f"{role.mention}")
             role_ids.append(f"{role.id}")
 
-        embed = self.bot.embed()
+        embed = self.bot.embed(ctx)
         embed.add_field(name="Names", value="\n".join(role_names))
         embed.add_field(name="IDs", value="\n".join(role_ids))
         await ctx.send(embed=embed)
