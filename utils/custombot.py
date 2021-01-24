@@ -126,15 +126,12 @@ class MyBot(commands.AutoShardedBot):
         await self.wait_until_ready()
 
         for guild in self.guilds:
-            get_guild = await self.pool.fetchval(
-                "SELECT guild_id FROM guild_settings WHERE guild_id = $1", guild.id
+            sql = (
+                "INSERT INTO guild_settings VALUES($1, DEFAULT, $2, $3, $4) "
+                "ON CONFLICT (guild_id) DO NOTHING;"
             )
-
-            if get_guild is None:
-                await self.pool.execute(
-                    "INSERT INTO guild_settings VALUES($1, DEFAULT, $2, $3, $4)",
-                    guild.id, None, None, False
-                )
+            values = (guild.id, None, None, False)
+            await self.pool.execute(sql, *values)
 
         verification_config = await self.pool.fetch("SELECT message_id, role_id FROM guild_verification")
         guild_configs = await self.pool.fetch("SELECT * FROM guild_settings")
