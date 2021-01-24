@@ -125,34 +125,6 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
     async def cog_check(self, ctx: utils.CustomContext):
         return await self.bot.is_owner(ctx.author)
 
-    async def _exec_then_eval(self, ctx: utils.CustomContext, code):
-        """Helper method to help evaluate python code."""
-
-        block = ast.parse(code, mode="exec")
-        last = ast.Expression(block.body.pop().value)
-
-        _globals = {
-            "ctx": ctx,
-            "bot": ctx.bot,
-            "guild": ctx.guild,
-            "channel": ctx.channel,
-            "author": ctx.author,
-            "message": ctx.message,
-            "find": discord.utils.find,
-            "get": discord.utils.get,
-            "_": self._last_result,
-        }
-        _globals.update(globals())
-        _locals = {}
-
-        _eval = eval(compile(last, "<string>", mode="eval"), _globals, _locals)
-
-        exec(compile(block, "<string>", mode="exec"), _globals, _locals)
-        if inspect.isawaitable(_eval):
-            return await _eval
-        else:
-            return _eval
-
     @group(invoke_without_command=True)
     @is_owner()
     async def dev(self, ctx: utils.CustomContext):
@@ -399,13 +371,38 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
         """Evaluates Python Code."""
 
         try:
-            result = await self._exec_then_eval(ctx, code.content)
+            block = ast.parse(code.content, mode="exec")
+            last = ast.Expression(block.body.pop().value)
+
+            _globals = {
+                "ctx": ctx,
+                "bot": ctx.bot,
+                "guild": ctx.guild,
+                "author": ctx.author,
+                "message": ctx.message,
+                "channel": ctx.channel,
+                "get": discord.utils.get,
+                "find": discord.utils.find,
+                "_": self._last_result,
+            }
+
+            _globals.update(globals())
+            _locals = {}
+
+            _eval = eval(compile(last, "<string>", mode="eval"), _globals, _locals)
+            exec(compile(block, "<string>", mode="exec"), _globals, _locals)
+
+            if inspect.isawaitable(_eval):
+                result = await _eval
+            else:
+                result = _eval
         except Exception as e:
             await ctx.message.add_reaction("\N{THUMBS DOWN SIGN}")
             fmt_exc = f"{type(e).__name__}: {e}"
-            return await ctx.send(
-                f"```py\n{''.join(traceback.format_tb(e.__traceback__))}\n{fmt_exc}```"
+            content = utils.codeblock(
+                f"\n{''.join(traceback.format_tb(e.__traceback__))}\n{fmt_exc}"
             )
+            return await ctx.send(content)
 
         await ctx.message.add_reaction("\N{OK HAND SIGN}")
         self._last_result = result
@@ -414,9 +411,11 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             return await ctx.send(embed=result)
 
         if not isinstance(result, (str, discord.Message)):
-            return await ctx.send(repr(result))
+            content = utils.codeblock(repr(result))
+            return await ctx.send(content)
 
-        return await ctx.send(result, new_message=True)
+        content = utils.codeblock(result)
+        return await ctx.send(content, new_message=True)
 
 
 def setup(bot):
