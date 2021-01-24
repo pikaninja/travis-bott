@@ -389,7 +389,8 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
             _globals.update(globals())
             _locals = {}
 
-            _eval = eval(compile(last, "<string>", mode="eval"), _globals, _locals)
+            _eval = eval(compile(last, "<string>", mode="eval"),
+                         _globals, _locals)
             exec(compile(block, "<string>", mode="exec"), _globals, _locals)
 
             if inspect.isawaitable(_eval):

@@ -119,12 +119,13 @@ class MyBot(commands.AutoShardedBot):
         for guild in self.guilds:
             if guild.unavailable:
                 continue
-            
+
             await guild.chunk()
 
     async def do_prep(self):
         await self.wait_until_ready()
 
+        # Credits to pikaninja for the refactor here down to just 1 query.
         for guild in self.guilds:
             sql = (
                 "INSERT INTO guild_settings VALUES($1, DEFAULT, $2, $3, $4) "

@@ -230,7 +230,7 @@ class Meta(utils.BaseCog, name="meta"):
                                 name="Stderr",
                                 value=value
                             )
-                            
+
                         await ctx.send(embed=embed)
 
     @commands.group(aliases=["to-do"], invoke_without_command=True)

@@ -286,7 +286,7 @@ class Manipulation:
             if (img.width * img.height) >= (1200 * 1000):
                 raise commands.BadArgument(
                     "That image is a little too large and may crashy washy my botty wotty 🥺")
-        
+
         img = Image(b)
         img.apply_gradient()
 

@@ -200,7 +200,7 @@ class Fun(utils.BaseCog, name="fun"):
         if len(encoded) > 1998:
             link = await utils.mystbin(self.bot.session, encoded)
             await ctx.send(f"That was a little too large for discord to handle... {link}")
-        
+
         await ctx.send(f"Here you go, filthy bottom:\n{encoded}")
 
     @bottom_group.command(name="decode")
@@ -211,7 +211,7 @@ class Fun(utils.BaseCog, name="fun"):
         if len(decoded) > 1998:
             link = await utils.mystbin(self.bot.session, decoded)
             await ctx.send(f"That was a little too large for discord to handle... {link}")
-        
+
         await ctx.send(f"Here you go, filthy bottom:\n{decoded}")
 
     @commands.command(name="owo-text")
