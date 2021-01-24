@@ -213,6 +213,7 @@ class MyBot(commands.AutoShardedBot):
             "tb!",
             False,
         )
+
         self.config[guild.id] = {
             "guild_prefix": "tb!",
             "mute_role_id": None,
@@ -305,7 +306,7 @@ class MyBot(commands.AutoShardedBot):
             return _user != self.user and str(_reaction.emoji) == "\N{WASTEBASKET}"
 
         try:
-            reaction, user = await self.wait_for(
+            _, user = await self.wait_for(
                 "reaction_add",
                 timeout=10.0,
                 check=_check
