@@ -34,7 +34,7 @@ class CommandsPaginator(menus.ListPageSource):
         super().__init__(data.pages, per_page=1)
 
     async def format_page(self, menu: menus.Menu, page):
-        embed = self.ctx.bot.embed(description=page)
+        embed = menu.ctx.bot.embed(description=page)
         embed.set_footer(
             text=f"Page {menu.current_page + 1}/{self.get_max_pages()}")
 
@@ -46,7 +46,7 @@ class GeneralPageSource(menus.ListPageSource):
         super().__init__(data, per_page=per_page)
 
     async def format_page(self, menu: menus.Menu, page: list):
-        embed = self.ctx.bot.embed()
+        embed = menu.ctx.bot.embed()
         embed.description = "\n".join(
             [f"`{index}`. {item}" for index, item in enumerate(page, 1)])
 

@@ -191,8 +191,11 @@ class MyBot(commands.AutoShardedBot):
         await self.change_presence(activity=discord.Game(name=self.settings["misc"]["status"]))
 
     def embed(self, **kwargs):
+        kwargs["timestamp"] = dt.utcnow()
         kwargs["colour"] = kwargs.pop("colour", self.colour)
-        return discord.Embed(**kwargs)
+        embed = discord.Embed(**kwargs)
+        embed.set_footer(text="Requested at")
+        return embed
 
     async def get_context(self, message: discord.Message, *, cls=CustomContext):
         return await super().get_context(message, cls=cls)
