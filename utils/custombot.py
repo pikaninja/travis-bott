@@ -68,7 +68,7 @@ async def get_prefix(bot: commands.AutoShardedBot, message: discord.Message):
 class MyBot(commands.AutoShardedBot):
     def __init__(self, *args, **kwargs):
         super().__init__(get_prefix, *args, **kwargs)
-        
+
         self.settings = Settings("config.toml")
         self.start_time = dt.now()
 
@@ -78,7 +78,8 @@ class MyBot(commands.AutoShardedBot):
 
         self.loop = asyncio.get_event_loop()
         self.pool = self.loop.run_until_complete(
-            asyncpg.create_pool(**self.settings["database"]["main"] if os.name != "nt" else self.settings["database"]["beta"])
+            asyncpg.create_pool(
+                **self.settings["database"]["main"] if os.name != "nt" else self.settings["database"]["beta"])
         )
 
         self.session = aiohttp.ClientSession(loop=self.loop)

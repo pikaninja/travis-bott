@@ -42,7 +42,7 @@ class Settings:
         self.file = file
         with open(self.file) as f:
             self._settings = toml.loads(f.read())
-    
+
     def __getitem__(self, key: str) -> typing.Union[dict, str]:
         return self._settings[key]
 

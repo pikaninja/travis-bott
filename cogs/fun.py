@@ -233,7 +233,8 @@ class Fun(utils.BaseCog, name="fun"):
         """Starts an interactive session with the chat bot.
         Type `cancel` to quit talking to the bot."""
 
-        cb = async_cleverbot.Cleverbot(self.bot.settings["keys"]["chatbot_api"])
+        cb = async_cleverbot.Cleverbot(
+            self.bot.settings["keys"]["chatbot_api"])
         not_ended = True
 
         emotion = emotion or async_cleverbot.Emotion.neutral
