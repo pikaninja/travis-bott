@@ -27,12 +27,11 @@ import traceback
 import re
 import typing
 import copy
-
+import pytesseract
+import discord
+import pathlib
 from jishaku.codeblocks import codeblock_converter
 from PIL import Image as PILImage
-import pytesseract
-
-import discord
 from discord.ext import menus
 from discord.ext.commands import (
     Cog, is_owner, BadArgument, group, Converter
@@ -191,22 +190,33 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
     async def dev_stats(self, ctx: utils.CustomContext):
         """Gives some stats on the bot."""
 
-        ctr = collections.Counter()
-        for ctr['file'], f in enumerate(glob.glob('./**/*.py', recursive=True)):
-            if f.startswith("./env"):
-                ctr['file'] -= 1
+        p = pathlib.Path('./')
+        cm = cr = fn = cl = ls = fc = 0
+        for f in p.rglob('*.py'):
+            if str(f).startswith("env"):
                 continue
+            fc += 1
+            with f.open() as of:
+                for l in of.readlines():
+                    l = l.strip()
+                    if l.startswith('class'):
+                        cl += 1
+                    if l.startswith('def'):
+                        fn += 1
+                    if l.startswith('async def'):
+                        cr += 1
+                    if '#' in l:
+                        cm += 1
+                    ls += 1
 
-            with open(f) as fp:
-                for ctr['line'], line in enumerate(fp, ctr['line']):
-                    line = line.strip()
-                    ctr['class'] += line.startswith('class')
-                    ctr['function'] += line.startswith('def')
-                    ctr['coroutine'] += line.startswith('async def')
-                    ctr['comment'] += '#' in line
-
-        code_count = '\n'.join(
-            f'{key.upper()}: {count}' for key, count in ctr.items())
+        code_count = (
+            f"Files: {fc}\n"
+            f"Lines: {ls}\n"
+            f"Classes: {cl}\n"
+            f"Functions: {fn}\n"
+            f"Coroutines: {cr}\n"
+            f"Comments: {cm}\n"
+        )
         server_count = sum(1 for g in self.bot.guilds)
         user_count = sum(g.member_count for g in self.bot.guilds)
         command_count = sum(1 for cmd in self.bot.walk_commands())
