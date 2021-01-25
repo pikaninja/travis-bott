@@ -174,7 +174,7 @@ class MyBot(commands.AutoShardedBot):
 
         # Vars needed for some functionality.
         self.settings = utils.Settings("config.toml")
-        # self.colour = 0x863EFF if os.name != "nt" else 0xEAC208
+        self.maintenance_mode = self.settings["misc"]["maintenance_mode"]
         self.start_time = dt.now()
         self.support_url = "https://discord.gg/tKZbxAF"
         self.invite_url = "https://kal-byte.co.uk/invite/706530005169209386/2080763126"
