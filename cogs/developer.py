@@ -71,7 +71,7 @@ class SQLListPageSource(menus.ListPageSource):
         super().__init__(data, per_page=per_page)
 
     async def format_page(self, menu, page):
-        embed = self.bot.embed(menu.ctx)
+        embed = menu.ctx.bot.embed(menu.ctx)
         embed.description = (f"```py\n" +
                              "\n".join(page) +
                              "```")
