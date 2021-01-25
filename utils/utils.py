@@ -97,6 +97,7 @@ METHODS = {
     str.istitle: str.title,
     str.isupper: str.upper
 }
+
 OWO_REPL = {
     r"\By": "wy",
     r"l": "w",

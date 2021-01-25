@@ -71,6 +71,7 @@ cogs = [
     "cogs.custom.scrib",
     "cogs.custom.antinuke",
     "cogs.custom.userrequests",
+    "jishaku",
 ]
 
 for cog in cogs:

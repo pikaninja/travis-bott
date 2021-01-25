@@ -71,60 +71,49 @@ class CustomContext(commands.Context):
         self.timeit = TimeIt(self)
         self.bot: MyBot = self.bot
 
-    async def _owoify(self, method, *args, **kwargs):
-        if embed := kwargs.pop("embed", None):
-            embed = utils.owoify_embed(embed)
-            kwargs["embed"] = embed
+    @staticmethod
+    def _owoify_message(content: str, embed: discord.Embed = None):
+        ret = {"content": utils.owoify_text(content)}
+        
+        if embed:
+            ret["embed"] = utils.owoify_embed(embed)
 
-        text = utils.owoify_text(str(*args))
-        message = await method(content=text, **kwargs)
-
-        if await self.bot.is_owner(self.author):
-            if not getattr(message, "edited_at", None):
-                self.bot.ctx_cache[self.message.id] = message
-
-        return message
+        return ret
 
     @contextmanager
     def embed(self, **kwargs):
         embed = self.bot.embed(self, **kwargs)
         yield embed
 
-    async def send(self, *args, **kwargs):
-        try:
-            if self.message.attachments or kwargs.get("file") or kwargs.get("files") or kwargs.get("new_message"):
-                raise KeyError
+    async def send(self, content: str = None, **kwargs):
+        kwargs["embed"] = kwargs.pop("embed", None)
 
-            kwargs["embed"] = kwargs.pop("embed", None)
+        if self.guild and self.bot.config[self.guild.id]["owoify"]:
+            owoified = self._owoify_message(content, kwargs["embed"])
+            content = owoified["content"]
 
-            message = self.bot.ctx_cache[self.message.id]
+            if kwargs["embed"]:
+                kwargs["embed"] = owofied["embed"]
 
-            if self.guild:
-                if self.bot.config[self.guild.id]["owoify"]:
-                    return await self._owoify(message.edit, *args, **kwargs)
+        message = self.bot.ctx_cache.get(self.message.id, None)
 
-            await message.edit(content=str(*args), **kwargs)
-            return message
-        except KeyError:
-            kwargs.pop("new_message", None)
+        if message:
+            return await message.edit(content=content, **kwargs)
 
-            if self.guild:
-                if self.bot.config[self.guild.id]["owoify"]:
-                    return await self._owoify(super().send, *args, **kwargs)
+        message = await super().send(content, **kwargs)
 
-            message = await super().send(*args, **kwargs)
+        if self.author.id in self.bot.owner_ids:
+            self.bot.ctx_cache[self.message.id] = message
 
-            if await self.bot.is_owner(self.author):
-                self.bot.ctx_cache[self.message.id] = message
+            async def cleanup():
+                await asyncio.sleep(120)
+                with contextlib.suppress(KeyError):
+                    del self.bot.ctx_cache[self.message.id]
 
-                async def cleanup():
-                    await asyncio.sleep(300)
-                    with contextlib.suppress(KeyError):
-                        del self.bot.ctx_cache[self.message.id]
+            self.bot.loop.create_task(cleanup())
 
-                self.bot.loop.create_task(cleanup())
+        return message
 
-            return message
 
     @property
     def db(self):
@@ -290,6 +279,11 @@ class MyBot(commands.AutoShardedBot):
         self.announcement = update
 
         await self.change_presence(activity=discord.Game(name=self.settings["misc"]["status"]))
+
+    @property
+    def kal(self):
+        return self.get_user(671777334906454026)
+    
 
     def embed(self, ctx: CustomContext = None, **kwargs):
         kwargs["timestamp"] = dt.utcnow()
