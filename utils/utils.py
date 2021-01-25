@@ -37,8 +37,7 @@ from discord.ext import commands
 #  Settings based on a TOML file.
 class Settings:
     def __init__(self, file: str) -> None:
-        self.file = file
-        with open(self.file) as f:
+        with open(file) as f:
             self._settings = toml.loads(f.read())
 
     def __getitem__(self, key: str) -> typing.Union[dict, str]:
@@ -168,7 +167,7 @@ class TimeConverter(commands.Converter):
 
         if DAY_REGEX.match(argument):
             argument = argument.strip("d")
-            parsed = dateparser.parse(f"in {argument} days UTC")
+            parsed = dateparser.parse(f"in {argument} days")
 
             if not parsed:
                 raise commands.BadArgument(
@@ -182,7 +181,7 @@ class TimeConverter(commands.Converter):
 
         elif MONTH_REGEX.match(argument):
             argument = argument.strip("mo")
-            parsed = dateparser.parse(f"in {argument} months UTC")
+            parsed = dateparser.parse(f"in {argument} months")
 
             if not parsed:
                 raise commands.BadArgument(
@@ -196,7 +195,7 @@ class TimeConverter(commands.Converter):
 
         elif YEAR_REGEX.match(argument):
             argument = argument.strip("y")
-            parsed = dateparser.parse(f"in {argument} years UTC")
+            parsed = dateparser.parse(f"in {argument} years")
 
             if not parsed:
                 raise commands.BadArgument(

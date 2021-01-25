@@ -203,8 +203,10 @@ class Fun(utils.BaseCog, name="fun"):
     @bottom_group.command(name="decode")
     async def bottom_decode(self, ctx: utils.CustomContext, *, text: str):
         """Decodes given bottom language text."""
-
-        decoded = utils.from_bottom(text)
+        try:
+            decoded = utils.from_bottom(text)
+        except Exception as e:
+            return await ctx.send(f"{e}")
         if len(decoded) > 1998:
             link = await utils.mystbin(self.bot.session, decoded)
             await ctx.send(f"That was a little too large for discord to handle... {link}")
