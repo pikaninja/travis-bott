@@ -155,9 +155,26 @@ class MyBot(commands.AutoShardedBot):
     def __init__(self, *args, **kwargs):
         super().__init__(get_prefix, *args, **kwargs)
 
+        # Prep for embed colour stuff. (Thank you to z03h for this :))
+        c = dt.utcnow()
+        hours, minutes, seconds = 0, 5, 0
+
+        self.duration = (3600 * hours + 60 * minutes + seconds)
+        self.embed_start_dt = dt(c.year, c.month, c.day)
+        self.colours = [
+            (210, 31, 255),
+            (232, 132, 255),
+            (216, 192, 255),
+            (149, 182, 255),
+            (93, 128, 255),
+            (128, 84, 255),
+            (169, 74, 255),
+        ]
+        self.per_colour = self.duration // len(self.colours)
+
         # Vars needed for some functionality.
         self.settings = utils.Settings("config.toml")
-        self.colour = 0x863EFF if os.name != "nt" else 0xEAC208
+        # self.colour = 0x863EFF if os.name != "nt" else 0xEAC208
         self.start_time = dt.now()
         self.support_url = "https://discord.gg/tKZbxAF"
         self.invite_url = "https://kal-byte.co.uk/invite/706530005169209386/2080763126"
@@ -199,6 +216,18 @@ class MyBot(commands.AutoShardedBot):
         # Some tasks that prep the bot to be used fully.
         self.loop.create_task(self.do_prep())
         self.loop.create_task(self.chunk_all_guilds())
+
+    @property
+    def colour(self):
+        c = dt.utcnow()
+        td = c - self.embed_start_dt
+        td = int(td.total_seconds() % self.duration)
+        current_index, per = divmod(td, self.per_colour)
+        per /= self.per_colour
+        current_index = int(current_index % len(self.colours))
+        next_index = int((current_index + 1) % len(self.colours))
+        new_colour = [cc - int((cc - nc) * per) for cc, nc in zip(self.colours[current_index], self.colours[next_index])]
+        return discord.Colour.from_rgb(*new_colour)
 
     async def close(self):
         await self.session.close()

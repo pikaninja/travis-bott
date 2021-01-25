@@ -245,7 +245,7 @@ class ErrorHandler(Cog):
 
         if len(tb) > 1000:
             await ctx.send("The error message is too big so I sent it just to the developer.")
-            await self.send_error(ctx, error)
+            await send_error(ctx, error)
         else:
             await self.send_to_ctx_or_author(ctx, embed=setup_embed(
                 title="Uhoh an error has occurred...",
