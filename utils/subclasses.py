@@ -86,6 +86,7 @@ class CustomContext(commands.Context):
         yield embed
 
     async def send(self, content: str = None, **kwargs):
+        new_message = kwargs.pop("new_message", None)
         kwargs["embed"] = kwargs.pop("embed", None)
 
         if self.guild and self.bot.config[self.guild.id]["owoify"]:
@@ -95,10 +96,11 @@ class CustomContext(commands.Context):
             if kwargs["embed"]:
                 kwargs["embed"] = owofied["embed"]
 
-        message = self.bot.ctx_cache.get(self.message.id, None)
+        if not new_message:
+            message = self.bot.ctx_cache.get(self.message.id, None)
 
-        if message:
-            return await message.edit(content=content, **kwargs)
+            if message:
+                return await message.edit(content=content, **kwargs)
 
         message = await super().send(content, **kwargs)
 
@@ -113,7 +115,6 @@ class CustomContext(commands.Context):
             self.bot.loop.create_task(cleanup())
 
         return message
-
 
     @property
     def db(self):
