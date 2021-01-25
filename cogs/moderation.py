@@ -17,19 +17,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import humanize
-
+import asyncpg
 import utils
-
-from time import time as t
-
-from datetime import datetime as dt
-from discord.ext import commands, menus
-
 import asyncio
 import logging
 import discord
 import uuid
 import re
+import typing as tp
+from time import time as t
+from datetime import datetime as dt
+from discord.ext import commands, menus
+
 
 time_regex = re.compile("(?:(\d{1,5})\s?(h|s|m|d))+?")
 time_dict = {
@@ -155,6 +154,18 @@ class NotStaffMember(commands.Converter):
             return member
 
 
+class WarnsPageSource(menus.ListPageSource):
+    def __init__(self, data: tp.List[str], *, per_page=4):
+        super().__init__(data, per_page=per_page)
+
+    async def format_page(self, menu: menus.Menu, page: tp.List[str]):
+        fmt = "\n".join(page)
+        embed = menu.ctx.bot.embed(menu.ctx)
+        embed.description = fmt
+
+        return embed
+
+
 # noinspection PyUnresolvedReferences,PyMissingConstructor
 class Moderation(utils.BaseCog, name="moderation"):
     """Moderation Commands"""
@@ -165,6 +176,17 @@ class Moderation(utils.BaseCog, name="moderation"):
 
         self.logger = utils.create_logger(
             self.__class__.__name__, logging.INFO)
+
+    async def get_x_id_by_index(self, user_id: int, index: int):
+        sql = "SELECT * FROM warns WHERE offender_id = $1;"
+        records = await self.bot.pool.fetch(sql, user_id)
+
+        try:
+            item = records[index - 1]
+        except IndexError:
+            raise commands.BadArgument("That user does not have a warn with that ID.")
+
+        return item["id"]
 
     @commands.Cog.listener()
     async def on_mod_cmd(
@@ -218,9 +240,70 @@ class Moderation(utils.BaseCog, name="moderation"):
         mute_role = member.guild.get_role(role_id=mute_role_id)
         await member.add_roles(mute_role, reason="Mute Role Persist")
 
-    @commands.command(aliases=["tban"])
+    @commands.command()
+    @commands.guild_only()
+    @commands.has_permissions(manage_messages=True)
+    async def warn(self, ctx: utils.CustomContext, user: discord.Member, *, reason: str = "No Reason Provided."):
+        """Warns a given user for a given reason.
+        You can do `{prefix}warns someone#1234` to view their current warns."""
+
+        if len(reason) > 255:
+            raise commands.BadArgument("The warn reason must not be greater than 255 characters.")
+
+        sql = "INSERT INTO warns VALUES(default, $1, $2, $3, $4, $5);"
+        values = (ctx.guild.id, ctx.author.id, user.id, reason, dt.utcnow())
+        await self.bot.pool.execute(sql, *values)
+
+        await ctx.send(
+            f"Successfully warned `{user}` for: {reason}. "
+            f"Do `{ctx.prefix}warns {user}` to view their current warns."
+        )
+
+        self.bot.dispatch("mod_cmd", ctx, "warn", ctx.author, user, reason)
+
+    @commands.command()
+    @commands.guild_only()
+    @commands.has_permissions(manage_messages=True)
+    async def warns(self, ctx: utils.CustomContext, *, user: discord.Member):
+        """Get the current warns of a given user."""
+
+        sql = "SELECT * FROM warns WHERE offender_id = $1;"
+        records = await self.bot.pool.fetch(sql, user.id)
+        ret = []
+
+        for index, record in enumerate(records, start=1):
+            warner = self.bot.get_user(record["moderator_id"])
+            warned_at = record["time_warned"]
+            warned_date = utils.format_time(warned_at)["date"]
+            ret.append(
+                f"`{index}` - Warned by: {warner} - Warned at: {warned_date} | {record['reason']}"
+            )
+
+        if not ret:
+            raise commands.BadArgument("That user has no warns to display.")
+
+        source = WarnsPageSource(ret)
+        page = utils.KalPages(source)
+        await page.start(ctx)
+
+    @commands.command()
+    @commands.guild_only()
+    @commands.has_permissions(manage_messages=True)
+    async def delwarn(self, ctx: utils.CustomContext, user: discord.Member, warn_id: int):
+        """Deletes a warn off a given user."""
+
+        warn_id = await self.get_x_id_by_index(user.id, warn_id)
+        
+        sql = "DELETE FROM warns WHERE id = $1;"
+        await self.bot.pool.execute(sql, warn_id)
+        await ctx.send(f"Successfully cleared that warn for `{user}`")
+
+        self.bot.dispatch("mod_cmd", ctx, "del-warn", ctx.author, user, None)
+
+    @commands.command(aliases=["tban"], disabled=True, hidden=True)
     @commands.guild_only()
     @commands.has_permissions(ban_members=True)
+    @commands.bot_has_permissions(ban_members=True)
     async def tempban(self, ctx: utils.CustomContext, user: NotStaffMember, how_long: utils.TimeConverter, *, reason: str):
         """Tempbans a user for a certain amount of time.
         e.g. `{prefix}tempban @kal#1806 5d Doing bad things excessively.`"""
