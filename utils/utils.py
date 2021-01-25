@@ -167,7 +167,7 @@ class TimeConverter(commands.Converter):
 
         if DAY_REGEX.match(argument):
             argument = argument.strip("d")
-            parsed = dateparser.parse(f"in {argument} days")
+            parsed = dateparser.parse(f"in {argument} days UTC")
 
             if not parsed:
                 raise commands.BadArgument(
@@ -181,7 +181,7 @@ class TimeConverter(commands.Converter):
 
         elif MONTH_REGEX.match(argument):
             argument = argument.strip("mo")
-            parsed = dateparser.parse(f"in {argument} months")
+            parsed = dateparser.parse(f"in {argument} months UTC")
 
             if not parsed:
                 raise commands.BadArgument(
@@ -195,7 +195,7 @@ class TimeConverter(commands.Converter):
 
         elif YEAR_REGEX.match(argument):
             argument = argument.strip("y")
-            parsed = dateparser.parse(f"in {argument} years")
+            parsed = dateparser.parse(f"in {argument} years UTC")
 
             if not parsed:
                 raise commands.BadArgument(
