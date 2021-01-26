@@ -32,6 +32,7 @@ import pytz
 import toml
 import twemoji_parser
 import unicodedata
+import string
 from discord import Embed
 from discord.ext import commands
 from collections import namedtuple
@@ -42,7 +43,7 @@ UnicodeEmoji = namedtuple("UnicodeEmoji", "url name id animated")
 
 class EmojiConverter(commands.Converter):
     async def convert(self, ctx, argument: str):
-        print(argument)
+        error_message = "I'm not able to convert whatever you gave there, sorry."
         try:
             emoji = await commands.EmojiConverter().convert(ctx, argument)
             emoji = UnicodeEmoji(
@@ -52,14 +53,19 @@ class EmojiConverter(commands.Converter):
                 animated=emoji.animated
             )
         except commands.EmojiNotFound:
-            name = unicodedata.name(argument, "Name not found.")
-            url = await twemoji_parser.emoji_to_url(argument, include_check=True)
-            emoji = UnicodeEmoji(
-                url=url,
-                name=name,
-                id=None,
-                animated=False
-            )
+            try:
+                if argument.lower() in list(string.ascii_lowercase):
+                    raise commands.BadArgument(error_message)
+                name = unicodedata.name(argument, "Name not found.")
+                url = await twemoji_parser.emoji_to_url(argument, include_check=True)
+                emoji = UnicodeEmoji(
+                    url=url,
+                    name=name,
+                    id=None,
+                    animated=False
+                )
+            except TypeError:
+                raise commands.BadArgument(error_message)
 
         return emoji
 

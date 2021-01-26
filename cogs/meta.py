@@ -467,8 +467,8 @@ class Meta(commands.Cog, name="meta"):
         for emoji in emojis:
             embed = self.bot.embed(ctx)
 
-            embed.url = emoji.url
             embed.title = f"Showing for {emoji.name}"
+            embed.url = emoji.url
             embed.description = emoji.id or "This is a unicode emoji, therefore no ID."
 
             embed.set_image(url=emoji.url)

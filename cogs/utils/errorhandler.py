@@ -244,17 +244,16 @@ class ErrorHandler(Cog):
         )
 
         if len(tb) > 1000:
-            await ctx.send("The error message is too big so I sent it just to the developer.")
-            await send_error(ctx, error)
-        else:
-            await self.send_to_ctx_or_author(ctx, embed=setup_embed(
-                title="Uhoh an error has occurred...",
-                description=(
-                    "Here's some details on it: ```py\n"
-                    f"{tb}```"
-                )
-            ))
-            await send_error(ctx, tb)
+            tb = await utils.mystbin(self.bot.session, tb)
+
+        await self.send_to_ctx_or_author(ctx, embed=setup_embed(
+            title="Uhoh an error has occurred...",
+            description=(
+                "Here's some details on it: ```py\n"
+                f"{tb}```"
+            )
+        ))
+        await send_error(ctx, tb)
 
         raise error
 
