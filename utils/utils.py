@@ -30,8 +30,38 @@ import asyncpg
 import discord
 import pytz
 import toml
+import twemoji_parser
+import unicodedata
 from discord import Embed
 from discord.ext import commands
+from collections import namedtuple
+
+
+UnicodeEmoji = namedtuple("UnicodeEmoji", "url name id animated")
+
+
+class EmojiConverter(commands.Converter):
+    async def convert(self, ctx, argument: str):
+        print(argument)
+        try:
+            emoji = await commands.EmojiConverter().convert(ctx, argument)
+            emoji = UnicodeEmoji(
+                url=str(emoji.url),
+                name=emoji.name,
+                id=emoji.id,
+                animated=emoji.animated
+            )
+        except commands.EmojiNotFound:
+            name = unicodedata.name(argument, "Name not found.")
+            url = await twemoji_parser.emoji_to_url(argument, include_check=True)
+            emoji = UnicodeEmoji(
+                url=url,
+                name=name,
+                id=None,
+                animated=False
+            )
+
+        return emoji
 
 
 #  Settings based on a TOML file.

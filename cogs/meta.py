@@ -459,33 +459,27 @@ class Meta(commands.Cog, name="meta"):
         await ctx.send(embed=embed)
 
     @commands.group(invoke_without_command=True)
-    async def emoji(self, ctx: utils.CustomContext, *emojis: discord.PartialEmoji):
-        """Get's the full image of an emoji and adds some more info.
-        ~~If you have `manage_emojis` permissions if you react with the detective, the emoji gets added to the server.~~"""
+    async def emoji(self, ctx: utils.CustomContext, *emojis: utils.EmojiConverter):
+        """Get's the full image of an emoji and adds some more info."""
 
-        embed_list = []
-
-        if len(emojis) == 0:
-            return await ctx.send_help(ctx.command)
+        ret = []
 
         for emoji in emojis:
-            embed = self.bot.embed(
-                ctx,
-                title=f"Showing for {emoji.name}",
-                description=f"ID: {emoji.id}"
-            )
+            embed = self.bot.embed(ctx)
 
-            embed.url = str(emoji.url)
+            embed.url = emoji.url
+            embed.title = f"Showing for {emoji.name}"
+            embed.description = emoji.id or "This is a unicode emoji, therefore no ID."
 
             embed.set_image(url=emoji.url)
             embed.add_field(name="Animated", value=emoji.animated)
 
-            embed_list.append(embed)
+            ret.append(embed)
 
-        embed_pages = utils.EmbedMenu(embed_list)
-
-        menu = utils.KalPages(embed_pages)
+        source = utils.EmbedMenu(ret)
+        menu = utils.KalPages(source)
         await menu.start(ctx)
+
 
     @emoji.command(name="steal")
     @commands.has_permissions(manage_emojis=True)

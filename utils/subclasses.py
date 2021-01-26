@@ -55,7 +55,10 @@ async def get_prefix(bot: commands.AutoShardedBot, message: discord.Message):
         base.append("tb!")
         return base
 
-    base.append(bot.config[message.guild.id]["guild_prefix"])
+    try:
+        base.append(bot.config[message.guild.id]["guild_prefix"])
+    except KeyError:
+        base.append("tb!")
 
     if await bot.is_owner(message.author):
         if message.content.startswith(("jsk", "dev")):
@@ -171,7 +174,7 @@ class MyBot(commands.AutoShardedBot):
         self.maintenance_mode = self.settings["misc"]["maintenance_mode"]
         self.start_time = dt.now()
         self.support_url = "https://discord.gg/tKZbxAF"
-        self.invite_url = "https://kal-byte.co.uk/invite/706530005169209386/2080763126"
+        self.invite_url = "https://kal-byte.co.uk/invite/706530005169209386/1580592374"
         self.cmd_usage = 0
         self.announcement = {
             "title": None,

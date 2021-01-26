@@ -29,7 +29,7 @@ class GroupHelp(menus.ListPageSource):
         self.prefix = prefix
 
     async def format_page(self, menu, cmds):
-        embed = self.bot.embed(menu.ctx)
+        embed = menu.ctx.bot.embed(menu.ctx)
         command_name = f"{self.group.qualified_name}{'|' + '|'.join(self.group.aliases) if self.group.aliases else ''}"
         embed.title = f"{self.prefix}{command_name} {self.group.signature}"
         embed.description = (
