@@ -55,10 +55,8 @@ async def get_prefix(bot: commands.AutoShardedBot, message: discord.Message):
         base.append("tb!")
         return base
 
-    try:
-        base.append(bot.config[message.guild.id]["guild_prefix"])
-    except KeyError:
-        base.append("tb!")
+    prefix = bot.config[message.guild.id].get("guild_prefix", "tb!")
+    base.append(prefix)
 
     if await bot.is_owner(message.author):
         if message.content.startswith(("jsk", "dev")):
