@@ -119,12 +119,12 @@ class RockPaperScissors(menus.Menu):
         return await self._handle_winner(winner)
 
 
-class Fun(utils.BaseCog, name="fun"):
+class Fun(commands.Cog, name="fun"):
     """Fun Commands"""
 
-    def __init__(self, bot, show_name):
+    def __init__(self, bot):
         self.bot: utils.MyBot = bot
-        self.show_name = show_name
+        self.show_name = "\N{PARTY POPPER} Fun"
         self.logger = utils.create_logger(
             self.__class__.__name__, logging.INFO)
 
@@ -551,4 +551,4 @@ class Fun(utils.BaseCog, name="fun"):
 
 
 def setup(bot):
-    bot.add_cog(Fun(bot, "🎉 Fun"))
+    bot.add_cog(Fun(bot))

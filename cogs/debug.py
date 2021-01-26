@@ -5,7 +5,7 @@ import platform
 from discord.ext import commands
 
 
-class DebugCog(utils.BaseCog):
+class DebugCog(commands.Cog):
     def __init__(self, bot):
         self.bot: utils.MyBot = bot
 

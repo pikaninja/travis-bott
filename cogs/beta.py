@@ -27,12 +27,12 @@ from discord.ext import commands
 import utils
 
 
-class Beta(utils.BaseCog, name="beta", command_attrs=dict(hidden=True)):
+class Beta(commands.Cog, name="beta", command_attrs=dict(hidden=True)):
     """I put beta commands here I guess."""
 
-    def __init__(self, bot, show_name):
+    def __init__(self, bot):
         self.bot: utils.MyBot = bot
-        self.show_name = show_name
+        self.show_name = "\N{HAMMER AND WRENCH} Beta"
         self.logger = utils.create_logger(
             self.__class__.__name__, logging.INFO)
 
@@ -71,4 +71,4 @@ class Beta(utils.BaseCog, name="beta", command_attrs=dict(hidden=True)):
 
 
 def setup(bot):
-    bot.add_cog(Beta(bot, show_name="\N{HAMMER AND WRENCH} Beta"))
+    bot.add_cog(Beta(bot))

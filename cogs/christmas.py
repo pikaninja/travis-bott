@@ -31,12 +31,12 @@ from utils.embed import Embed
 import utils
 
 
-class Christmas(utils.BaseCog, name="christmas"):
+class Christmas(commands.Cog, name="christmas"):
     """Christmas Stuff"""
 
-    def __init__(self, bot, show_name):
+    def __init__(self, bot):
         self.bot: utils.MyBot = bot
-        self.show_name = show_name
+        self.show_name = "\N{SNOWFLAKE} Christmas"
         self.logger = utils.create_logger(
             self.__class__.__name__, logging.INFO)
 
@@ -109,4 +109,4 @@ class Christmas(utils.BaseCog, name="christmas"):
 
 
 def setup(bot):
-    bot.add_cog(Christmas(bot, show_name="❄ Christmas"))
+    bot.add_cog(Christmas(bot))

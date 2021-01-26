@@ -88,12 +88,12 @@ class GiveawayQuestions:
         return role, "role_needed"
 
 
-class Management(utils.BaseCog, name="management"):
+class Management(commands.Cog, name="management"):
     """Management Commands"""
 
-    def __init__(self, bot, show_name):
+    def __init__(self, bot):
         self.bot: utils.MyBot = bot
-        self.show_name = show_name
+        self.show_name = "\N{SHIELD} Management"
         self.logger = utils.create_logger(
             self.__class__.__name__, logging.INFO)
 
@@ -548,4 +548,4 @@ class Management(utils.BaseCog, name="management"):
 
 
 def setup(bot):
-    bot.add_cog(Management(bot, "🛡 Management"))
+    bot.add_cog(Management(bot))

@@ -145,13 +145,6 @@ class TimeIt(ContextDecorator):
                             new_message=True)
 
 
-class BaseCog(commands.Cog):
-    def __init__(self, bot, show_name):
-        super().__init__()
-        self.bot = bot
-        self.show_name = show_name
-
-
 class MyBot(commands.AutoShardedBot):
     def __init__(self, *args, **kwargs):
         super().__init__(get_prefix, *args, **kwargs)

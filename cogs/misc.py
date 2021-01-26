@@ -127,10 +127,10 @@ class BlockingFunctions:
         return obj
 
 
-class Misc(utils.BaseCog, name="misc"):
+class Misc(commands.Cog, name="misc"):
     """Miscellaneous Commands"""
 
-    def __init__(self, bot, show_name):
+    def __init__(self, bot):
         self.blacklist = [466297117409804318,
                           755096934707888219,
                           671431400423030786,
@@ -139,7 +139,7 @@ class Misc(utils.BaseCog, name="misc"):
                           281111308844400660,
                           510698308248010792]
         self.bot: utils.MyBot = bot
-        self.show_name = show_name
+        self.show_name = "\N{DIZZY SYMBOL} Misc"
         self.supporters = {}
 
         self.logger = utils.create_logger(
@@ -490,4 +490,4 @@ class Misc(utils.BaseCog, name="misc"):
 
 
 def setup(bot):
-    bot.add_cog(Misc(bot, "💫 Misc"))
+    bot.add_cog(Misc(bot))

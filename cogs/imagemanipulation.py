@@ -318,12 +318,12 @@ async def do_polaroid_image(ctx: utils.CustomContext, method: callable, image: b
             )
 
 
-class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
+class ImageManipulation(commands.Cog, name="imagemanipulation"):
     """Image Manipulation"""
 
-    def __init__(self, bot, show_name):
+    def __init__(self, bot):
         self.bot: utils.MyBot = bot
-        self.show_name = show_name
+        self.show_name = "\N{EYE} Image Manipulation"
         self.logger = utils.create_logger(
             self.__class__.__name__, logging.INFO)
 
@@ -569,4 +569,4 @@ class ImageManipulation(utils.BaseCog, name="imagemanipulation"):
 
 
 def setup(bot):
-    bot.add_cog(ImageManipulation(bot, show_name="👁️ Image Manipulation"))
+    bot.add_cog(ImageManipulation(bot))

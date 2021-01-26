@@ -53,10 +53,10 @@ class TagTitle(commands.Converter):
             return argument
 
 
-class Tags(utils.BaseCog, name="tags"):
-    def __init__(self, bot: utils.MyBot, show_name: str):
+class Tags(commands.Cog, name="tags"):
+    def __init__(self, bot: utils.MyBot):
         self.bot: utils.MyBot = bot
-        self.show_name: str = show_name
+        self.show_name: str = "\N{NOTEBOOK WITH DECORATIVE COVER} Tags"
 
         self.logger = utils.create_logger(
             self.__class__.__name__, logging.INFO)
@@ -150,4 +150,4 @@ class Tags(utils.BaseCog, name="tags"):
 
 
 def setup(bot):
-    bot.add_cog(Tags(bot, '\N{NOTEBOOK WITH DECORATIVE COVER} Tags'))
+    bot.add_cog(Tags(bot))

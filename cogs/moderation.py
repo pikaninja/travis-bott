@@ -167,12 +167,12 @@ class WarnsPageSource(menus.ListPageSource):
 
 
 # noinspection PyUnresolvedReferences,PyMissingConstructor
-class Moderation(utils.BaseCog, name="moderation"):
+class Moderation(commands.Cog, name="moderation"):
     """Moderation Commands"""
 
-    def __init__(self, bot, show_name):
+    def __init__(self, bot):
         self.bot: utils.MyBot = bot
-        self.show_name = show_name
+        self.show_name = "\N{CROSSED SWORDS} Moderation"
 
         self.logger = utils.create_logger(
             self.__class__.__name__, logging.INFO)
@@ -772,4 +772,4 @@ class Moderation(utils.BaseCog, name="moderation"):
 
 
 def setup(bot):
-    bot.add_cog(Moderation(bot, show_name="⚔ Moderation"))
+    bot.add_cog(Moderation(bot))

@@ -95,12 +95,12 @@ class ColourConverter(commands.Converter):
             f"Couldn't find a colour value matching `{argument}`.")
 
 
-class Meta(utils.BaseCog, name="meta"):
+class Meta(commands.Cog, name="meta"):
     """General and utility commands"""
 
-    def __init__(self, bot, show_name):
+    def __init__(self, bot):
         self.bot: utils.MyBot = bot
-        self.show_name = show_name
+        self.show_name = "\N{ROBOT FACE} Meta"
         self.logger = utils.create_logger(
             self.__class__.__name__, logging.INFO)
 
@@ -891,4 +891,4 @@ class Meta(utils.BaseCog, name="meta"):
 
 
 def setup(bot):
-    bot.add_cog(Meta(bot, "🤖 Meta"))
+    bot.add_cog(Meta(bot))

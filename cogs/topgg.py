@@ -18,10 +18,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import logging
 import utils
-from discord.ext import tasks
+from discord.ext import tasks, commands
 
 
-class TopGG(utils.BaseCog):
+class TopGG(commands.Cog):
     def __init__(self, bot):
         self.bot: utils.MyBot = bot
         self.logger = utils.create_logger(
