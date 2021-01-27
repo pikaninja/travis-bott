@@ -271,7 +271,7 @@ class RoleConverter(commands.Converter):
 
 def has_voted():
     async def predicate(ctx):
-        hdrs = {"Authorization": ctx.bot.api_key_for("top_gg_api")}
+        hdrs = {"Authorization": ctx.bot.settings["keys"]["top_gg_api"]}
         url = f"https://top.gg/api/bots/706530005169209386/check?userId={ctx.author.id}"
 
         async with ctx.bot.session.get(url, headers=hdrs) as response:
