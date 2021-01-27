@@ -184,7 +184,8 @@ class Moderation(commands.Cog, name="moderation"):
         try:
             item = records[index - 1]
         except IndexError:
-            raise commands.BadArgument("That user does not have a warn with that ID.")
+            raise commands.BadArgument(
+                "That user does not have a warn with that ID.")
 
         return item["id"]
 
@@ -248,7 +249,8 @@ class Moderation(commands.Cog, name="moderation"):
         You can do `{prefix}warns someone#1234` to view their current warns."""
 
         if len(reason) > 255:
-            raise commands.BadArgument("The warn reason must not be greater than 255 characters.")
+            raise commands.BadArgument(
+                "The warn reason must not be greater than 255 characters.")
 
         sql = "INSERT INTO warns VALUES(default, $1, $2, $3, $4, $5);"
         values = (ctx.guild.id, ctx.author.id, user.id, reason, dt.utcnow())
@@ -293,7 +295,7 @@ class Moderation(commands.Cog, name="moderation"):
         """Deletes a warn off a given user."""
 
         warn_id = await self.get_x_id_by_index(user.id, warn_id)
-        
+
         sql = "DELETE FROM warns WHERE id = $1;"
         await self.bot.pool.execute(sql, warn_id)
         await ctx.send(f"Successfully cleared that warn for `{user}`")

@@ -405,7 +405,8 @@ class Misc(commands.Cog, name="misc"):
 
         typing_start = time.perf_counter()
         await ctx.trigger_typing()
-        typing_time_ms = ("Typing Latency", (time.perf_counter() - typing_start) * 1000)
+        typing_time_ms = ("Typing Latency",
+                          (time.perf_counter() - typing_start) * 1000)
 
         db_start = time.perf_counter()
         await ctx.db.fetch("SELECT 1;")

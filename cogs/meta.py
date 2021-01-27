@@ -480,7 +480,6 @@ class Meta(commands.Cog, name="meta"):
         menu = utils.KalPages(source)
         await menu.start(ctx)
 
-
     @emoji.command(name="steal")
     @commands.has_permissions(manage_emojis=True)
     @commands.bot_has_permissions(manage_emojis=True)

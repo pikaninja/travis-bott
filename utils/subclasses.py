@@ -75,7 +75,7 @@ class CustomContext(commands.Context):
     @staticmethod
     def _owoify_message(content: str, embed: discord.Embed = None):
         ret = {"content": utils.owoify_text(content)}
-        
+
         if embed:
             ret["embed"] = utils.owoify_embed(embed)
 
@@ -207,7 +207,7 @@ class MyBot(commands.AutoShardedBot):
             self.settings["misc"]["guild_webhook"],
             adapter=discord.AsyncWebhookAdapter(self.session)
         )
-        
+
         # Some tasks that prep the bot to be used fully.
         self.loop.create_task(self.do_prep())
         self.loop.create_task(self.chunk_all_guilds())
@@ -221,7 +221,8 @@ class MyBot(commands.AutoShardedBot):
         per /= self.per_colour
         current_index = int(current_index % len(self.colours))
         next_index = int((current_index + 1) % len(self.colours))
-        new_colour = [cc - int((cc - nc) * per) for cc, nc in zip(self.colours[current_index], self.colours[next_index])]
+        new_colour = [cc - int((cc - nc) * per) for cc, nc in zip(
+            self.colours[current_index], self.colours[next_index])]
         return discord.Colour.from_rgb(*new_colour)
 
     async def close(self):
@@ -307,7 +308,6 @@ class MyBot(commands.AutoShardedBot):
     @property
     def kal(self):
         return self.get_user(671777334906454026)
-    
 
     def embed(self, ctx: CustomContext = None, **kwargs):
         kwargs["timestamp"] = dt.utcnow()
