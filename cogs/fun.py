@@ -187,14 +187,14 @@ class Fun(commands.Cog, name="fun"):
     async def bottom_group(self, ctx: utils.CustomContext):
         """Base command for all things to do with bottoms."""
 
-        ...
+        pass
 
     @bottom_group.command(name="encode")
     async def bottom_encode(self, ctx: utils.CustomContext, *, text: str):
         """Encodes any given text into bottom language."""
 
         encoded = utils.to_bottom(text)
-        if len(encoded) > 1998:
+        if len(encoded) > 1500:
             link = await utils.mystbin(self.bot.session, encoded)
             return await ctx.send(f"That was a little too large for discord to handle... {link}")
 
@@ -207,7 +207,7 @@ class Fun(commands.Cog, name="fun"):
             decoded = utils.from_bottom(text)
         except Exception as e:
             return await ctx.send(f"{e}")
-        if len(decoded) > 1998:
+        if len(decoded) > 1500:
             link = await utils.mystbin(self.bot.session, decoded)
             return await ctx.send(f"That was a little too large for discord to handle... {link}")
 
