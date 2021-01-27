@@ -45,14 +45,14 @@ class EmojiConverter(commands.Converter):
     async def convert(self, ctx, argument: str):
         error_message = "I'm not able to convert whatever you gave there, sorry."
         try:
-            emoji = await commands.EmojiConverter().convert(ctx, argument)
+            emoji = await commands.PartialEmojiConverter().convert(ctx, argument)
             emoji = UnicodeEmoji(
                 url=str(emoji.url),
                 name=emoji.name,
                 id=emoji.id,
                 animated=emoji.animated
             )
-        except commands.EmojiNotFound:
+        except commands.PartialEmojiConversionFailure:
             try:
                 if argument.lower() in list(string.ascii_lowercase):
                     raise commands.BadArgument(error_message)

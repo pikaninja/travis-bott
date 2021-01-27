@@ -483,7 +483,6 @@ class Meta(commands.Cog, name="meta"):
     @emoji.command(name="steal")
     @commands.has_permissions(manage_emojis=True)
     @commands.bot_has_permissions(manage_emojis=True)
-    @utils.has_voted()
     async def steal_emoji(self, ctx: utils.CustomContext, emoji: discord.PartialEmoji, *, name: str = None):
         """Steals a given emoji and you're able to give it a new name.
         Permissions needed: `Manage Emojis`"""
