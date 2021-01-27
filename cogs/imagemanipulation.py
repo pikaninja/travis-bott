@@ -294,13 +294,6 @@ class Manipulation:
 
         return io_bytes
 
-    @staticmethod
-    def changemymind(txt: str):
-        PILImage.MAX_IMAGE_PIXELS = (1200 * 1000)
-
-        with PILImage.open("./data/changemymind.png") as img:
-            ...
-
 
 async def do_polaroid_image(ctx: utils.CustomContext, method: callable, image: bytes, name: str, *args):
     async with ctx.timeit:

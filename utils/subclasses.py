@@ -303,8 +303,6 @@ class MyBot(commands.AutoShardedBot):
 
         self.announcement = update
 
-        await self.change_presence(activity=discord.Game(name=self.settings["misc"]["status"]))
-
     @property
     def kal(self):
         return self.get_user(671777334906454026)
