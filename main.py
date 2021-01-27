@@ -35,7 +35,7 @@ stuff_to_cache = MemberCacheFlags.from_intents(my_intents)
 
 bot = MyBot(
     status=Status.dnd,
-    activity=Game(name=self.settings["misc"]["status"]),  # Connecting to the gateway :thonk:
+    activity=Game(name="Connecting..."),  # Connecting to the gateway :thonk:
     case_insensitive=True,
     max_messages=1000,
     allowed_mentions=my_mentions,
