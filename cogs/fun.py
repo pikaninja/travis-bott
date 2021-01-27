@@ -170,18 +170,14 @@ class Fun(commands.Cog, name="fun"):
     async def handle_cookies(self, user: discord.Member):
         """Handles added cookies to user"""
 
-        check_if_exists = await self.bot.pool.fetchrow("SELECT * FROM cookies WHERE user_id = $1", user.id)
-
-        if not check_if_exists:
-            await self.bot.pool.execute(
-                "INSERT INTO cookies(user_id, cookies) VALUES($1, $2)",
-                user.id, 1
-            )
-        else:
-            await self.bot.pool.execute(
-                "UPDATE cookies SET cookies = cookies + 1 WHERE user_id = $1",
-                user.id
-            )
+        sql = (
+            "INSERT INTO cookies VALUES($1, $2) "
+            "ON CONFLICT (user_id) "
+            "DO UPDATE SET cookies = cookies.cookies + 1 "
+            "WHERE cookies.user_id = $1;"
+        )
+        values = (user.id, 1)
+        await self.bot.pool.execute(sql, *values)
 
     @commands.group(name="bottom", invoke_without_command=True)
     async def bottom_group(self, ctx: utils.CustomContext):
