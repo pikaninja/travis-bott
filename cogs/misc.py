@@ -403,29 +403,25 @@ class Misc(commands.Cog, name="misc"):
     async def ping(self, ctx: utils.CustomContext):
         """Get the bots ping."""
 
-        response_start = time.perf_counter()
-        message = await ctx.send("Pinging...")
-        response_end = time.perf_counter()
-        response_fmt = f"{(response_end - response_start) * 1000:,.2f}"
+        typing_start = time.perf_counter()
+        await ctx.trigger_typing()
+        typing_time_ms = ("Typing Latency", (time.perf_counter() - typing_start) * 1000)
 
         db_start = time.perf_counter()
-        call = await ctx.db.fetch("SELECT 1;")
-        db_end = time.perf_counter()
-        db_fmt = f"{(db_end - db_start) * 1000:,.2f}"
+        await ctx.db.fetch("SELECT 1;")
+        db_time_ms = ("DB Latency", (time.perf_counter() - db_start) * 1000)
 
-        hb_fmt = f"{self.bot.latency * 1000:,.2f}"
+        heartbeat_ms = ("Heartbeat Latency", self.bot.latency * 1000)
 
-        pings = [
-            ["Heartbeat Latency", f"{hb_fmt} ms"],
-            ["Response Latency", f"{response_fmt} ms"],
-            ["Database Latency", f"{db_fmt} ms"]
-        ]
+        with ctx.embed() as e:
+            for typeof, result in typing_time_ms, db_time_ms, heartbeat_ms:
+                e.add_field(
+                    name=typeof,
+                    value=f"{result:,.2f} ms",
+                    inline=False
+                )
 
-        embed = self.bot.embed(ctx)
-        [embed.add_field(name=k, value=v) for k, v in pings]
-
-        await message.edit(content=None,
-                           embed=embed)
+            await ctx.send(embed=e)
 
     @commands.command(hidden=True, aliases=["hello"])
     async def hey(self, ctx: utils.CustomContext):
