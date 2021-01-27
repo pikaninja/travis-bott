@@ -342,12 +342,8 @@ class MyBot(commands.AutoShardedBot):
         await self.process_commands(message)
 
     async def on_guild_join(self, guild: discord.Guild):
-        await self.pool.execute(
-            "INSERT INTO guild_settings(guild_id, guild_prefix, owoify) VALUES($1, $2, $3)",
-            guild.id,
-            "tb!",
-            False,
-        )
+        sql = "INSERT INTO guild_settings(guild_id, guild_prefix, owoify) VALUES($1, DEFAULT, DEFAULT)"
+        await self.pool.execute(sql, guild.id)
 
         self.config[guild.id] = {
             "guild_prefix": "tb!",
@@ -360,6 +356,13 @@ class MyBot(commands.AutoShardedBot):
             f"I was just added to {guild.name} with {guild.member_count} members.",
             f"Now in {len(self.guilds)} guilds.",
         ]
+
+        human_count = sum(not m.bot for m in guild.members)
+        bot_count = sum(m.bot for m in guild.members)
+
+        if bot_count > human_count:
+            message.append("Do note this could potentially be a bot farm.")
+            message.append(f"Humans: {human_count} | Bots {bot_count}.")
 
         logger.info("\n".join(message))
 
