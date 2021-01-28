@@ -67,6 +67,8 @@ cogs = [
     "cogs.debug",
     "cogs.beta",
     "cogs.topgg",
+    "cogs.utils.help",
+    "cogs.utils.errorhandler",
     "cogs.custom.motherrussia",
     "cogs.custom.scrib",
     "cogs.custom.antinuke",
@@ -82,23 +84,6 @@ for cog in cogs:
     except Exception as e:
         logger.critical(f"{type(e).__name__} - {e}")
 
-# Utilities
-for file in os.listdir("./cogs/utils"):
-    if file.endswith(".py"):
-        try:
-            bot.load_extension(f"cogs.utils.{file[:-3]}")
-            logger.info(f"-> [MODULE] {file[:-3]} loaded.")
-        except Exception as e:
-            logger.critical(f"{type(e).__name__} - {e}")
-
-
-@bot.event
-async def on_ready():
-    logger.info(f"Logged in as -> {bot.user.name}")
-    logger.info(f"Client ID -> {bot.user.id}")
-    logger.info(f"Guild Count -> {len(bot.guilds)}")
-
 bot.ipc.start()
-
 token = bot.settings["tokens"]["main"] if os.name != "nt" else bot.settings["tokens"]["beta"]
 bot.run(token)

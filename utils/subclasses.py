@@ -327,6 +327,11 @@ class MyBot(commands.AutoShardedBot):
     async def get_context(self, message: discord.Message, *, cls=CustomContext):
         return await super().get_context(message, cls=cls)
 
+    async def on_ready(self):
+        logger.info(f"Logged in as -> {bot.user.name}")
+        logger.info(f"Client ID -> {bot.user.id}")
+        logger.info(f"Guild Count -> {len(bot.guilds)}")
+
     async def on_message(self, message: discord.Message):
         if not self.is_ready():
             return
