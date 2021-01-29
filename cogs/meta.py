@@ -842,6 +842,9 @@ class Meta(commands.Cog, name="meta"):
         {prefix}poll Question Here ? Choices, Here, Split, By, Commas
         """
 
+        with contextlib.suppress(discord.Forbidden):
+            await ctx.message.delete()
+
         if len(multi := query.split(" ? ")) > 1:
             emojis = []
 
