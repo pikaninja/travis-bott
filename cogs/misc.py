@@ -153,6 +153,26 @@ class Misc(commands.Cog, name="misc"):
         #         await ctx.guild.chunk()
 
     @commands.command()
+    async def status(self, ctx: utils.CustomContext):
+        """Gets the status of how Travis is doing right now."""
+
+        with ctx.embed() as e:
+            summary = []
+            latency = round(self.bot.latency * 1000, 2)
+            summary.append(f"Latency: {latency} ms.")
+
+            async with self.bot.session.get("https://www.travisbott.rocks/") as r:
+                if r.status != 200:
+                    summary.append(f"Website is returning a {r.status} status.")
+                else:
+                    summary.append(f"Website is fully operational.")
+
+            summary.append("Well the bot is online since you can see this message \N{THINKING FACE}.")
+
+            e.description = "\n".join(summary)
+            await ctx.send(embed=e)
+
+    @commands.command()
     async def lyrics(self, ctx: utils.CustomContext, *, song_name: str):
         """Get the lyrics to any given song, if the song is found."""
 
