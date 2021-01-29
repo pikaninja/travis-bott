@@ -67,6 +67,7 @@ cogs = [
     "cogs.debug",
     "cogs.beta",
     "cogs.topgg",
+    "cogs.logginglisteners",
     "cogs.utils.help",
     "cogs.utils.errorhandler",
     "cogs.custom.motherrussia",

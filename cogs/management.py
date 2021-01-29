@@ -325,42 +325,61 @@ class Management(commands.Cog, name="management"):
 
         await ctx.send(embed=embed)
 
-    @commands.group(invoke_without_command=True)
+    @commands.group(aliases=["log", "logs"], invoke_without_command=True)
     @commands.guild_only()
     @commands.has_permissions(manage_guild=True)
-    @commands.bot_has_permissions(manage_channels=True)
-    async def superlogs(self, ctx: utils.CustomContext, channel: discord.TextChannel):
-        """Sets the channel that all of Travis' logs go to."""
+    async def logging(self, ctx: utils.CustomContext):
+        """Base command for the logging commands."""
 
-        await self.bot.pool.execute(
-            "UPDATE guild_settings SET log_channel = $1 WHERE guild_id = $2",
-            channel.id,
-            ctx.guild.id,
+        await ctx.send_help(ctx.command)
+
+    @logging.command(name="set")
+    @commands.guild_only()
+    @commands.has_permissions(manage_guild=True)
+    async def logging_set(self, ctx: utils.CustomContext):
+        """Starts an interactive message to set up the logging channel."""
+
+        await ctx.send(
+            "Please enter the name, ID or mention of the channel you'd like logging to go to."
         )
-
-        self.bot.config[ctx.guild.id]["log_channel"] = channel.id
-        await ctx.send(f"Successfully set {channel.mention} to the super-logs channel.")
-
-    @superlogs.command(name="off")
-    @commands.guild_only()
-    @commands.has_permissions(manage_guild=True)
-    @commands.bot_has_permissions(manage_channels=True)
-    async def superlogs_off(self, ctx: utils.CustomContext):
-        """Removes the superlog channel off Travis."""
+        try:
+            channel = await self.bot.convert_message(
+                ctx,
+                commands.TextChannelConverter(),
+                timeout=60.0,
+                check=lambda m: m.author.id == ctx.author.id and m.channel.id == ctx.channel.id
+            )
+        except asyncio.TimeoutError:
+            return await ctx.send("You did not reply within 1 minute, aborting.",
+                                  new_message=True)
 
         try:
-            log_channel_id = self.bot.config[ctx.guild.id]["log_channel"]
-        except KeyError:
-            return await ctx.send("You do not have super-logging enabled in this guild.")
+            await channel.send("Alright this channel is now set as the logging channel.")
+        except (discord.HTTPException, discord.Forbidden):
+            return await ctx.send("I do not have permissions to send messages here.")
 
-        await self.bot.pool.execute(
-            "UPDATE guild_settings SET log_channel = $1 WHERE guild_id = $2",
-            None,
-            ctx.guild.id,
-        )
+        await ctx.thumbsup()
 
-        del self.bot.config[ctx.guild.id]["log_channel"]
-        await ctx.send(f"Successfully removed the logging channel for this guild.")
+        sql = "UPDATE guild_settings SET log_channel = $1 WHERE guild_id = $2;"
+        values = (channel.id, ctx.guild.id)
+        
+        await self.bot.pool.execute(sql, *values)
+        self.bot.config[ctx.guild.id]["log_channel"] = channel.id
+
+    @logging.command(name="unset")
+    @commands.guild_only()
+    @commands.has_permissions(manage_guild=True)
+    async def logging_unset(self, ctx: utils.CustomContext):
+        """Sets up an interactive message to unset logging."""
+
+        log_channel = self.bot.config.get(ctx.guild.id).get("log_channel", None)
+
+        if log_channel:
+            return await ctx.send("You do not have logging set up, therefore can't remove it.")
+
+        sql = "UPDATE guild_settings SET log_channel = NULL WHERE guild_id = $1;"
+        await self.bot.pool.execute(sql, ctx.guild.id)
+        self.bot.confg[ctx.guild.id]["log_channel"] = None
 
     @commands.command()
     @commands.guild_only()
@@ -374,8 +393,8 @@ class Management(commands.Cog, name="management"):
                 mute_role_id = self.bot.config[ctx.guild.id]["mute_role_id"]
             except KeyError:
                 fmt = (
-                    f"There is no mute role set for this server... set one using "
-                    "`{ctx.prefix}muterole [Role Name Here]`"
+                    "There is no mute role set for this server... set one using "
+                    f"`{ctx.prefix}muterole [Role Name Here]`"
                 )
                 return await ctx.send(fmt)
 

@@ -55,7 +55,11 @@ async def get_prefix(bot: commands.AutoShardedBot, message: discord.Message):
         base.append("tb!")
         return base
 
-    prefix = bot.config[message.guild.id].get("guild_prefix", "tb!")
+    try:
+        prefix = bot.config[message.guild.id]["guild_prefix"]
+    except KeyError:
+        prefix = "tb!"
+
     base.append(prefix)
 
     if await bot.is_owner(message.author):
@@ -328,9 +332,9 @@ class MyBot(commands.AutoShardedBot):
         return await super().get_context(message, cls=cls)
 
     async def on_ready(self):
-        logger.info(f"Logged in as -> {bot.user.name}")
-        logger.info(f"Client ID -> {bot.user.id}")
-        logger.info(f"Guild Count -> {len(bot.guilds)}")
+        logger.info(f"Logged in as -> {self.user.name}")
+        logger.info(f"Client ID -> {self.user.id}")
+        logger.info(f"Guild Count -> {len(self.guilds)}")
 
     async def on_message(self, message: discord.Message):
         if not self.is_ready():
@@ -429,6 +433,18 @@ class MyBot(commands.AutoShardedBot):
     async def reply(self, message_id: int, content: str, **kwargs):
         message = self._connection._get_message(message_id)
         await message.reply(content, **kwargs)
+
+    async def convert_message(self, ctx: CustomContext, converter: callable, **kwargs):
+        """Helper function that just does Client.wait_for under the hood but then
+        converts using the given converter."""
+
+        timeout = kwargs.pop("timeout", None)
+        check = kwargs.pop("check", None)
+
+        result = await self.wait_for("message", timeout=timeout, check=check)
+
+        converted = await converter.convert(ctx, result.content)
+        return converted
 
     async def add_delete_reaction(self, channel_id: int, message_id: int):
         """Adds a reaction to delete the given message."""
