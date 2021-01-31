@@ -30,6 +30,8 @@ import copy
 import pytesseract
 import discord
 import pathlib
+import textwrap
+from contextlib import redirect_stdout
 from jishaku.codeblocks import codeblock_converter
 from PIL import Image as PILImage
 from discord.ext import menus
@@ -373,63 +375,56 @@ class Developer(Cog, command_attrs=dict(hidden=True)):
                 fmt
             )
 
-    @dev.command(name="ev")
+    @dev.command(name="eval", aliases=["ev"])
     async def dev_ev(self, ctx: utils.CustomContext, *, code: codeblock_converter):
         """Evaluates Python Code."""
 
+        env = {
+            "bot": self.bot,
+            "ctx": ctx,
+            "channel": ctx.channel,
+            "author": ctx.author,
+            "guild": ctx.guild,
+            "message": ctx.message,
+            "_": self._last_result
+        }
+
+        env.update(globals())
+
+        body = code.content
+        stdout = io.StringIO()
+
+        to_compile = f"async def func():\n{textwrap.indent(body, '  ')}"
+
         try:
-            block = ast.parse(code.content, mode="exec")
-            last = ast.Expression(block.body.pop().value)
-
-            _globals = {
-                "ctx": ctx,
-                "bot": ctx.bot,
-                "guild": ctx.guild,
-                "author": ctx.author,
-                "message": ctx.message,
-                "channel": ctx.channel,
-                "get": discord.utils.get,
-                "find": discord.utils.find,
-                "_": self._last_result,
-            }
-
-            _globals.update(globals())
-            _locals = {}
-
-            _eval = eval(compile(last, "<string>", mode="eval"),
-                         _globals, _locals)
-            exec(compile(block, "<string>", mode="exec"), _globals, _locals)
-
-            if inspect.isawaitable(_eval):
-                result = await _eval
-            else:
-                result = _eval
+            exec(to_compile, env)
         except Exception as e:
-            await ctx.message.add_reaction("\N{THUMBS DOWN SIGN}")
-            fmt_exc = f"{type(e).__name__}: {e}"
-            content = utils.codeblock(
-                f"\n{''.join(traceback.format_tb(e.__traceback__))}\n{fmt_exc}"
-            )
-            return await ctx.send(content)
+            ret = utils.codeblock(f"{e.__class__.__name__}: {e}")
+            return await ctx.send(ret)
 
-        await ctx.message.add_reaction("\N{OK HAND SIGN}")
-        self._last_result = result
+        func = env["func"]
+        try:
+            with redirect_stdout(stdout):
+                ret = await func()
+        except Exception as e:
+            value = stdout.getvalue()
+            ret = utils.codeblock(f"{value}{traceback.format_exc()}")
+            await ctx.send(ret)
+        else:
+            value = stdout.getvalue()
+            try:
+                await ctx.message.add_reaction("\U0001f44c")
+            except:
+                pass
 
-        if isinstance(result, discord.Embed):
-            return await ctx.send(embed=result)
-
-        if not isinstance(result, (str, discord.Message)):
-            result = repr(result)
-
-            if len(result) > 1500:
-                result = await self.bot.mystbin(self.bot.session,
-                                                result)
-
-            content = utils.codeblock(result)
-            return await ctx.send(content)
-
-        content = utils.codeblock(result)
-        return await ctx.send(content, new_message=True)
+            if ret is None:
+                if value:
+                    ret = utils.codeblock(f"{value}")
+                    await ctx.send(ret)
+            else:
+                self._last_result = ret
+                ret = utils.codeblock(f"{value}{ret}")
+                await ctx.send(ret)
 
 
 def setup(bot):

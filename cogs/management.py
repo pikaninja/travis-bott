@@ -126,6 +126,7 @@ class Management(commands.Cog, name="management"):
             await self.bot.pool.execute("UPDATE guild_settings SET mute_role_id = NULL WHERE guild_id = $1",
                                         channel.guild.id)
             self.bot.config[channel.guild.id]["mute_role_id"] = None
+            return
 
         role_overwrites = channel.overwrites_for(role)
         role_overwrites.update(send_messages=False)
