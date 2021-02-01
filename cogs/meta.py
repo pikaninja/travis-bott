@@ -20,13 +20,12 @@ import argparse
 import logging
 import os
 import re
-
 import utils
 import cse
 import contextlib
 import psutil
 import discord
-import typing
+import typing as t
 import numexpr
 import humanize
 from jishaku.codeblocks import codeblock_converter
@@ -151,8 +150,14 @@ class Meta(commands.Cog, name="meta"):
         return resultant_task["id"]
 
     @commands.command(aliases=["readthefuckingsource"])
-    async def rtfs(self, ctx: utils.CustomContext, *, query: str):
+    async def rtfs(self, ctx: utils.CustomContext, *, query: t.Optional[str]):
         """Queries the discord.py source with a given search."""
+
+        if not query:
+            return await ctx.send(
+                "You didn't provide a query, "
+                "here's the link to the source. <https://github.com/Rapptz/discord.py/>"
+            )
 
         params = {
             "query": query,
@@ -364,7 +369,7 @@ class Meta(commands.Cog, name="meta"):
         await ctx.send("Successfully added those tasks to your to-do list.")
 
     @todo.command(name="remove", aliases=["delete", "del"])
-    async def todo_remove(self, ctx: utils.CustomContext, *todo_ids: typing.Union[int, str]):
+    async def todo_remove(self, ctx: utils.CustomContext, *todo_ids: t.Union[int, str]):
         """Removes one or many of your to-do tasks by its ID.
         Do: `{prefix}to-do remove *` to remove all of your tasks."""
 
@@ -508,7 +513,7 @@ class Meta(commands.Cog, name="meta"):
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["av"])
-    async def avatar(self, ctx: utils.CustomContext, member: typing.Optional[discord.Member]):
+    async def avatar(self, ctx: utils.CustomContext, member: t.Optional[discord.Member]):
         """Get your own or another persons avatar."""
 
         member = member or ctx.author
@@ -704,7 +709,7 @@ class Meta(commands.Cog, name="meta"):
         await ctx.send(embed=embed)
 
     @commands.command()
-    async def channel(self, ctx: utils.CustomContext, channel: typing.Union[discord.TextChannel, discord.VoiceChannel] = None):
+    async def channel(self, ctx: utils.CustomContext, channel: t.Union[discord.TextChannel, discord.VoiceChannel] = None):
         """Gives you information on a channel."""
 
         channel = channel or ctx.channel
