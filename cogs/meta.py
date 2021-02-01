@@ -218,7 +218,7 @@ class Meta(commands.Cog, name="meta"):
 
     @rtfm.command(name="pil", aliases=["pillow"])
     async def rtfm_pil(self, ctx: utils.CustomContext, *, query: str):
-        """Queries the Pillow documentation for a given search."""            
+        """Queries the Pillow documentation for a given search."""
 
         embed = await self._get_embed_for_manual(
             ctx,
@@ -229,7 +229,7 @@ class Meta(commands.Cog, name="meta"):
 
     @rtfm.command(name="asyncpg", aliases=["apg"])
     async def rtfm_asyncpg(self, ctx: utils.CustomContext, *, query: str):
-        """Queries the Asyncpg documentation for a given search."""            
+        """Queries the Asyncpg documentation for a given search."""
 
         embed = await self._get_embed_for_manual(
             ctx,
@@ -240,7 +240,7 @@ class Meta(commands.Cog, name="meta"):
 
     @rtfm.command(name="aiohttp", aliases=["http"])
     async def rtfm_aiohttp(self, ctx: utils.CustomContext, *, query: str):
-        """Queries the aiohttp documentation for a given search."""            
+        """Queries the aiohttp documentation for a given search."""
 
         embed = await self._get_embed_for_manual(
             ctx,
@@ -251,7 +251,7 @@ class Meta(commands.Cog, name="meta"):
 
     @rtfm.command(name="wand")
     async def rtfm_wand(self, ctx: utils.CustomContext, *, query: str):
-        """Queries the wand documentation for a given search."""            
+        """Queries the wand documentation for a given search."""
 
         embed = await self._get_embed_for_manual(
             ctx,

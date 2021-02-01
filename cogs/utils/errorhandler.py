@@ -250,7 +250,7 @@ class ErrorHandler(Cog):
             title="Uhoh an error has occurred...",
             description=(
                 "Here's some details on it: ```py\n"
-                f"{tb}```"
+                f"{error}```"
             )
         ))
         await send_error(ctx, tb)
