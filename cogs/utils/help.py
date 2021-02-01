@@ -30,7 +30,7 @@ class GroupHelp(menus.ListPageSource):
 
     async def format_page(self, menu, cmds):
         embed = menu.ctx.bot.embed(menu.ctx)
-        command_name = f"{self.group.qualified_name}{'|' + '|'.join(self.group.aliases) if self.group.aliases else ''}"
+        command_name = f"{self.group.qualified_name}{' | ' + ' | '.join(self.group.aliases) if self.group.aliases else ''}"
         embed.title = f"{self.prefix}{command_name} {self.group.signature}"
         embed.description = (
             self.group.help.format(prefix=self.prefix) +
@@ -38,7 +38,7 @@ class GroupHelp(menus.ListPageSource):
         )
 
         for cmd in cmds:
-            command_name = f"{cmd.qualified_name}{'|' + '|'.join(cmd.aliases) if cmd.aliases else ''}"
+            command_name = f"{cmd.qualified_name}{' | ' + ' | '.join(cmd.aliases) if cmd.aliases else ''}"
             signature = f"{self.prefix}{command_name} {cmd.signature}"
             embed.add_field(
                 name=signature, value=cmd.help.format(prefix=self.prefix) or "No help given...", inline=False)
@@ -217,7 +217,7 @@ class CustomHelp(commands.HelpCommand):
             return await self.send_error_message(self.command_not_found(command.qualified_name))
 
         embed = self.context.bot.embed(self.context)
-        command_name = f"{command.qualified_name}{'|' + '|'.join(command.aliases) if command.aliases else ''}"
+        command_name = f"{command.qualified_name}{' | ' + ' | '.join(command.aliases) if command.aliases else ''}"
         embed.title = f"{self.clean_prefix}{command_name} {command.signature}"
         embed.description = (
             command.help +

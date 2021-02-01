@@ -150,6 +150,111 @@ class Meta(commands.Cog, name="meta"):
 
         return resultant_task["id"]
 
+    @commands.command(aliases=["readthefuckingsource"])
+    async def rtfs(self, ctx: utils.CustomContext, *, query: str):
+        """Queries the discord.py source with a given search."""
+
+        params = {
+            "query": query,
+            "library": "discord.py",
+        }
+
+        url = "https://idevision.net/api/public/rtfs"
+        async with self.bot.session.get(url, params=params) as resp:
+            if resp.status != 200:
+                return await ctx.send(f"The API returned a {resp.status} status.")
+
+            data = await resp.json()
+            embed = self.bot.embed(ctx)
+
+            description = []
+
+            for node_name, url_source in data["nodes"].items():
+                description.append(f"[`{node_name}`]({url_source})")
+
+            embed.description = "\n".join(description)
+
+            await ctx.send(embed=embed)
+
+    async def _get_embed_for_manual(self, ctx: utils.CustomContext, location: str, query: str):
+        params = {
+            "query": query,
+            "location": location,
+            "show-labels": "true" if query.startswith("label:") else "false",
+            "label-labels": "true",
+        }
+
+        url = "https://idevision.net/api/public/rtfm"
+        async with self.bot.session.get(url, params=params) as resp:
+            if resp.status != 200:
+                raise commands.BadArgument("Couldn't find that, sorry!")
+
+            data = await resp.json()
+            embed = self.bot.embed(ctx)
+
+            description = []
+
+            for node_name, url_source in data["nodes"].items():
+                description.append(f"[`{node_name}`]({url_source})")
+            
+            embed.description = "\n".join(description)
+            return embed
+
+    @commands.group(aliases=["rtfd", "readthefuckingdocs", "readthefuckingmanual"], invoke_without_command=True)
+    async def rtfm(self, ctx: utils.CustomContext, *, query: str):
+        """Queries the discord.py documentation with a given search."""
+
+        embed = await self._get_embed_for_manual(
+            ctx,
+            "https://discordpy.readthedocs.io/en/latest/",
+            query
+        )
+        await ctx.send(embed=embed)
+
+    @rtfm.command(name="pil", aliases=["pillow"])
+    async def rtfm_pil(self, ctx: utils.CustomContext, *, query: str):
+        """Queries the Pillow documentation for a given search."""            
+
+        embed = await self._get_embed_for_manual(
+            ctx,
+            "https://pillow.readthedocs.io/en/stable/",
+            query
+        )
+        await ctx.send(embed=embed)
+
+    @rtfm.command(name="asyncpg", aliases=["apg"])
+    async def rtfm_asyncpg(self, ctx: utils.CustomContext, *, query: str):
+        """Queries the Asyncpg documentation for a given search."""            
+
+        embed = await self._get_embed_for_manual(
+            ctx,
+            "https://magicstack.github.io/asyncpg/current/",
+            query
+        )
+        await ctx.send(embed=embed)
+
+    @rtfm.command(name="aiohttp", aliases=["http"])
+    async def rtfm_aiohttp(self, ctx: utils.CustomContext, *, query: str):
+        """Queries the aiohttp documentation for a given search."""            
+
+        embed = await self._get_embed_for_manual(
+            ctx,
+            "https://docs.aiohttp.org/en/stable/",
+            query
+        )
+        await ctx.send(embed=embed) # https://docs.wand-py.org/en/0.6.5/
+
+    @rtfm.command(name="wand")
+    async def rtfm_wand(self, ctx: utils.CustomContext, *, query: str):
+        """Queries the wand documentation for a given search."""            
+
+        embed = await self._get_embed_for_manual(
+            ctx,
+            "https://docs.wand-py.org/en/0.6.5/",
+            query
+        )
+        await ctx.send(embed=embed)
+
     @commands.command(name="run")
     async def _run(self, ctx: utils.CustomContext, *, code: codeblock_converter):
         """Runs a given piece of code.
