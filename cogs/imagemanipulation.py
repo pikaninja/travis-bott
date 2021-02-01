@@ -109,6 +109,15 @@ async def get_image(ctx: utils.CustomContext, argument: str):
         return image
 
 
+class ObjectURL(commands.Converter):
+    async def convert(self, ctx, arg):
+        try:
+            ret = await commands.MemberConverter().convert(ctx, arg)
+        except commands.MemberNotFound:
+            ret = await commands.PartialEmojiConverter().convert(ctx, arg)
+        return str(ret.url) if isinstance(ret, discord.PartialEmoji) else str(ret.avatar_url)
+
+
 class Manipulation:
 
     @staticmethod
@@ -322,6 +331,41 @@ class ImageManipulation(commands.Cog, name="imagemanipulation"):
 
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
+    async def braille(self, ctx: utils.CustomContext, *, what: ObjectURL = None):
+        """Turns a given image into braille."""
+
+        what = what or str(ctx.author.avatar_url)
+        braille = await self.bot.zane.braille(what)
+        await ctx.send(braille)
+
+    @commands.command()
+    @commands.cooldown(1, 3, commands.BucketType.member)
+    async def magik(self, ctx: utils.CustomContext, *, what: ObjectURL = None):
+        """Turns a given image into some magic stuff."""
+
+        what = what or str(ctx.author.avatar_url)
+        
+        async with ctx.typing():
+            magic = await self.bot.zane.magic(what)
+            magic = discord.File(magic, "magic.gif")
+
+            await ctx.send(file=magic)
+
+    @commands.command()
+    @commands.cooldown(1, 3, commands.BucketType.member)
+    async def floor(self, ctx: utils.CustomContext, *, what: ObjectURL = None):
+        """Gives a floor effect to a given image."""
+
+        what = what or str(ctx.author.avatar_url)
+        
+        async with ctx.typing():
+            floor = await self.bot.zane.floor(what)
+            floor = discord.File(floor, "floor.gif")
+
+            await ctx.send(file=floor)
+
+    @commands.command()
+    @commands.cooldown(1, 3, commands.BucketType.member)
     async def rainbow(self, ctx: utils.CustomContext, what: str = None):
         """Applies a rainbow effect to a given image."""
 
@@ -396,48 +440,6 @@ class ImageManipulation(commands.Cog, name="imagemanipulation"):
                     file=file,
                     embed=embed
                 )
-
-    @commands.command()
-    @commands.cooldown(1, 3, commands.BucketType.member)
-    async def floor(self, ctx: utils.CustomContext, what=None):
-        """Puts an image on a floor."""
-
-        async with ctx.timeit:
-            async with ctx.typing():
-                image = await get_image(ctx, what)
-                buffer = BytesIO(image)
-
-                func = functools.partial(Manipulation.floor, buffer)
-                buffer = await self.bot.loop.run_in_executor(None, func)
-
-                embed = self.bot.embed(ctx)
-                file = discord.File(fp=buffer, filename="floor.png")
-                embed.set_image(url="attachment://floor.png")
-
-                await ctx.send(
-                    file=file,
-                    embed=embed
-                )
-
-    @commands.command()
-    @commands.cooldown(1, 3, commands.BucketType.member)
-    async def magik(self, ctx: utils.CustomContext, what: typing.Optional[str]):
-        """I'm pretty sure you've seen this command before"""
-
-        async with ctx.timeit:
-            async with ctx.typing():
-                what = await get_image(ctx, what)
-                buffer = BytesIO(what)
-
-                func = functools.partial(Manipulation.magik, buffer)
-                buffer = await self.bot.loop.run_in_executor(None, func)
-
-                embed = self.bot.embed(ctx)
-                file = discord.File(buffer, filename="magik.png")
-                embed.set_image(url="attachment://magik.png")
-
-                await ctx.send(file=file,
-                               embed=embed)
 
     @commands.command(aliases=["ft"])
     @commands.cooldown(1, 3, commands.BucketType.member)

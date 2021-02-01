@@ -17,13 +17,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
 
 import uuid
-import typing
 import logging
-
 import discord
-
 import utils
-
+import typing as t
 from discord.ext import commands, menus
 
 
@@ -62,17 +59,17 @@ class Tags(commands.Cog, name="tags"):
             self.__class__.__name__, logging.INFO)
 
     async def cog_check(self, ctx: utils.CustomContext):
-        return True if ctx.guild else False
+        return hasattr(ctx, 'guild')
 
     def _is_privileged(self, ctx: utils.CustomContext):
         return ctx.author.guild_permissions.manage_messages
 
     @commands.group(invoke_without_command=True)
-    async def tag(self, ctx: utils.CustomContext, tag: str = None):
+    async def tag(self, ctx: utils.CustomContext, tag: t.Optional[str]):
         """The base command for everything to do with tags.
         Note: These tags are not global and only stay within the server they're created in."""
 
-        if tag is None:
+        if not tag:
             return await ctx.send_help(ctx.command)
 
         tag = await self.bot.pool.fetchrow('SELECT * FROM tags WHERE title = $1', tag)
@@ -83,7 +80,7 @@ class Tags(commands.Cog, name="tags"):
         await ctx.send(tag['content'])
 
     @tag.command(name="list")
-    async def tag_list(self, ctx: utils.CustomContext, *, user: typing.Optional[discord.Member]):
+    async def tag_list(self, ctx: utils.CustomContext, *, user: t.Optional[discord.Member]):
         """Gets the list of tags of a current user, or yourself.
         Example: `{prefix}tag list @kal#1806`"""
 

@@ -26,3 +26,4 @@ toml==0.10.2
 uvloop==0.14.0
 discord-ext-ipc==1.0
 ksoftapi==0.3.3a0
+aiozaneapi==1.1

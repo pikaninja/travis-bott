@@ -25,6 +25,7 @@ import time
 import asyncpg
 import discord
 import aiohttp
+import aiozaneapi
 from contextlib import ContextDecorator, contextmanager
 from discord.ext import commands
 from datetime import datetime as dt
@@ -215,6 +216,10 @@ class MyBot(commands.AutoShardedBot):
         self.loop.create_task(self.do_prep())
         self.loop.create_task(self.chunk_all_guilds())
 
+        # API Wrappers
+        self.zane = aiozaneapi.Client(self.settings["keys"]["zane_api"])
+
+
     @property
     def colour(self):
         c = dt.utcnow()
@@ -231,6 +236,7 @@ class MyBot(commands.AutoShardedBot):
     async def close(self):
         await self.session.close()
         await self.pool.close()
+        await self.zane_api.close()
         await super().close()
 
     async def chunk_all_guilds(self):
