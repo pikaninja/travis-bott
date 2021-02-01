@@ -350,6 +350,8 @@ class MyBot(commands.AutoShardedBot):
         await self.process_commands(message)
 
     async def on_guild_join(self, guild: discord.Guild):
+        await guild.chunk()
+
         sql = "INSERT INTO guild_settings(guild_id, guild_prefix, owoify) VALUES($1, DEFAULT, DEFAULT)"
         await self.pool.execute(sql, guild.id)
 
@@ -376,8 +378,6 @@ class MyBot(commands.AutoShardedBot):
 
         await self.guild_webhook.send(content="\n".join(message),
                                       username="Added to guild.")
-
-        await guild.chunk()
 
     async def on_guild_remove(self, guild: discord.Guild):
         await self.pool.execute(
