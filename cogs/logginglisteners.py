@@ -25,46 +25,48 @@ class Listeners(commands.Cog):
 
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
-        created_at = utils.format_time(member.created_at)
-        created_at_fmt = f'{created_at["date"]} ({created_at["precise"]})'
+        pass
+        # created_at = utils.format_time(member.created_at)
+        # created_at_fmt = f'{created_at["date"]} ({created_at["precise"]})'
 
-        fields = [
-            ["Member Name", member.name, False],
-            ["Member Created at", created_at_fmt, False],
-            ["Member Mention", f'`{member.mention}`', False],
-            ["Member ID", f'{member.id}', False],
-        ]
+        # fields = [
+        #     ["Member Name", member.name, False],
+        #     ["Member Created at", created_at_fmt, False],
+        #     ["Member Mention", f'`{member.mention}`', False],
+        #     ["Member ID", f'{member.id}', False],
+        # ]
 
-        thumbnail_url = str(member.avatar_url)
-        await self.do_logging(
-            member.guild,
-            fields,
-            thumbnail=thumbnail_url,
-            title="Member Joined."
-        )
+        # thumbnail_url = str(member.avatar_url)
+        # await self.do_logging(
+        #     member.guild,
+        #     fields,
+        #     thumbnail=thumbnail_url,
+        #     title="Member Joined."
+        # )
 
     @commands.Cog.listener()
     async def on_member_remove(self, member: discord.Member):
-        created_at = utils.format_time(member.created_at)
-        joined_at = utils.format_time(member.joined_at)
-        created_at_fmt = f'{created_at["date"]} ({created_at["precise"]})'
-        joined_at_fmt = f'{joined_at["date"]} ({joined_at["precise"]})'
+        pass
+        # created_at = utils.format_time(member.created_at)
+        # joined_at = utils.format_time(member.joined_at)
+        # created_at_fmt = f'{created_at["date"]} ({created_at["precise"]})'
+        # joined_at_fmt = f'{joined_at["date"]} ({joined_at["precise"]})'
 
-        fields = [
-            ["Member Name", member.name, False],
-            ["Member Created at", created_at_fmt, False],
-            ["Member Joined at", joined_at_fmt, False],
-            ["Member Mention", f'`{member.mention}`', False],
-            ["Member ID", f'{member.id}', False],
-        ]
+        # fields = [
+        #     ["Member Name", member.name, False],
+        #     ["Member Created at", created_at_fmt, False],
+        #     ["Member Joined at", joined_at_fmt, False],
+        #     ["Member Mention", f'`{member.mention}`', False],
+        #     ["Member ID", f'{member.id}', False],
+        # ]
 
-        thumbnail_url = str(member.avatar_url)
-        await self.do_logging(
-            member.guild,
-            fields,
-            thumbnail=thumbnail_url,
-            title="Member Removed."
-        )
+        # thumbnail_url = str(member.avatar_url)
+        # await self.do_logging(
+        #     member.guild,
+        #     fields,
+        #     thumbnail=thumbnail_url,
+        #     title="Member Removed."
+        # )
 
 
 def setup(bot):

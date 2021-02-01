@@ -694,19 +694,21 @@ class Meta(commands.Cog, name="meta"):
 
             await ctx.send(embed=embed)
 
-    @commands.command(aliases=["calc"])
-    async def calculate(self, ctx: utils.CustomContext, *, equation: str = None):
-        """Gives you the answer to (basic) calculations."""
+    # @commands.command(aliases=["calc"])
+    # async def calculate(self, ctx: utils.CustomContext, *, equation: str = None):
+    #     """Gives you the answer to (basic) calculations."""
 
-        if "x" in equation:
-            equation = equation.replace("x", "*")
-        result = numexpr.evaluate(str(equation)).item()
-        embed = self.bot.embed(
-            ctx,
-            title=f"Result of {equation}:",
-            description=f"{result}"
-        )
-        await ctx.send(embed=embed)
+    #     try:
+    #         res = utils.calculator(equation)
+    #     except Exception as e:
+    #         return await ctx.send(f"{e}")
+
+    #     embed = self.bot.embed(
+    #         ctx,
+    #         title=f"Result of {equation}:",
+    #         description=f"{res}"
+    #     )
+    #     await ctx.send(embed=embed)
 
     @commands.command(aliases=["userinfo", "ui"])
     @commands.guild_only()

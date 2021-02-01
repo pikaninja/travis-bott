@@ -505,6 +505,24 @@ class Misc(commands.Cog, name="misc"):
 
         await ctx.send(embed=embed)
 
+    @commands.command()
+    async def privacy(self, ctx: utils.CustomContext):
+        """Sends the bots privacy policy statement."""
+
+        fmt = (
+            "Travis Bott doesn't store much data, but here is what it *does* store and why:\n"
+            "User ID's get stored for numerous things such as cookie clicker leaderboards, "
+            "When someone gets muted in a server etc. Guild ID's get stored also for things "
+            "such as configuration purposes e.g. prefixes and mute role ids. Message ID's get "
+            "stored so we're able to corrolate them to roles for our verification command.\n"
+            "If you have any questions or would like any of your data removed, contact kal#1806 "
+            "via discord, either add them or via the support server."
+        )
+
+        with ctx.embed() as e:
+            e.description = fmt
+            await ctx.send(embed=e)
+
 
 def setup(bot):
     bot.add_cog(Misc(bot))
