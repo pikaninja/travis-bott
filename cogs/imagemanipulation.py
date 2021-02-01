@@ -111,6 +111,11 @@ async def get_image(ctx: utils.CustomContext, argument: str):
 
 class ObjectURL(commands.Converter):
     async def convert(self, ctx, arg):
+        url_regex = "http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
+
+        if re.match(url_regex, arg):
+            return arg
+
         try:
             ret = await commands.MemberConverter().convert(ctx, arg)
         except commands.MemberNotFound:
@@ -329,6 +334,13 @@ class ImageManipulation(commands.Cog, name="imagemanipulation"):
         self.logger = utils.create_logger(
             self.__class__.__name__, logging.INFO)
 
+    async def do_zane(self, ctx: utils.CustomContext, what: str, method: callable, gif_or_png: str):
+        async with ctx.typing():
+            get_image = await method(what)
+            discord_file = discord.File(get_image, f"hellomagicman.{gif_or_png}")
+
+            await ctx.send(file=discord_file)
+
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
     async def braille(self, ctx: utils.CustomContext, *, what: ObjectURL = None):
@@ -344,12 +356,7 @@ class ImageManipulation(commands.Cog, name="imagemanipulation"):
         """Turns a given image into some magic stuff."""
 
         what = what or str(ctx.author.avatar_url)
-        
-        async with ctx.typing():
-            magic = await self.bot.zane.magic(what)
-            magic = discord.File(magic, "magic.gif")
-
-            await ctx.send(file=magic)
+        await self.do_zane(ctx, what, self.bot.zane.magic, "gif")
 
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
@@ -357,12 +364,7 @@ class ImageManipulation(commands.Cog, name="imagemanipulation"):
         """Gives a floor effect to a given image."""
 
         what = what or str(ctx.author.avatar_url)
-        
-        async with ctx.typing():
-            floor = await self.bot.zane.floor(what)
-            floor = discord.File(floor, "floor.gif")
-
-            await ctx.send(file=floor)
+        await self.do_zane(ctx, what, self.bot.zane.floor, "gif")
 
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
