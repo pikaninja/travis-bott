@@ -236,7 +236,7 @@ class MyBot(commands.AutoShardedBot):
     async def close(self):
         await self.session.close()
         await self.pool.close()
-        await self.zane_api.close()
+        await self.zane.close()
         await super().close()
 
     async def chunk_all_guilds(self):

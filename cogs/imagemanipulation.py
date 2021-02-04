@@ -343,6 +343,14 @@ class ImageManipulation(commands.Cog, name="imagemanipulation"):
 
     @commands.command()
     @commands.cooldown(1, 3, commands.BucketType.member)
+    async def deepfry(self, ctx: utils.CustomContext, *, what: ObjectURL = None):
+        """Gives a deepfry effect onto a given image."""
+
+        what = what or str(ctx.author.avatar_url)
+        await self.do_zane(ctx, what, self.bot.zane.deepfry, "png")
+
+    @commands.command()
+    @commands.cooldown(1, 3, commands.BucketType.member)
     async def braille(self, ctx: utils.CustomContext, *, what: ObjectURL = None):
         """Turns a given image into braille."""
 
