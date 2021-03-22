@@ -14,7 +14,7 @@ asyncdagpi==3.2.2
 wavelink==0.9.6
 dateparser==1.0.0
 vacefron.py==1.5.0
-Pillow==8.1.0
+Pillow==8.1.1
 twemoji-parser==0.4.2
 pytesseract==0.3.7
 CurrencyConverter==0.14.4
