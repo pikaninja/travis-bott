@@ -86,5 +86,9 @@ for cog in cogs:
         logger.critical(f"{type(e).__name__} - {e}")
 
 bot.ipc.start()
-token = bot.settings["tokens"]["main"] if os.name != "nt" else bot.settings["tokens"]["beta"]
-bot.run(token)
+
+if os.name == "nt":
+    TOKEN = bot.settings["tokens"]["beta"]
+else:
+    TOKEN = bot.settings["tokens"]["main"]
+bot.run(TOKEN)
